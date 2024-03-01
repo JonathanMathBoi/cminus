@@ -131,7 +131,7 @@ Token lexer::eat_keyword_or_id ()
     do {
         lexeme += get_char ();
         m_colNum++;
-    } while (is_alphanum (peek_char ()));
+    } while (is_alphanum (peek_char ()) || peek_char () == '_');
 
     if (keywords.contains (lexeme)) {
         return Token {keywords.at (lexeme), lexeme};
