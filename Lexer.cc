@@ -6,9 +6,9 @@
 #include <algorithm>
 
 lexer::lexer (std::ifstream&& source_file)
-    : m_sourceFile (std::move (source_file))
-    , m_lineNum (1)
-    , m_colNum (0)
+    : m_sourceFile {std::move (source_file)}
+    , m_lineNum {1}
+    , m_colNum {0}
 {}
 
 int lexer::get_line_num () const
@@ -35,25 +35,25 @@ Token lexer::get_token ()
     {
     /* Special Chars */
     case EOF:
-        return Token (END_OF_FILE);
+        return Token {END_OF_FILE};
 
     /* Punctuators */
     case ';':
-        return Token (SEMI, ";");
+        return Token {SEMI, ";"};
     case ',':
-        return Token (COMMA, ",");
+        return Token {COMMA, ","};
     case '(':
-        return Token (LPAREN, "(");
+        return Token {LPAREN, "("};
     case ')':
-        return Token (RPAREN, ")");
+        return Token {RPAREN, ")"};
     case '[':
-        return Token (LBRACK, "[");
+        return Token {LBRACK, "["};
     case ']':
-        return Token (RBRACK, "]");
+        return Token {RBRACK, "]"};
     case '{':
-        return Token (LBRACE, "{");
+        return Token {LBRACE, "{"};
     case '}':
-        return Token (RBRACE, "}");
+        return Token {RBRACE, "}"};
     
     /* Simple Operators */
     case '+':
@@ -61,7 +61,7 @@ Token lexer::get_token ()
     case '-':
         return next_or_else('-', '-', DECREMENT, MINUS);
     case '*':
-        return Token (TIMES, "*");
+        return Token {TIMES, "*"};
 
     /* Divison and Comments */
     case '/':
@@ -72,7 +72,7 @@ Token lexer::get_token ()
            return get_token ();
        }
        m_sourceFile.putback(next);
-       return Token (DIVIDE, "/");
+       return Token {DIVIDE, "/"};
 
     /* Equals and Assign */
     case '=':
@@ -89,7 +89,7 @@ Token lexer::get_token ()
     default:
        if (!is_alphanum(c)) {
            std::string lexeme {c};
-           return Token (ERROR, lexeme);
+           return Token {ERROR, lexeme};
        }
 
        // Move cursor back for literal, keyword, and id handling
@@ -123,7 +123,7 @@ Token lexer::eat_literal ()
 
         m_sourceFile.putback(c);
 
-        return Token (ERROR, lexeme);
+        return Token {ERROR, lexeme};
     }
 
     m_sourceFile.putback(c);
@@ -133,7 +133,7 @@ Token lexer::eat_literal ()
     num.erase(std::remove(num.begin(), num.end(), '_'), num.end());
     int value = std::stoi (num);
 
-    return Token (NUM, lexeme, value);
+    return Token {NUM, lexeme, value};
 }
 
 Token lexer::eat_keyword_or_id ()
@@ -149,10 +149,10 @@ Token lexer::eat_keyword_or_id ()
     m_sourceFile.putback(c);
 
     if (keywords.contains (lexeme)) {
-        return Token (keywords.at (lexeme), lexeme);
+        return Token {keywords.at (lexeme), lexeme};
     }
 
-    return Token (ID, lexeme);
+    return Token {ID, lexeme};
 }
 
 Token
@@ -163,10 +163,10 @@ lexer::next_or_else (char cur, char look_for, TokenType found, TokenType not_fou
     if (next == look_for) {
         m_colNum++;
         lexeme += look_for;
-        return Token (found, lexeme);
+        return Token {found, lexeme};
     }
     m_sourceFile.putback(next);
-    return Token (not_found, lexeme);
+    return Token {not_found, lexeme};
 }
 
 void lexer::eat_comment ()
