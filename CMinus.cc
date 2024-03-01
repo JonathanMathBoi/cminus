@@ -106,8 +106,8 @@ int main (int argc, char* argv[]) {
 
     Token token {END_OF_FILE};
     do {
-        token = lexer.getToken ();
-        print_token(token, lexer.getLineNum(), lexer.getColumnNum());
+        token = lexer.get_token ();
+        print_token(token, lexer.get_line_num(), lexer.get_column_num());
     } while (token.type != END_OF_FILE);
 }
 

@@ -5,27 +5,27 @@
 #include <string>
 #include <algorithm>
 
-lexer::lexer (std::ifstream&& sourceFile)
-    : m_sourceFile (std::move (sourceFile))
+lexer::lexer (std::ifstream&& source_file)
+    : m_sourceFile (std::move (source_file))
     , m_lineNum (1)
     , m_colNum (0)
 {}
 
-int lexer::getLineNum () const
+int lexer::get_line_num () const
 {
     return m_lineNum;
 }
 
-int lexer::getColumnNum () const
+int lexer::get_column_num () const
 {
     return m_colNum;
 }
 
-Token lexer::getToken ()
+Token lexer::get_token ()
 {
-    eatWhitespace ();
+    eat_whitespace ();
 
-    char c {getChar ()};
+    char c {get_char ()};
     m_colNum++;
 
     // Declared here as used in mutiple switch cases
@@ -57,34 +57,34 @@ Token lexer::getToken ()
     
     /* Simple Operators */
     case '+':
-        return nextOrElse('+', '+', INCREMENT, PLUS);
+        return next_or_else('+', '+', INCREMENT, PLUS);
     case '-':
-        return nextOrElse('-', '-', DECREMENT, MINUS);
+        return next_or_else('-', '-', DECREMENT, MINUS);
     case '*':
         return Token (TIMES, "*");
 
     /* Divison and Comments */
     case '/':
-       next = getChar ();
+       next = get_char ();
        if (next == '*') {
            m_colNum++;
-           eatComment ();
-           return getToken ();
+           eat_comment ();
+           return get_token ();
        }
        m_sourceFile.putback(next);
        return Token (DIVIDE, "/");
 
     /* Equals and Assign */
     case '=':
-       return nextOrElse('=', '=', EQ, ASSIGN);
+       return next_or_else('=', '=', EQ, ASSIGN);
     case '!':
-       return nextOrElse('!', '=', NEQ, ERROR);
+       return next_or_else('!', '=', NEQ, ERROR);
 
     /* Relational Operators */
     case '<':
-       return nextOrElse('<', '=', LTE, LT);
+       return next_or_else('<', '=', LTE, LT);
     case '>':
-       return nextOrElse('>', '=', GTE, GT);
+       return next_or_else('>', '=', GTE, GT);
 
     default:
        if (!is_alphanum(c)) {
@@ -97,28 +97,28 @@ Token lexer::getToken ()
        m_colNum--;
 
        if (is_digit(c)) {
-           return eatLiteral ();
+           return eat_literal ();
        }
 
-       return eatKeywordOrId ();
+       return eat_keyword_or_id ();
     }
 }
 
-Token lexer::eatLiteral ()
+Token lexer::eat_literal ()
 {
     std::string lexeme {};
-    char c {getChar ()};
+    char c {get_char ()};
     do {
         m_colNum++;
         lexeme += c;
-        c = getChar ();
+        c = get_char ();
     } while (c == '_' || is_digit(c));
 
     if (is_alpha(c)) {
         do {
             m_colNum++;
             lexeme += c;
-            c = getChar ();
+            c = get_char ();
         } while (is_alphanum(c));
 
         m_sourceFile.putback(c);
@@ -136,14 +136,14 @@ Token lexer::eatLiteral ()
     return Token (NUM, lexeme, value);
 }
 
-Token lexer::eatKeywordOrId ()
+Token lexer::eat_keyword_or_id ()
 {
     std::string lexeme {};
-    char c {getChar ()};
+    char c {get_char ()};
     do {
         m_colNum++;
         lexeme += c;
-        c = getChar ();
+        c = get_char ();
     } while (is_alphanum(c));
 
     m_sourceFile.putback(c);
@@ -156,28 +156,28 @@ Token lexer::eatKeywordOrId ()
 }
 
 Token
-lexer::nextOrElse (char cur, char lookFor, TokenType found, TokenType notFound)
+lexer::next_or_else (char cur, char look_for, TokenType found, TokenType not_found)
 {
     std::string lexeme {cur};
-    char next {getChar ()};
-    if (next == lookFor) {
+    char next {get_char ()};
+    if (next == look_for) {
         m_colNum++;
-        lexeme += lookFor;
+        lexeme += look_for;
         return Token (found, lexeme);
     }
     m_sourceFile.putback(next);
-    return Token (notFound, lexeme);
+    return Token (not_found, lexeme);
 }
 
-void lexer::eatComment ()
+void lexer::eat_comment ()
 {
-    char c {getChar ()};
+    char c {get_char ()};
     while (c != EOF) {
         char next;
 
         switch (c) {
         case '*':
-            next = getChar ();
+            next = get_char ();
             if (next == '/') {
                 m_colNum++;
                 return;
@@ -197,16 +197,16 @@ void lexer::eatComment ()
             m_colNum++;
             break;
         }
-        c = getChar ();
+        c = get_char ();
     }
 
     // If EOF is hit, put it back for getToken to hit
     m_sourceFile.putback(c);
 }
 
-void lexer::eatWhitespace ()
+void lexer::eat_whitespace ()
 {
-    char c {getChar ()};
+    char c {get_char ()};
     while (c == ' ' || c == '\t' || c == '\r' || c == '\n')
     {
         switch (c) {
@@ -223,12 +223,12 @@ void lexer::eatWhitespace ()
             m_colNum++;
             break;
         }
-        c = getChar ();
+        c = get_char ();
     }
     m_sourceFile.putback(c);
 }
 
-char lexer::getChar ()
+char lexer::get_char ()
 {
     return m_sourceFile.get();
 }
