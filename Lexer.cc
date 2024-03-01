@@ -141,7 +141,12 @@ Token lexer::eat_keyword_or_id ()
 }
 
 Token
-lexer::next_or_else (char cur, char look_for, TokenType found, TokenType not_found)
+lexer::next_or_else (
+    char cur,
+    char look_for,
+    TokenType found,
+    TokenType not_found
+)
 {
     std::string lexeme {cur};
     if (peek_char () == look_for) {
