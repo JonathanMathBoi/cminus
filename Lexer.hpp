@@ -58,23 +58,23 @@ const std::map<std::string, TokenType> keywords
 
 /***********************************************************************/
 
-class Lexer
+class lexer
 {
 public:
-  Lexer (std::ifstream&& sourceFile);
+  lexer (std::ifstream&& source_file);
 
   Token
-  getToken ();
+  get_token ();
 
   int
-  getLineNum () const;
+  get_line_num () const;
 
   int
-  getColumnNum () const;
+  get_column_num () const;
   
 private:
   char
-  getChar ();
+  get_char ();
 
   /**
    * Takes the current char and checks if the next char matches a given char.
@@ -89,19 +89,19 @@ private:
    * @returns the matched token
    */
   Token
-  nextOrElse (char cur, char lookFor, TokenType found, TokenType notFound);
+  next_or_else (char cur, char look_for, TokenType found, TokenType not_found);
 
   void
-  eatWhitespace ();
+  eat_whitespace ();
 
   void
-  eatComment ();
+  eat_comment ();
 
   Token
-  eatLiteral ();
+  eat_literal ();
 
   Token
-  eatKeywordOrId ();
+  eat_keyword_or_id ();
   
   // Additional helper methods
   // ...
