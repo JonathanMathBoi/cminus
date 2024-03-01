@@ -233,6 +233,11 @@ char lexer::get_char ()
     return m_sourceFile.get();
 }
 
+char lexer::peek_char ()
+{
+    return m_sourceFile.peek ();
+}
+
 bool is_alphanum(char c)
 {
     return std::isalnum (static_cast<unsigned char> (c));
