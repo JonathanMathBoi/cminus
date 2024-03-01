@@ -5,23 +5,23 @@
 #include <string>
 #include <algorithm>
 
-Lexer::Lexer (std::ifstream&& sourceFile)
+lexer::lexer (std::ifstream&& sourceFile)
     : m_sourceFile (std::move (sourceFile))
     , m_lineNum (1)
     , m_colNum (0)
 {}
 
-int Lexer::getLineNum () const
+int lexer::getLineNum () const
 {
     return m_lineNum;
 }
 
-int Lexer::getColumnNum () const
+int lexer::getColumnNum () const
 {
     return m_colNum;
 }
 
-Token Lexer::getToken ()
+Token lexer::getToken ()
 {
     eatWhitespace ();
 
@@ -104,7 +104,7 @@ Token Lexer::getToken ()
     }
 }
 
-Token Lexer::eatLiteral ()
+Token lexer::eatLiteral ()
 {
     std::string lexeme {};
     char c {getChar ()};
@@ -136,7 +136,7 @@ Token Lexer::eatLiteral ()
     return Token (NUM, lexeme, value);
 }
 
-Token Lexer::eatKeywordOrId ()
+Token lexer::eatKeywordOrId ()
 {
     std::string lexeme {};
     char c {getChar ()};
@@ -156,7 +156,7 @@ Token Lexer::eatKeywordOrId ()
 }
 
 Token
-Lexer::nextOrElse (char cur, char lookFor, TokenType found, TokenType notFound)
+lexer::nextOrElse (char cur, char lookFor, TokenType found, TokenType notFound)
 {
     std::string lexeme {cur};
     char next {getChar ()};
@@ -169,7 +169,7 @@ Lexer::nextOrElse (char cur, char lookFor, TokenType found, TokenType notFound)
     return Token (notFound, lexeme);
 }
 
-void Lexer::eatComment ()
+void lexer::eatComment ()
 {
     char c {getChar ()};
     while (c != EOF) {
@@ -204,7 +204,7 @@ void Lexer::eatComment ()
     m_sourceFile.putback(c);
 }
 
-void Lexer::eatWhitespace ()
+void lexer::eatWhitespace ()
 {
     char c {getChar ()};
     while (c == ' ' || c == '\t' || c == '\r' || c == '\n')
@@ -228,7 +228,7 @@ void Lexer::eatWhitespace ()
     m_sourceFile.putback(c);
 }
 
-char Lexer::getChar ()
+char lexer::getChar ()
 {
     return m_sourceFile.get();
 }

@@ -99,7 +99,7 @@ int main (int argc, char* argv[]) {
 
     std::ifstream source {argv[1]};
 
-    Lexer lexer {std::move (source)};
+    lexer lexer {std::move (source)};
 
     std::cout << "TOKEN               LEXEME              VALUE\n"
               << "=====               ======              =====" << std::endl;

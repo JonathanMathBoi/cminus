@@ -58,10 +58,10 @@ const std::map<std::string, TokenType> keywords
 
 /***********************************************************************/
 
-class Lexer
+class lexer
 {
 public:
-  Lexer (std::ifstream&& sourceFile);
+  lexer (std::ifstream&& sourceFile);
 
   Token
   getToken ();
