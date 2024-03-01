@@ -28,9 +28,6 @@ Token lexer::get_token ()
     char c {get_char ()};
     m_colNum++;
 
-    // Declared here as used in mutiple switch cases
-    char next;
-
     switch (c)
     {
     /* Special Chars */
@@ -65,14 +62,13 @@ Token lexer::get_token ()
 
     /* Divison and Comments */
     case '/':
-       next = get_char ();
-       if (next == '*') {
-           m_colNum++;
-           eat_comment ();
-           return get_token ();
-       }
-       m_sourceFile.putback(next);
-       return Token {DIVIDE, "/"};
+        if (peek_char () == '*') {
+            get_char ();
+            m_colNum++;
+            eat_comment ();
+            return get_token ();
+        }
+        return Token {DIVIDE, "/"};
 
     /* Equals and Assign */
     case '=':
@@ -107,26 +103,19 @@ Token lexer::get_token ()
 Token lexer::eat_literal ()
 {
     std::string lexeme {};
-    char c {get_char ()};
     do {
+        lexeme += get_char ();
         m_colNum++;
-        lexeme += c;
-        c = get_char ();
-    } while (c == '_' || is_digit(c));
+    } while (peek_char () == '_' || is_digit (peek_char ()));
 
-    if (is_alpha(c)) {
+    if (is_alpha (peek_char ())) {
         do {
+            lexeme += get_char ();
             m_colNum++;
-            lexeme += c;
-            c = get_char ();
-        } while (is_alphanum(c));
-
-        m_sourceFile.putback(c);
+        } while (is_alphanum (peek_char ()));
 
         return Token {ERROR, lexeme};
     }
-
-    m_sourceFile.putback(c);
 
     // Strip out '_'s
     std::string num {lexeme};
@@ -139,14 +128,10 @@ Token lexer::eat_literal ()
 Token lexer::eat_keyword_or_id ()
 {
     std::string lexeme {};
-    char c {get_char ()};
     do {
+        lexeme += get_char ();
         m_colNum++;
-        lexeme += c;
-        c = get_char ();
-    } while (is_alphanum(c));
-
-    m_sourceFile.putback(c);
+    } while (is_alphanum (peek_char ()) || peek_char () == '_');
 
     if (keywords.contains (lexeme)) {
         return Token {keywords.at (lexeme), lexeme};
@@ -156,16 +141,19 @@ Token lexer::eat_keyword_or_id ()
 }
 
 Token
-lexer::next_or_else (char cur, char look_for, TokenType found, TokenType not_found)
+lexer::next_or_else (
+    char cur,
+    char look_for,
+    TokenType found,
+    TokenType not_found
+)
 {
     std::string lexeme {cur};
-    char next {get_char ()};
-    if (next == look_for) {
+    if (peek_char () == look_for) {
+        lexeme += get_char ();
         m_colNum++;
-        lexeme += look_for;
         return Token {found, lexeme};
     }
-    m_sourceFile.putback(next);
     return Token {not_found, lexeme};
 }
 
@@ -173,16 +161,13 @@ void lexer::eat_comment ()
 {
     char c {get_char ()};
     while (c != EOF) {
-        char next;
-
         switch (c) {
         case '*':
-            next = get_char ();
-            if (next == '/') {
+            if (peek_char () == '/') {
+                get_char ();
                 m_colNum++;
                 return;
             }
-            m_sourceFile.putback(next);
             break;
         case '\n':
             m_lineNum++;
@@ -231,6 +216,11 @@ void lexer::eat_whitespace ()
 char lexer::get_char ()
 {
     return m_sourceFile.get();
+}
+
+char lexer::peek_char ()
+{
+    return m_sourceFile.peek ();
 }
 
 bool is_alphanum(char c)

@@ -76,6 +76,9 @@ private:
   char
   get_char ();
 
+  char
+  peek_char ();
+
   /**
    * Takes the current char and checks if the next char matches a given char.
    * If the next char matches, a Token of type found is returned, else the next

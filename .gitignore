@@ -1,0 +1,7 @@
+# Ignore compiled files
+CMinus
+*.o
+
+# Ignore clangd config
+compile_flags.txt
+
