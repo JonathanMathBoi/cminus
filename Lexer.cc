@@ -23,10 +23,7 @@ int lexer::get_column_num () const
 
 Token lexer::get_token ()
 {
-    eat_whitespace ();
-
     char c {get_char ()};
-    m_colNum++;
 
     switch (c)
     {
@@ -64,7 +61,6 @@ Token lexer::get_token ()
     case '/':
         if (peek_char () == '*') {
             get_char ();
-            m_colNum++;
             eat_comment ();
             return get_token ();
         }
@@ -89,29 +85,26 @@ Token lexer::get_token ()
        }
 
        // Move cursor back for literal, keyword, and id handling
-       m_sourceFile.putback(c);
-       m_colNum--;
+       unget_char (c);
 
        if (is_digit(c)) {
-           return eat_literal ();
+           return lex_literal ();
        }
 
-       return eat_keyword_or_id ();
+       return lex_keyword_id ();
     }
 }
 
-Token lexer::eat_literal ()
+Token lexer::lex_literal ()
 {
     std::string lexeme {};
     do {
         lexeme += get_char ();
-        m_colNum++;
     } while (peek_char () == '_' || is_digit (peek_char ()));
 
     if (is_alpha (peek_char ())) {
         do {
             lexeme += get_char ();
-            m_colNum++;
         } while (is_alphanum (peek_char ()));
 
         return Token {ERROR, lexeme};
@@ -125,12 +118,11 @@ Token lexer::eat_literal ()
     return Token {NUM, lexeme, value};
 }
 
-Token lexer::eat_keyword_or_id ()
+Token lexer::lex_keyword_id ()
 {
     std::string lexeme {};
     do {
         lexeme += get_char ();
-        m_colNum++;
     } while (is_alphanum (peek_char ()) || peek_char () == '_');
 
     if (keywords.contains (lexeme)) {
@@ -151,7 +143,6 @@ lexer::next_or_else (
     std::string lexeme {cur};
     if (peek_char () == look_for) {
         lexeme += get_char ();
-        m_colNum++;
         return Token {found, lexeme};
     }
     return Token {not_found, lexeme};
@@ -161,66 +152,49 @@ void lexer::eat_comment ()
 {
     char c {get_char ()};
     while (c != EOF) {
-        switch (c) {
-        case '*':
-            if (peek_char () == '/') {
-                get_char ();
-                m_colNum++;
-                return;
-            }
-            break;
-        case '\n':
-            m_lineNum++;
-            m_colNum = 0;
-            break;
-        case '\r':
-            break;
-        case '\t':
-            m_colNum += 4;
-            break;
-        default:
-            m_colNum++;
-            break;
+        if (c == '*' && peek_char () == '/') {
+            get_char ();
+            return;
         }
+
         c = get_char ();
     }
 
     // If EOF is hit, put it back for getToken to hit
-    m_sourceFile.putback(c);
-}
-
-void lexer::eat_whitespace ()
-{
-    char c {get_char ()};
-    while (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-    {
-        switch (c) {
-        case '\n':
-            m_lineNum++;
-            m_colNum = 0;
-            break;
-        case '\t':
-            m_colNum += 4;
-            break;
-        case '\r':
-            break;
-        case ' ':
-            m_colNum++;
-            break;
-        }
-        c = get_char ();
-    }
-    m_sourceFile.putback(c);
+    unget_char (c);
 }
 
 char lexer::get_char ()
 {
-    return m_sourceFile.get();
+    char c {static_cast<char> (m_sourceFile.get ())};
+    switch (c) {
+    case '\n':
+        m_lineNum++;
+        m_colNum = 0;
+        return get_char ();
+    case '\t':
+        m_colNum += 4 - (m_colNum % 4);
+        return get_char ();
+    case '\r':
+        return get_char ();
+    case ' ':
+        m_colNum++;
+        return get_char ();
+    default:
+        m_colNum++;
+        return c;
+    }
 }
 
 char lexer::peek_char ()
 {
     return m_sourceFile.peek ();
+}
+
+void lexer::unget_char (char c)
+{
+    m_sourceFile.putback (c);
+    m_colNum--;
 }
 
 bool is_alphanum(char c)

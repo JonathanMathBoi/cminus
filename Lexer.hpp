@@ -80,6 +80,13 @@ private:
   peek_char ();
 
   /**
+   * Takes a char and places it back at the front of the input stream. Also
+   * accounts for adjusting column count back.
+   */
+  void
+  unget_char (char c);
+
+  /**
    * Takes the current char and checks if the next char matches a given char.
    * If the next char matches, a Token of type found is returned, else the next
    * char is put back, and a token of type notFound is returned.
@@ -94,17 +101,14 @@ private:
   Token
   next_or_else (char cur, char look_for, TokenType found, TokenType not_found);
 
-  void
-  eat_whitespace ();
+  Token
+  lex_literal ();
 
+  Token
+  lex_keyword_id ();
+  
   void
   eat_comment ();
-
-  Token
-  eat_literal ();
-
-  Token
-  eat_keyword_or_id ();
   
   // Additional helper methods
   // ...
