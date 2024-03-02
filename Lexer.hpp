@@ -101,14 +101,14 @@ private:
   Token
   next_or_else (char cur, char look_for, TokenType found, TokenType not_found);
 
+  Token
+  lex_literal ();
+
+  Token
+  lex_keyword_id ();
+  
   void
   eat_comment ();
-
-  Token
-  eat_literal ();
-
-  Token
-  eat_keyword_or_id ();
   
   // Additional helper methods
   // ...

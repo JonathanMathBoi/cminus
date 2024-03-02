@@ -88,14 +88,14 @@ Token lexer::get_token ()
        unget_char (c);
 
        if (is_digit(c)) {
-           return eat_literal ();
+           return lex_literal ();
        }
 
-       return eat_keyword_or_id ();
+       return lex_keyword_id ();
     }
 }
 
-Token lexer::eat_literal ()
+Token lexer::lex_literal ()
 {
     std::string lexeme {};
     do {
@@ -118,7 +118,7 @@ Token lexer::eat_literal ()
     return Token {NUM, lexeme, value};
 }
 
-Token lexer::eat_keyword_or_id ()
+Token lexer::lex_keyword_id ()
 {
     std::string lexeme {};
     do {
