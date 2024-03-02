@@ -85,8 +85,7 @@ Token lexer::get_token ()
        }
 
        // Move cursor back for literal, keyword, and id handling
-       m_sourceFile.putback(c);
-       m_colNum--;
+       unget_char (c);
 
        if (is_digit(c)) {
            return eat_literal ();
@@ -162,8 +161,7 @@ void lexer::eat_comment ()
     }
 
     // If EOF is hit, put it back for getToken to hit
-    m_colNum--;
-    m_sourceFile.putback(c);
+    unget_char (c);
 }
 
 char lexer::get_char ()
@@ -191,6 +189,12 @@ char lexer::get_char ()
 char lexer::peek_char ()
 {
     return m_sourceFile.peek ();
+}
+
+void lexer::unget_char (char c)
+{
+    m_sourceFile.putback (c);
+    m_colNum--;
 }
 
 bool is_alphanum(char c)
