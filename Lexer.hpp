@@ -3,6 +3,7 @@
 
 /***********************************************************************/
 
+#include "Exception.hpp"
 #include <fstream>
 #include <map>
 #include <string>
@@ -119,6 +120,19 @@ private:
   int   m_colNum;
   // Additional data members if necessary
   // ...
+};
+
+/***********************************************************************/
+
+class lexer_exception : public cminus_exception {
+public:
+    lexer_exception(Token bad_token, int line_num, int col_num);
+
+    virtual char const* what() const noexcept;
+
+private:
+    Token m_bad_token;
+    std::string m_error_message;
 };
 
 /***********************************************************************/

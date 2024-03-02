@@ -1,7 +1,10 @@
 #include "Lexer.hpp"
+#include "Exception.hpp"
 
 #include <cctype>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <algorithm>
 
@@ -210,5 +213,20 @@ bool is_alpha(char c)
 bool is_digit(char c)
 {
     return std::isdigit (static_cast<unsigned char> (c));
+}
+
+lexer_exception::lexer_exception(Token bad_token, int line_num, int col_num)
+    : cminus_exception {line_num, col_num}, m_bad_token {bad_token}
+{
+    std::stringstream message_buffer;
+    message_buffer << "Error while lexing\n"
+        << "  Encountered: "
+        << std::quoted (m_bad_token.lexeme)
+        << " (line " << m_line_num << ", column " << m_col_num << ")";
+    m_error_message = message_buffer.str();
+}
+
+char const* lexer_exception::what() const noexcept {
+    return m_error_message.c_str();
 }
 
