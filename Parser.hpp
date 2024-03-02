@@ -6,7 +6,7 @@
 #include "Exception.hpp"
 #include "Lexer.hpp"
 
-#include <optional>
+#include <deque>
 #include <string_view>
 
 /***********************************************************************/
@@ -73,14 +73,19 @@ private:
 private:
     Token const& get_token();
 
-    Token const& peek_token();
+    /**
+     * Peeks the token `index` after the current token.
+     *
+     * Note: peek_token(0) returns the current token.
+     */
+    Token const& peek_token(size_t index);
 
     void match(const std::string_view function, const TokenType expected_token);
 
 private:
     lexer m_lexer;
     Token m_current_token;
-    std::optional<Token> m_peeked_token;
+    std::deque<Token> m_peeked_tokens;
 };
 
 /***********************************************************************/

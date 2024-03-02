@@ -32,22 +32,28 @@ void parser::parse() {
 }
 
 Token const& parser::get_token() {
-    if (m_peeked_token) {
-        m_current_token = m_peeked_token.value();
-        m_peeked_token.reset();
+    if (!m_peeked_tokens.empty()) {
+        m_current_token = m_peeked_tokens.front();
+        m_peeked_tokens.pop_front();
     } else {
-        m_peeked_token = m_lexer.get_token();
+        m_current_token = m_lexer.get_token();
     }
 
     return m_current_token;
 }
 
-Token const& parser::peek_token() {
-    if (!m_peeked_token) {
-        m_peeked_token = m_lexer.get_token();
+Token const& parser::peek_token(size_t index) {
+    if (index == 0) {
+        return m_current_token;
     }
 
-    return m_peeked_token.value();
+    index--;
+
+    while (index >= m_peeked_tokens.size()) {
+        m_peeked_tokens.push_back(m_lexer.get_token());
+    }
+
+    return m_peeked_tokens[index];
 }
 
 void parser::match(
