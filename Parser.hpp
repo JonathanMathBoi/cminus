@@ -3,6 +3,7 @@
 
 /***********************************************************************/
 
+#include "Exception.hpp"
 #include "Lexer.hpp"
 
 #include <optional>
@@ -80,6 +81,25 @@ private:
     lexer m_lexer;
     Token m_current_token;
     std::optional<Token> m_peeked_token;
+};
+
+/***********************************************************************/
+
+class parser_exception : public cminus_exception {
+public:
+    parser_exception(
+        const std::string_view construct,
+        Token received_token,
+        const std::string_view expected,
+        int line_num,
+        int col_num
+    );
+
+    virtual char const* what() const noexcept;
+
+private:
+    Token m_received_token;
+    std::string m_error_message;
 };
 
 /***********************************************************************/
