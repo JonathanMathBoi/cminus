@@ -82,19 +82,23 @@ Token lexer::get_token ()
        return next_or_else('>', '=', GTE, GT);
 
     default:
-       if (!is_alphanum(c)) {
-           std::string lexeme {c};
-           return Token {ERROR, lexeme};
-       }
+        if (!is_alphanum(c)) {
+            std::string lexeme {c};
+            throw lexer_exception {
+                Token {ERROR, lexeme},
+                m_lineNum,
+                m_colNum
+            };
+        }
 
-       // Move cursor back for literal, keyword, and id handling
-       unget_char (c);
+        // Move cursor back for literal, keyword, and id handling
+        unget_char (c);
 
-       if (is_digit(c)) {
-           return lex_literal ();
-       }
+        if (is_digit(c)) {
+            return lex_literal ();
+        }
 
-       return lex_keyword_id ();
+        return lex_keyword_id ();
     }
 }
 
@@ -110,7 +114,11 @@ Token lexer::lex_literal ()
             lexeme += get_char ();
         } while (is_alphanum (peek_char ()));
 
-        return Token {ERROR, lexeme};
+        throw lexer_exception {
+            Token {ERROR, lexeme},
+            m_lineNum,
+            m_colNum
+        };
     }
 
     // Strip out '_'s
