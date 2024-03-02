@@ -71,9 +71,9 @@ private:
     void factor();
 
 private:
-    Token& get_token();
+    Token const& get_token();
 
-    Token& peek_token();
+    Token const& peek_token();
 
     void match(const std::string_view function, const TokenType expected_token);
 

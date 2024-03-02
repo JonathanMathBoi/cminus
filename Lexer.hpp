@@ -30,6 +30,40 @@ enum TokenType
   ID, NUM 
 };
 
+const std::map<TokenType, std::string> token_types {
+    {END_OF_FILE, "END_OF_FILE"},
+    {ERROR, "ERROR"},
+    {IF, "IF"},
+    {ELSE, "ELSE"},
+    {INT, "INT"},
+    {VOID, "VOID"},
+    {RETURN, "RETURN"},
+    {WHILE, "WHILE"},
+    {PLUS, "PLUS"},
+    {MINUS, "MINUS"},
+    {TIMES, "TIMES"},
+    {DIVIDE, "DIVIDE"},
+    {LT, "LT"},
+    {LTE, "LTE"},
+    {GT, "GT"},
+    {GTE, "GTE"},
+    {EQ, "EQ"},
+    {NEQ, "NEQ"},
+    {ASSIGN, "ASSIGN"},
+    {INCREMENT, "INCREMENT"},
+    {DECREMENT, "DECREMENT"},
+    {SEMI, "SEMI"},
+    {COMMA, "COMMA"},
+    {LPAREN, "LPAREN"},
+    {RPAREN, "RPAREN"},
+    {LBRACK, "LBRACK"},
+    {RBRACK, "RBRACK"},
+    {LBRACE, "LBRACE"},
+    {RBRACE, "RBRACE"},
+    {ID, "ID"},
+    {NUM, "NUM"}
+};
+
 /***********************************************************************/
 
 struct Token
