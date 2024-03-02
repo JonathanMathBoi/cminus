@@ -95,9 +95,6 @@ private:
   next_or_else (char cur, char look_for, TokenType found, TokenType not_found);
 
   void
-  eat_whitespace ();
-
-  void
   eat_comment ();
 
   Token
