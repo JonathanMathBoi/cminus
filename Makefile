@@ -6,6 +6,8 @@ CMinus : CMinus.cc Lexer.hpp Lexer.o
 
 Lexer.o : Lexer.cc Lexer.hpp
 
+Parser.o : Parser.cc Parser.hpp Lexer.hpp
+
 .PHONY: clean
 
 clean:
