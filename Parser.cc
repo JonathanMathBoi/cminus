@@ -8,6 +8,18 @@
 
 /***********************************************************************/
 
+void parser::program() {
+    decl_list();
+}
+
+void parser::decl_list() {
+    do {
+        declaration();
+    } while(m_current_token.type != END_OF_FILE);
+}
+
+/***********************************************************************/
+
 parser::parser(lexer&& lexer)
     : m_lexer {std::move (lexer)}, m_current_token {Token {END_OF_FILE}}
 {}
