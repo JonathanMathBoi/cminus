@@ -167,6 +167,18 @@ void parser::while_statement() {
     statement();
 }
 
+void parser::return_stmt() {
+    match("return statement", RETURN);
+    
+    if (m_current_token.type == SEMI) {
+        match("return statement", SEMI);
+        return;
+    }
+
+    expression();
+    match("return expression", SEMI);
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
