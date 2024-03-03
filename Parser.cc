@@ -146,6 +146,19 @@ void parser::expr_stmt() {
     match("expression statement", SEMI); 
 }
 
+void parser::if_statement() {
+    match("if statement", IF);
+    match("if statement", LPAREN);
+    expression();
+    match("if statement", RPAREN);
+    statement();
+
+    if (m_current_token.type == ELSE) {
+        match("if statement", ELSE);
+        statement();
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
