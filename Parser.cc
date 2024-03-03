@@ -60,6 +60,43 @@ void parser::type_spec() {
     }
 }
 
+void parser::fun_decl() {
+    type_spec();
+    match("function declaration", ID);
+    match("function declaration", LPAREN);
+    params();
+    match("function declaration", RPAREN);
+    compound_stmt();
+}
+
+void parser::params() {
+    if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
+        match("parameters", VOID);
+        return;
+    }
+
+    param_list();
+}
+
+void parser::param_list() {
+    param();
+
+    while (m_current_token.type == COMMA) {
+        match("parameter list", COMMA);
+        param();
+    }
+}
+
+void parser::param() {
+    type_spec();
+    match("parameter", ID);
+
+    if (m_current_token.type == LBRACK) {
+        match("parameter", LBRACK);
+        match("parameter", RBRACE);
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
