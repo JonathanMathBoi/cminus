@@ -18,6 +18,28 @@ void parser::decl_list() {
     } while(m_current_token.type != END_OF_FILE);
 }
 
+void parser::declaration() {
+    switch (peek_token(2).type) {
+    case SEMI:
+    case LBRACK:
+        var_decl();
+        break;
+    case LPAREN:
+        fun_decl();
+        break;
+    default:
+        type_spec();
+        match("declaration", ID);
+        throw parser_exception {
+            "declaration",
+            m_current_token,
+            "';', '[', or '('",
+            m_lexer.get_line_num(),
+            m_lexer.get_column_num()
+        };
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
