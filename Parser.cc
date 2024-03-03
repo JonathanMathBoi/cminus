@@ -159,6 +159,14 @@ void parser::if_statement() {
     }
 }
 
+void parser::while_statement() {
+    match("while statement", WHILE);
+    match("while statement", LPAREN);
+    expression();
+    match("while statement", RPAREN);
+    statement();
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
