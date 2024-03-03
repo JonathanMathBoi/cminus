@@ -40,6 +40,36 @@ void parser::declaration() {
     }
 }
 
+void parser::var_decl() {
+    type_spec();
+    match("variable declaration", ID);
+
+    if (m_current_token.type == LBRACK) {
+        match("variable declaration", LBRACK);
+        match("variable declaration", NUM);
+        match("variable declaration", RBRACK);
+    }
+
+    match("variable declaration", SEMI);
+}
+
+void parser::type_spec() {
+    switch (m_current_token.type) {
+    case INT:
+    case VOID:
+        get_token();
+        break;
+    default:
+        throw parser_exception {
+            "type specifier",
+            m_current_token,
+            "INT or VOID",
+            m_lexer.get_line_num(),
+            m_lexer.get_column_num()
+        };
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
