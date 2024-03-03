@@ -97,6 +97,25 @@ void parser::param() {
     }
 }
 
+void parser::compound_stmt() {
+    match("compound statement", LBRACE);
+    local_decls();
+    stmt_list();
+    match("compound statement", RBRACE);
+}
+
+void parser::local_decls() {
+    while (m_current_token.type == VOID || m_current_token.type == INT) {
+        var_decl();
+    }
+}
+
+void parser::stmt_list() {
+    while (m_current_token.type != RBRACE) {
+        statement();
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
