@@ -30,13 +30,8 @@ void parser::declaration() {
     default:
         type_spec();
         match("declaration", ID);
-        throw parser_exception {
-            "declaration",
-            m_current_token,
-            "';', '[', or '('",
-            m_lexer.get_line_num(),
-            m_lexer.get_column_num()
-        };
+        error("declaration", "';', '[', or '('");
+        break;
     }
 }
 
@@ -60,13 +55,8 @@ void parser::type_spec() {
         get_token();
         break;
     default:
-        throw parser_exception {
-            "type specifier",
-            m_current_token,
-            "INT or VOID",
-            m_lexer.get_line_num(),
-            m_lexer.get_column_num()
-        };
+        error("type specifier", "INT or VOID");
+        break;
     }
 }
 
@@ -125,6 +115,20 @@ void parser::match(
             m_lexer.get_column_num()
         };
     }
+}
+
+void parser::error(
+    const std::string_view function,
+    const std::string_view expected
+)
+{
+    throw parser_exception {
+        function,
+        m_current_token,
+        expected,
+        m_lexer.get_line_num(),
+        m_lexer.get_column_num()
+    };
 }
 
 /***********************************************************************/

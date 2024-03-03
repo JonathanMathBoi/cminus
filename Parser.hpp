@@ -81,6 +81,11 @@ private:
     Token const& peek_token(size_t index);
 
     void match(const std::string_view function, const TokenType expected_token);
+    
+    void error(
+        const std::string_view function,
+        const std::string_view expected
+    );
 
 private:
     lexer m_lexer;
