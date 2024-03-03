@@ -116,6 +116,26 @@ void parser::stmt_list() {
     }
 }
 
+void parser::statement() {
+    switch (m_current_token.type) {
+    case IF:
+        if_statement();
+        break;
+    case WHILE:
+        while_statement();
+        break;
+    case RETURN:
+        return_stmt();
+        break;
+    case LBRACE:
+        compound_stmt();
+        break;
+    default:
+        expr_stmt();
+        break;
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
