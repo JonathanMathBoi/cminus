@@ -136,6 +136,16 @@ void parser::statement() {
     }
 }
 
+void parser::expr_stmt() {
+    if (m_current_token.type == SEMI) {
+        match("expression statement", SEMI);
+        return;
+    }
+
+    expression();
+    match("expression statement", SEMI); 
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
