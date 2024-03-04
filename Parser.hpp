@@ -72,6 +72,10 @@ private:
 
     void fun_call();
 
+    void fun_args();
+
+    void args_list();
+
 private:
     Token const& get_token();
 

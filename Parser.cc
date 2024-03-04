@@ -300,6 +300,30 @@ void parser::factor() {
     }
 }
 
+void parser::fun_call() {
+    match("function call", ID);
+    match("function call", LPAREN);
+    fun_args();
+    match("function call", RPAREN);
+}
+
+void parser::fun_args() {
+    if (m_current_token.type == RPAREN) {
+        return;
+    }
+
+    args_list();
+}
+
+void parser::args_list() {
+    expression();
+
+    while (m_current_token.type == COMMA) {
+        match("argument list", COMMA);
+        expression();
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
