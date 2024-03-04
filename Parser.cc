@@ -180,14 +180,14 @@ void parser::return_stmt() {
 }
 
 void parser::expression() {
-    if (m_current_token.type != ID) {
-        simple_expr();
+    if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
+        variable();
+        match("expression", ASSIGN);
+        expression();
         return;
     }
 
-    variable();
-    match("expression", EQ);
-    expression();
+    simple_expr();
 }
 
 void parser::variable() {
