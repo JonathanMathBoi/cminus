@@ -200,6 +200,40 @@ void parser::variable() {
     }
 }
 
+void parser::simple_expr() {
+    add_expr();
+
+    switch (m_current_token.type) {
+    case LT:
+    case LTE:
+    case GT:
+    case GTE:
+    case EQ:
+    case NEQ:
+        relation_op();
+        add_expr();
+        break;
+    default:
+        break;
+    }
+}
+
+void parser::relation_op() {
+    switch (m_current_token.type) {
+    case LT:
+    case LTE:
+    case GT:
+    case GTE:
+    case EQ:
+    case NEQ:
+        get_token();
+        break;
+    default:
+        error("relational operator", "LT, LTE, GT, GTE, EQ, NEQ");
+        break;
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
