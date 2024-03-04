@@ -79,6 +79,10 @@ private:
     void args_list();
 
 private:
+    /**
+     * Move the current token one forward and returns a reference to the new
+     * current token.
+     */
     Token const& get_token();
 
     /**
@@ -88,8 +92,20 @@ private:
      */
     Token const& peek_token(size_t index);
 
+    /**
+     * Checks to see if the current token matches the expected. If it matches,
+     * the token is consumed and current is moved forward. Otherwise a
+     * parse_exception is thrown.
+     *
+     * @param function the name of the function calling match
+     * @param expected_token the token to match against
+     */
     void match(const std::string_view function, const TokenType expected_token);
-    
+   
+    /**
+     * Throws an error indicating the function which encountered an error and
+     * what token it had expected.
+     */
     void error(
         const std::string_view function,
         const std::string_view expected
