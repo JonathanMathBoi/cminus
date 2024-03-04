@@ -70,6 +70,8 @@ private:
 
     void factor();
 
+    void fun_call();
+
 private:
     Token const& get_token();
 

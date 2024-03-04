@@ -276,6 +276,30 @@ void parser::mul_op() {
     }
 }
 
+void parser::factor() {
+    switch (m_current_token.type) {
+    case LPAREN:
+        match("factor", LPAREN);
+        expression();
+        match("factor", RPAREN);
+        break;
+    case NUM:
+        match("factor", NUM);
+        break;
+    case ID:
+        if (peek_token(1).type == LPAREN) {
+            fun_call();
+            return;
+        }
+
+        variable();
+        break;
+    default:
+        error("factor", "( expression ), variable, function call, or literal");
+        break;
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
