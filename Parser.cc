@@ -2,6 +2,7 @@
 #include "Lexer.hpp"
 #include "Exception.hpp"
 
+#include <cstddef>
 #include <iomanip>
 #include <sstream>
 #include <string_view>
@@ -181,13 +182,38 @@ void parser::return_stmt() {
 
 void parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
-        variable();
-        match("expression", ASSIGN);
-        expression();
+        assignment_expr();
         return;
+    } else if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
+        size_t peek_idx {1};
+        unsigned nest_level {0};
+        do {
+            switch (peek_token(peek_idx).type) {
+            case LBRACK:
+                nest_level++;
+                break;
+            case RBRACK:
+                nest_level--;
+                break;
+            default:
+                break;
+            }
+            peek_idx++;
+        } while (nest_level != 0);
+
+        if (peek_token(peek_idx).type == ASSIGN) {
+            assignment_expr();
+            return;
+        }
     }
 
     simple_expr();
+}
+
+void parser::assignment_expr() {
+    variable();
+    match("assignment expression", ASSIGN);
+    expression();
 }
 
 void parser::variable() {
