@@ -229,7 +229,28 @@ void parser::relation_op() {
         get_token();
         break;
     default:
-        error("relational operator", "LT, LTE, GT, GTE, EQ, NEQ");
+        error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
+        break;
+    }
+}
+
+void parser::add_expr() {
+    term();
+
+    while (m_current_token.type == PLUS || m_current_token.type == MINUS) {
+        add_op();
+        term();
+    }
+}
+
+void parser::add_op() {
+    switch (m_current_token.type) {
+    case PLUS:
+    case MINUS:
+        get_token();
+        break;
+    default:
+        error("addition operator", "PLUS or MINUS");
         break;
     }
 }
