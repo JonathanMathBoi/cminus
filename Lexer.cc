@@ -1,7 +1,10 @@
 #include "Lexer.hpp"
+#include "Exception.hpp"
 
 #include <cctype>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <algorithm>
 
@@ -79,19 +82,23 @@ Token lexer::get_token ()
        return next_or_else('>', '=', GTE, GT);
 
     default:
-       if (!is_alphanum(c)) {
-           std::string lexeme {c};
-           return Token {ERROR, lexeme};
-       }
+        if (!is_alphanum(c)) {
+            std::string lexeme {c};
+            throw lexer_exception {
+                Token {ERROR, lexeme},
+                m_lineNum,
+                m_colNum
+            };
+        }
 
-       // Move cursor back for literal, keyword, and id handling
-       unget_char (c);
+        // Move cursor back for literal, keyword, and id handling
+        unget_char (c);
 
-       if (is_digit(c)) {
-           return lex_literal ();
-       }
+        if (is_digit(c)) {
+            return lex_literal ();
+        }
 
-       return lex_keyword_id ();
+        return lex_keyword_id ();
     }
 }
 
@@ -107,7 +114,11 @@ Token lexer::lex_literal ()
             lexeme += get_char ();
         } while (is_alphanum (peek_char ()));
 
-        return Token {ERROR, lexeme};
+        throw lexer_exception {
+            Token {ERROR, lexeme},
+            m_lineNum,
+            m_colNum
+        };
     }
 
     // Strip out '_'s
@@ -210,5 +221,20 @@ bool is_alpha(char c)
 bool is_digit(char c)
 {
     return std::isdigit (static_cast<unsigned char> (c));
+}
+
+lexer_exception::lexer_exception(Token bad_token, int line_num, int col_num)
+    : cminus_exception {line_num, col_num}, m_bad_token {bad_token}
+{
+    std::stringstream message_buffer;
+    message_buffer << "Error while lexing\n"
+        << "  Encountered: "
+        << std::quoted (m_bad_token.lexeme)
+        << " (line " << m_line_num << ", column " << m_col_num << ")";
+    m_error_message = message_buffer.str();
+}
+
+char const* lexer_exception::what() const noexcept {
+    return m_error_message.c_str();
 }
 

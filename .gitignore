@@ -2,6 +2,9 @@
 CMinus
 *.o
 
+# Ignore testing files
+test
+
 # Ignore clangd config
 compile_flags.txt
 
