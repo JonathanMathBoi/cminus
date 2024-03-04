@@ -179,6 +179,27 @@ void parser::return_stmt() {
     match("return expression", SEMI);
 }
 
+void parser::expression() {
+    if (m_current_token.type != ID) {
+        simple_expr();
+        return;
+    }
+
+    variable();
+    match("expression", EQ);
+    expression();
+}
+
+void parser::variable() {
+    match("variable", ID);
+
+    if (m_current_token.type == LBRACK) {
+        match("variable", LBRACK);
+        expression();
+        match("variable", RBRACK);
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
