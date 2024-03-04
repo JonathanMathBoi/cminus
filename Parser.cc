@@ -181,10 +181,10 @@ void parser::return_stmt() {
 }
 
 void parser::expression() {
-    if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
-        assignment_expr();
-        return;
-    } else if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
+    // If starting with an ID, check for assignment
+    if (m_current_token.type == ID) {
+        // Move peek past end of variable
+        // accounting for potential nested array indexing
         size_t peek_idx {1};
         unsigned nest_level {0};
         do {
@@ -201,6 +201,8 @@ void parser::expression() {
             peek_idx++;
         } while (nest_level != 0);
 
+        // If variable followed by ASSIGN, then expression is
+        // an assignment expression
         if (peek_token(peek_idx).type == ASSIGN) {
             assignment_expr();
             return;
