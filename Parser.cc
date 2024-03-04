@@ -94,7 +94,7 @@ void parser::param() {
 
     if (m_current_token.type == LBRACK) {
         match("parameter", LBRACK);
-        match("parameter", RBRACE);
+        match("parameter", RBRACK);
     }
 }
 
