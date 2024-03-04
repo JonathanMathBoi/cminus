@@ -9,16 +9,27 @@
 
 /***********************************************************************/
 
+/**
+ * Parses program -> decleration-list
+ */
 void parser::program() {
     decl_list();
 }
 
+/**
+ * Parses declaration-list -> declaration-list declaration | declaration
+ *
+ * Implemented as declaration-list -> declaration { declaration }
+ */
 void parser::decl_list() {
     do {
         declaration();
     } while(m_current_token.type != END_OF_FILE);
 }
 
+/**
+ * Parses declaration -> var-declaration | fun-declaration
+ */
 void parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
@@ -36,6 +47,13 @@ void parser::declaration() {
     }
 }
 
+/**
+ * Parses var-declaration -> type-specifier ID SEMI
+ *                         | type-specifier ID LBRACK NUM RBRACK SEMI
+ * 
+ * Implemented as var-declaration
+ *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
+ */
 void parser::var_decl() {
     type_spec();
     match("variable declaration", ID);
@@ -49,6 +67,9 @@ void parser::var_decl() {
     match("variable declaration", SEMI);
 }
 
+/**
+ * Parses type-specifier -> INT | VOID
+ */
 void parser::type_spec() {
     switch (m_current_token.type) {
     case INT:
@@ -61,6 +82,10 @@ void parser::type_spec() {
     }
 }
 
+/**
+ * Parses fun-declaration
+ *          -> type-specifier ID LPAREN params RPAREN compound-stmt
+ */
 void parser::fun_decl() {
     type_spec();
     match("function declaration", ID);
@@ -70,6 +95,9 @@ void parser::fun_decl() {
     compound_stmt();
 }
 
+/**
+ * Parses params -> param-list | VOID
+ */
 void parser::params() {
     if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
         match("parameters", VOID);
@@ -79,6 +107,11 @@ void parser::params() {
     param_list();
 }
 
+/**
+ * Parses param-list -> param-list COMMA param | param
+ *
+ * Implemented as param-list -> param { COMMA param }
+ */
 void parser::param_list() {
     param();
 
@@ -88,6 +121,11 @@ void parser::param_list() {
     }
 }
 
+/**
+ * Parses param -> type-specifier ID | type-specifier ID LBRACK RBRACK
+ *
+ * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
+ */
 void parser::param() {
     type_spec();
     match("parameter", ID);
@@ -98,6 +136,9 @@ void parser::param() {
     }
 }
 
+/**
+ * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
+ */
 void parser::compound_stmt() {
     match("compound statement", LBRACE);
     local_decls();
@@ -105,18 +146,36 @@ void parser::compound_stmt() {
     match("compound statement", RBRACE);
 }
 
+/**
+ * Parses local-declarations -> local-delarations var-delcaration
+ *                            | empty
+ * 
+ * Implemented as local-declarations -> { var-declaration }
+ */
 void parser::local_decls() {
     while (m_current_token.type == VOID || m_current_token.type == INT) {
         var_decl();
     }
 }
 
+/**
+ * Parses statement-list -> statement-list statement | empty
+ *
+ * Implemented as statement-list -> { statement }
+ */
 void parser::stmt_list() {
     while (m_current_token.type != RBRACE) {
         statement();
     }
 }
 
+/**
+ * Parses statement -> expression-stmt
+ *                   | compound-stmt
+ *                   | selection-stmt
+ *                   | iteration-stmt
+ *                   | return-stmt
+ */
 void parser::statement() {
     switch (m_current_token.type) {
     case IF:
@@ -137,6 +196,11 @@ void parser::statement() {
     }
 }
 
+/**
+ * Parses expression-stmt -> expression SEMI | SEMI
+ *
+ * Implemented as expression-stmt -> [ expression ] SEMI
+ */
 void parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
         match("expression statement", SEMI);
@@ -147,6 +211,13 @@ void parser::expr_stmt() {
     match("expression statement", SEMI); 
 }
 
+/**
+ * Parses selection-stmt -> IF LPAREN expression RPAREN statement
+ *                        | IF LPAREN expression RPAREN statement ELSE statement
+ *
+ * Implemented as selection-stmt
+ *                  -> IF LPAREN expression RPAREN [ ELSE statement]
+ */
 void parser::if_statement() {
     match("if statement", IF);
     match("if statement", LPAREN);
@@ -160,6 +231,9 @@ void parser::if_statement() {
     }
 }
 
+/**
+ * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
+ */
 void parser::while_statement() {
     match("while statement", WHILE);
     match("while statement", LPAREN);
@@ -168,6 +242,11 @@ void parser::while_statement() {
     statement();
 }
 
+/**
+ * Parses return-stmt -> RETURN SEMI | RETURN expression SEMI
+ *
+ * Implemented as return-stmt -> RETURN [ expression ] SEMI
+ */
 void parser::return_stmt() {
     match("return statement", RETURN);
     
@@ -180,6 +259,14 @@ void parser::return_stmt() {
     match("return expression", SEMI);
 }
 
+/**
+ * Parses expression -> var ASSIGN expression | simple_expression
+ *
+ * Implemented as expression -> assign-expression | simple-expression
+ *
+ * Ad-hoc solution used to check for assignment expression with an indexed array
+ * as the variable.
+ */
 void parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
         assignment_expr();
@@ -210,12 +297,20 @@ void parser::expression() {
     simple_expr();
 }
 
+/**
+ * Parses assign-expression -> var ASSIGN expression
+ */
 void parser::assignment_expr() {
     variable();
     match("assignment expression", ASSIGN);
     expression();
 }
 
+/**
+ * Parses var -> ID | ID LBRACK expression RBRACK
+ *
+ * Implemented as var -> ID [ LBARCK expression RBRACK ]
+ */
 void parser::variable() {
     match("variable", ID);
 
@@ -226,6 +321,13 @@ void parser::variable() {
     }
 }
 
+/**
+ * Parses simple-expression -> additive-expression relop additive-expression
+ *                           | additive-expression
+ *
+ * Implemented as simple-expression
+ *                  -> additive-expression [ relop additive-expression ]
+ */
 void parser::simple_expr() {
     add_expr();
 
@@ -244,6 +346,9 @@ void parser::simple_expr() {
     }
 }
 
+/**
+ * Parses relop -> LTE | LT | GT | GTE | EQ | NEQ
+ */
 void parser::relation_op() {
     switch (m_current_token.type) {
     case LT:
@@ -260,6 +365,11 @@ void parser::relation_op() {
     }
 }
 
+/**
+ * Parses additive-expression -> additive-expression addop term | term
+ *
+ * Implemented as additive-expression -> term { addop term }
+ */
 void parser::add_expr() {
     term();
 
@@ -269,6 +379,9 @@ void parser::add_expr() {
     }
 }
 
+/**
+ * Parses addop -> PLUS | MINUS
+ */
 void parser::add_op() {
     switch (m_current_token.type) {
     case PLUS:
@@ -281,6 +394,11 @@ void parser::add_op() {
     }
 }
 
+/**
+ * Parses term -> term mulop factor | factor
+ *
+ * Implemented as term -> factor { mulop factor }
+ */
 void parser::term() {
     factor();
 
@@ -290,6 +408,9 @@ void parser::term() {
     }
 }
 
+/**
+ * Parses mulop -> TIMES | DIVIDE
+ */
 void parser::mul_op() {
     switch (m_current_token.type) {
     case TIMES:
@@ -302,6 +423,9 @@ void parser::mul_op() {
     }
 }
 
+/**
+ * Parses factor -> LPAREN expression RPAREN | var | call | NUM
+ */
 void parser::factor() {
     switch (m_current_token.type) {
     case LPAREN:
@@ -326,6 +450,9 @@ void parser::factor() {
     }
 }
 
+/**
+ * Parses call -> ID LPAREN RPAREN
+ */
 void parser::fun_call() {
     match("function call", ID);
     match("function call", LPAREN);
@@ -333,6 +460,9 @@ void parser::fun_call() {
     match("function call", RPAREN);
 }
 
+/**
+ * Parses args -> arg-list | empty
+ */
 void parser::fun_args() {
     if (m_current_token.type == RPAREN) {
         return;
@@ -341,6 +471,11 @@ void parser::fun_args() {
     args_list();
 }
 
+/**
+ * Parses args-list -> args-list COMMA expression | expression
+ *
+ * Implemented as args-list -> expression { COMMA expression }
+ */
 void parser::args_list() {
     expression();
 
