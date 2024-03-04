@@ -374,7 +374,7 @@ void parser::match(
             function,
             m_current_token,
             // Todo: Quote this somehow
-            token_types.at(m_current_token.type),
+            token_types.at(expected_token),
             m_lexer.get_line_num(),
             m_lexer.get_column_num()
         };
