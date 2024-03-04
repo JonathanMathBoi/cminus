@@ -255,6 +255,27 @@ void parser::add_op() {
     }
 }
 
+void parser::term() {
+    factor();
+
+    while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
+        mul_op();
+        factor();
+    }
+}
+
+void parser::mul_op() {
+    switch (m_current_token.type) {
+    case TIMES:
+    case DIVIDE:
+        get_token();
+        break;
+    default:
+        error("multiplication operator", "TIMES or DIVIDE");
+        break;
+    }
+}
+
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
