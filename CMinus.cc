@@ -1,4 +1,6 @@
+#include "Exception.hpp"
 #include "Lexer.hpp"
+#include "Parser.hpp"
 
 #include <format>
 #include <fstream>
@@ -65,14 +67,14 @@ int main (int argc, char* argv[]) {
 
     lexer lexer {std::move (source)};
 
-    std::cout << "TOKEN               LEXEME              VALUE\n"
-              << "=====               ======              =====" << std::endl;
+    parser parser {std::move(lexer)};
 
-    Token token {END_OF_FILE};
-    do {
-        token = lexer.get_token ();
-        print_token(token, lexer.get_line_num(), lexer.get_column_num());
-    } while (token.type != END_OF_FILE);
+    try {
+        parser.parse();
+        std::cout << "Valid!" << std::endl;
+    } catch (cminus_exception const& exception) {
+        std::cout << exception.what() << std::endl;
+    }
 }
 
 
