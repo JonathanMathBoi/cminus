@@ -283,6 +283,7 @@ void parser::expression() {
                 nest_level--;
                 break;
             default:
+                // Corner-case: ID LBRACK EOF
                 break;
             }
             peek_idx++;
