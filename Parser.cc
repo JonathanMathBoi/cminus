@@ -282,8 +282,12 @@ void parser::expression() {
             case RBRACK:
                 nest_level--;
                 break;
-            default:
+            case END_OF_FILE:
                 // Corner-case: ID LBRACK EOF
+                // If ID LBRACK EOF is hit, call variable which will recognize
+                // the bad variable
+                variable();
+            default:
                 break;
             }
             peek_idx++;
