@@ -171,7 +171,7 @@ private:
    * number.
    */
   Token
-  make_token (TokenType type, std::string lexeme, int number = 0) const;
+  make_token (TokenType type, std::string lexeme = "", int number = 0) const;
   
   // Additional helper methods
   // ...
