@@ -124,9 +124,7 @@ public:
     parser_exception(
         const std::string_view construct,
         Token received_token,
-        const std::string_view expected,
-        int line_num,
-        int col_num
+        const std::string_view expected
     );
 
     virtual char const* what() const noexcept;
