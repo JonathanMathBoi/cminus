@@ -24,6 +24,18 @@ int lexer::get_column_num () const
     return m_colNum;
 }
 
+Token
+lexer::make_token (TokenType type, std::string lexeme, int number) const
+{
+    return Token {
+        type,
+        lexeme,
+        number,
+        m_token_line,
+        m_token_col
+    };
+}
+
 Token lexer::get_token ()
 {
     char c {get_char ()};

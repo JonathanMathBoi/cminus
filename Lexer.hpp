@@ -71,8 +71,22 @@ struct Token
   Token (TokenType pType,
 	 std::string pLexeme = "",
 	 int pNumber = 0)
-      : type (pType), lexeme (pLexeme), number (pNumber)
+      : Token {pType, pLexeme, pNumber, -1, -1}
   {  }
+
+  Token (
+    TokenType pType,
+    std::string pLexeme,
+    int pNumber,
+    int line_num,
+    int col_num
+  )
+    : type {pType}
+    , lexeme {pLexeme}
+    , number {pNumber}
+    , line_num {line_num}
+    , col_num {col_num}
+  {}
 
   TokenType   type;
   std::string lexeme;
@@ -151,6 +165,13 @@ private:
   
   void
   eat_comment ();
+
+  /**
+   * Creates a token with the currently lexed token's line number and column
+   * number.
+   */
+  Token
+  make_token (TokenType type, std::string lexeme, int number = 0) const;
   
   // Additional helper methods
   // ...
