@@ -161,6 +161,10 @@ private:
   int   m_colNum;
   // Additional data members if necessary
   // ...
+  /* The line where the currently lexed token is. */
+  int m_token_line;
+  /* The column where the currently lexed token starts. */
+  int m_token_col;
 };
 
 /***********************************************************************/
