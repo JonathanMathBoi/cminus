@@ -539,9 +539,7 @@ void parser::match(
         throw parser_exception {
             function,
             m_current_token,
-            token_types.at(expected_token),
-            m_lexer.get_line_num(),
-            m_lexer.get_column_num()
+            token_types.at(expected_token)
         };
     }
 }
@@ -554,9 +552,7 @@ void parser::error(
     throw parser_exception {
         function,
         m_current_token,
-        expected,
-        m_lexer.get_line_num(),
-        m_lexer.get_column_num()
+        expected
     };
 }
 
@@ -565,11 +561,10 @@ void parser::error(
 parser_exception::parser_exception(
     const std::string_view construct,
     Token received_token,
-    const std::string_view expected,
-    int line_num,
-    int col_num
+    const std::string_view expected
 )
-    : cminus_exception {line_num, col_num}, m_received_token {received_token}
+    : cminus_exception {received_token.line_num, received_token.col_num}
+    , m_received_token {received_token}
 {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'

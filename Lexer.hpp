@@ -71,12 +71,31 @@ struct Token
   Token (TokenType pType,
 	 std::string pLexeme = "",
 	 int pNumber = 0)
-      : type (pType), lexeme (pLexeme), number (pNumber)
+      : Token {pType, pLexeme, pNumber, -1, -1}
   {  }
+
+  Token (
+    TokenType pType,
+    std::string pLexeme,
+    int pNumber,
+    int line_num,
+    int col_num
+  )
+    : type {pType}
+    , lexeme {pLexeme}
+    , number {pNumber}
+    , line_num {line_num}
+    , col_num {col_num}
+  {}
 
   TokenType   type;
   std::string lexeme;
   int         number;
+  
+  int line_num;
+
+  /* The column number where the token starts */
+  int col_num;
 };
 
 /***********************************************************************/
@@ -101,9 +120,11 @@ public:
   Token
   get_token ();
 
+  [[deprecated("Use Token::line_num instead.")]]
   int
   get_line_num () const;
 
+  [[deprecated("Use Token::col_num instead.")]]
   int
   get_column_num () const;
   
@@ -144,6 +165,13 @@ private:
   
   void
   eat_comment ();
+
+  /**
+   * Creates a token with the currently lexed token's line number and column
+   * number.
+   */
+  Token
+  make_token (TokenType type, std::string lexeme = "", int number = 0) const;
   
   // Additional helper methods
   // ...
@@ -154,13 +182,17 @@ private:
   int   m_colNum;
   // Additional data members if necessary
   // ...
+  /* The line where the currently lexed token is. */
+  int m_token_line;
+  /* The column where the currently lexed token starts. */
+  int m_token_col;
 };
 
 /***********************************************************************/
 
 class lexer_exception : public cminus_exception {
 public:
-    lexer_exception(Token bad_token, int line_num, int col_num);
+    lexer_exception(Token bad_token);
 
     virtual char const* what() const noexcept;
 

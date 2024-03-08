@@ -24,33 +24,47 @@ int lexer::get_column_num () const
     return m_colNum;
 }
 
+Token
+lexer::make_token (TokenType type, std::string lexeme, int number) const
+{
+    return Token {
+        type,
+        lexeme,
+        number,
+        m_token_line,
+        m_token_col
+    };
+}
+
 Token lexer::get_token ()
 {
     char c {get_char ()};
+    m_token_line = m_lineNum;
+    m_token_col = m_colNum;
 
     switch (c)
     {
     /* Special Chars */
     case EOF:
-        return Token {END_OF_FILE};
+        return make_token(END_OF_FILE);
 
     /* Punctuators */
     case ';':
-        return Token {SEMI, ";"};
+        return make_token(SEMI, ";");
     case ',':
-        return Token {COMMA, ","};
+        return make_token(COMMA, ",");
     case '(':
-        return Token {LPAREN, "("};
+        return make_token(LPAREN, "(");
     case ')':
-        return Token {RPAREN, ")"};
+        return make_token(RPAREN, ")");
     case '[':
-        return Token {LBRACK, "["};
+        return make_token(LBRACK, "[");
     case ']':
-        return Token {RBRACK, "]"};
+        return make_token(RBRACK, "]");
     case '{':
-        return Token {LBRACE, "{"};
+        return make_token(LBRACE, "{");
     case '}':
-        return Token {RBRACE, "}"};
+        return make_token(RBRACE, "}");
     
     /* Simple Operators */
     case '+':
@@ -58,7 +72,7 @@ Token lexer::get_token ()
     case '-':
         return next_or_else('-', '-', DECREMENT, MINUS);
     case '*':
-        return Token {TIMES, "*"};
+        return make_token(TIMES, "*");
 
     /* Divison and Comments */
     case '/':
@@ -67,7 +81,7 @@ Token lexer::get_token ()
             eat_comment ();
             return get_token ();
         }
-        return Token {DIVIDE, "/"};
+        return make_token(DIVIDE, "/");
 
     /* Equals and Assign */
     case '=':
@@ -85,9 +99,7 @@ Token lexer::get_token ()
         if (!is_alphanum(c)) {
             std::string lexeme {c};
             throw lexer_exception {
-                Token {ERROR, lexeme},
-                m_lineNum,
-                m_colNum
+                make_token(ERROR, lexeme)
             };
         }
 
@@ -115,9 +127,7 @@ Token lexer::lex_literal ()
         } while (is_alphanum (peek_char ()));
 
         throw lexer_exception {
-            Token {ERROR, lexeme},
-            m_lineNum,
-            m_colNum
+            make_token(ERROR, lexeme)
         };
     }
 
@@ -126,7 +136,7 @@ Token lexer::lex_literal ()
     num.erase(std::remove(num.begin(), num.end(), '_'), num.end());
     int value = std::stoi (num);
 
-    return Token {NUM, lexeme, value};
+    return make_token(NUM, lexeme, value);
 }
 
 Token lexer::lex_keyword_id ()
@@ -137,10 +147,10 @@ Token lexer::lex_keyword_id ()
     } while (is_alphanum (peek_char ()) || peek_char () == '_');
 
     if (keywords.contains (lexeme)) {
-        return Token {keywords.at (lexeme), lexeme};
+        return make_token(keywords.at (lexeme), lexeme);
     }
 
-    return Token {ID, lexeme};
+    return make_token(ID, lexeme);
 }
 
 Token
@@ -154,9 +164,9 @@ lexer::next_or_else (
     std::string lexeme {cur};
     if (peek_char () == look_for) {
         lexeme += get_char ();
-        return Token {found, lexeme};
+        return make_token(found, lexeme);
     }
-    return Token {not_found, lexeme};
+    return make_token(not_found, lexeme);
 }
 
 void lexer::eat_comment ()
@@ -223,8 +233,9 @@ bool is_digit(char c)
     return std::isdigit (static_cast<unsigned char> (c));
 }
 
-lexer_exception::lexer_exception(Token bad_token, int line_num, int col_num)
-    : cminus_exception {line_num, col_num}, m_bad_token {bad_token}
+lexer_exception::lexer_exception(Token bad_token)
+    : cminus_exception {bad_token.line_num, bad_token.col_num}
+    , m_bad_token {bad_token}
 {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
