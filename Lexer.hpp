@@ -77,6 +77,11 @@ struct Token
   TokenType   type;
   std::string lexeme;
   int         number;
+  
+  int line_num;
+
+  /* The column number where the token starts */
+  int col_num;
 };
 
 /***********************************************************************/
@@ -101,9 +106,11 @@ public:
   Token
   get_token ();
 
+  [[deprecated("Use Token::line_num instead.")]]
   int
   get_line_num () const;
 
+  [[deprecated("Use Token::col_num instead.")]]
   int
   get_column_num () const;
   
