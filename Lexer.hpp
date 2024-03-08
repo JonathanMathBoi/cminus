@@ -192,7 +192,7 @@ private:
 
 class lexer_exception : public cminus_exception {
 public:
-    lexer_exception(Token bad_token, int line_num, int col_num);
+    lexer_exception(Token bad_token);
 
     virtual char const* what() const noexcept;
 

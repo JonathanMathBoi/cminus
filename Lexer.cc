@@ -99,9 +99,7 @@ Token lexer::get_token ()
         if (!is_alphanum(c)) {
             std::string lexeme {c};
             throw lexer_exception {
-                make_token(ERROR, lexeme),
-                m_lineNum,
-                m_colNum
+                make_token(ERROR, lexeme)
             };
         }
 
@@ -129,9 +127,7 @@ Token lexer::lex_literal ()
         } while (is_alphanum (peek_char ()));
 
         throw lexer_exception {
-            make_token(ERROR, lexeme),
-            m_lineNum,
-            m_colNum
+            make_token(ERROR, lexeme)
         };
     }
 
@@ -237,8 +233,9 @@ bool is_digit(char c)
     return std::isdigit (static_cast<unsigned char> (c));
 }
 
-lexer_exception::lexer_exception(Token bad_token, int line_num, int col_num)
-    : cminus_exception {line_num, col_num}, m_bad_token {bad_token}
+lexer_exception::lexer_exception(Token bad_token)
+    : cminus_exception {bad_token.line_num, bad_token.col_num}
+    , m_bad_token {bad_token}
 {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
