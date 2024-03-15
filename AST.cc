@@ -42,5 +42,16 @@ void function_declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+variable_declaration_node::variable_declaration_node(
+    value_type type,
+    std::string identifier
+)
+    : declaration_node {type, identifier}
+{}
+
+void variable_declaration_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
 /***********************************************************************/
 
