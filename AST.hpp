@@ -125,7 +125,7 @@ struct program_node : node {
 
     virtual ~program_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::vector<std::unique_ptr<declaration_node>> declarations;
 };
@@ -156,7 +156,7 @@ struct function_declaration_node : declaration_node {
 
     virtual ~function_declaration_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::vector<std::unique_ptr<param_node>> parameters;
     std::unique_ptr<compound_statement_node> function_body;
@@ -167,7 +167,7 @@ struct variable_declaration_node : declaration_node {
 
     virtual ~variable_declaration_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 };
 
 struct array_declaration_node : variable_declaration_node {
@@ -175,7 +175,7 @@ struct array_declaration_node : variable_declaration_node {
 
     virtual ~array_declaration_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     // Using int as the grammar specifies the size as just a number.
     // !! Check for bad values in semantic analysis. !!
@@ -187,7 +187,7 @@ struct param_node : declaration_node {
 
     virtual ~param_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 };
 
 /***********************************************************************/
@@ -207,7 +207,7 @@ struct compound_statement_node : statement_node {
 
     virtual ~compound_statement_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::vector<std::unique_ptr<variable_declaration_node>> local_decls;
     std::vector<std::unique_ptr<statement_node>> statements;
@@ -222,7 +222,7 @@ struct if_statement_node : statement_node {
 
     virtual ~if_statement_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::unique_ptr<expression_node> condition;
     std::unique_ptr<statement_node> then_stmt;
@@ -237,7 +237,7 @@ struct while_statement_node : statement_node {
 
     virtual ~while_statement_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::unique_ptr<expression_node> condition;
     std::unique_ptr<statement_node> body;
@@ -252,7 +252,7 @@ struct return_statement_node : statement_node {
 
     virtual ~return_statement_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::optional<std::unique_ptr<expression_node>> expression;
 };
@@ -264,7 +264,7 @@ struct expression_statement_node : statement_node {
 
     virtual ~expression_statement_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::optional<std::unique_ptr<expression_node>> expr;
 };
@@ -286,7 +286,7 @@ struct assignment_expression_node : expression_node {
 
     virtual ~assignment_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::unique_ptr<variable_expression_node> variable;
     std::unique_ptr<expression_node> expression;
@@ -297,7 +297,7 @@ struct variable_expression_node : expression_node {
 
     virtual ~variable_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::string identifier;
 };
@@ -310,7 +310,7 @@ struct subscript_expression_node : variable_expression_node {
 
     virtual ~subscript_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::unique_ptr<expression_node> index;
 };
@@ -323,7 +323,7 @@ struct call_expression_node : expression_node {
 
     virtual ~call_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     std::string identifier;
     std::vector<std::unique_ptr<expression_node>> arguments;
@@ -338,7 +338,7 @@ struct additive_expression_node : expression_node {
 
     virtual ~additive_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     add_op operation;
     std::unique_ptr<expression_node> left;
@@ -354,7 +354,7 @@ struct multiplicative_expression_node : expression_node {
 
     virtual ~multiplicative_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     mul_op operation;
     std::unique_ptr<expression_node> left;
@@ -370,7 +370,7 @@ struct relational_expression_node : expression_node {
 
     virtual ~relational_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     rel_op operation;
     std::unique_ptr<expression_node> left;
@@ -384,7 +384,7 @@ struct integer_literal_expression_node : expression_node {
 
     virtual ~integer_literal_expression_node() = default;
 
-    virtual void accept(visitor& visitor);
+    virtual void accept(visitor& visitor) override;
 
     int value;
 };
