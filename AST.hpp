@@ -50,10 +50,13 @@ struct relational_expression_node;
 struct integer_literal_expression_node;
 
 /***********************************************************************/
-// Enums
+// Enums and bookkeeping
 
-enum class value_type {
-    VOID, INT, INT_ARRAY
+struct value_type {
+    enum type {
+        VOID, INT /*, FLOAT */
+    } type;
+    bool is_array;
 };
 
 /***********************************************************************/
