@@ -142,6 +142,14 @@ struct function_declaration_node : declaration_node {
     std::unique_ptr<compound_statement_node> function_body;
 };
 
+struct variable_declaration_node : declaration_node {
+    variable_declaration_node(value_type type, std::string identifier);
+
+    virtual ~variable_declaration_node() = default;
+
+    virtual void accept(visitor& visitor);
+};
+
 /***********************************************************************/
 
 #endif
