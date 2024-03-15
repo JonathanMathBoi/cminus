@@ -83,6 +83,12 @@ public:
     virtual void visit(integer_literal_expression_node& node) = 0;
 };
 
+struct node {
+    virtual ~node();
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
 /***********************************************************************/
 
 #endif
