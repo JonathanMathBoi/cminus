@@ -3,6 +3,7 @@
 
 /***********************************************************************/
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -87,6 +88,19 @@ struct node {
     virtual ~node();
 
     virtual void accept(visitor& visitor) = 0;
+};
+
+/***********************************************************************/
+// Program Root Node
+
+struct program_node : node {
+    program_node(std::vector<std::unique_ptr<declaration_node>> declarations);
+
+    virtual ~program_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::vector<std::unique_ptr<declaration_node>> declarations;
 };
 
 /***********************************************************************/
