@@ -75,4 +75,48 @@ void param_node::accept(visitor& visitor) {
 }
 
 /***********************************************************************/
+// Expression Nodes
+
+assignment_expression_node::assignment_expression_node(
+    std::unique_ptr<variable_expression_node> var,
+    std::unique_ptr<expression_node> expr
+)
+    : variable {std::move(var)}, expression {std::move(expr)}
+{}
+
+void assignment_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+variable_expression_node::variable_expression_node(std::string identifier)
+    : identifier {identifier}
+{}
+
+void variable_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+subscript_expression_node::subscript_expression_node(
+    std::string identifier,
+    std::unique_ptr<expression_node> index
+)
+    : variable_expression_node {identifier}, index {std::move(index)}
+{}
+
+void subscript_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+call_expression_node::call_expression_node(
+    std::string identifier,
+    std::vector<std::unique_ptr<expression_node>> args
+)
+    : identifier {identifier}, arguments {std::move(args)}
+{}
+
+void call_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+/***********************************************************************/
 
