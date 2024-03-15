@@ -299,6 +299,20 @@ struct subscript_expression_node : variable_expression_node {
     std::unique_ptr<expression_node> index;
 };
 
+struct call_expression_node : expression_node {
+    call_expression_node(
+        std::string identifier,
+        std::vector<std::unique_ptr<expression_node>> args
+    );
+
+    virtual ~call_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::string identifier;
+    std::vector<std::unique_ptr<expression_node>> arguments;
+};
+
 /***********************************************************************/
 
 #endif
