@@ -241,6 +241,18 @@ struct return_statement_node : statement_node {
     std::optional<std::unique_ptr<expression_node>> expression;
 };
 
+struct expression_statement_node : statement_node {
+    expression_statement_node(
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
+    );
+
+    virtual ~expression_statement_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::optional<std::unique_ptr<expression_node>> expr;
+};
+
 /***********************************************************************/
 
 #endif
