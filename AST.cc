@@ -1,6 +1,7 @@
 #include "AST.hpp"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 /***********************************************************************/
@@ -62,6 +63,14 @@ array_declaration_node::array_declaration_node(
 {}
 
 void array_declaration_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+param_node::param_node(value_type type, std::string identifier)
+    : declaration_node {type, identifier}
+{}
+
+void param_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
