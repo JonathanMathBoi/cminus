@@ -276,6 +276,16 @@ struct assignment_expression_node : expression_node {
     std::unique_ptr<expression_node> expression;
 };
 
+struct variable_expression_node : expression_node {
+    variable_expression_node(std::string identifier);
+
+    virtual ~variable_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::string identifier;
+};
+
 /***********************************************************************/
 
 #endif
