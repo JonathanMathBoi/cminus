@@ -53,5 +53,17 @@ void variable_declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+array_declaration_node::array_declaration_node(
+    value_type type,
+    std::string identifier,
+    int size
+)
+    : variable_declaration_node {type, identifier}, size {size}
+{}
+
+void array_declaration_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
 /***********************************************************************/
 
