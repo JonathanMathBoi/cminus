@@ -162,6 +162,14 @@ struct array_declaration_node : variable_declaration_node {
     int size;
 };
 
+struct param_node : declaration_node {
+    param_node(value_type type, std::string identifier);
+
+    virtual ~param_node() = default;
+
+    virtual void accept(visitor& visitor);
+};
+
 /***********************************************************************/
 
 #endif
