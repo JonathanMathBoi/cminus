@@ -182,6 +182,20 @@ struct statement_node : node {
     virtual void accept(visitor& visitor) = 0;
 };
 
+struct compound_statement_node : statement_node {
+    compound_statement_node(
+        std::vector<std::unique_ptr<variable_declaration_node>> decls,
+        std::vector<std::unique_ptr<statement_node>> stmts
+    );
+
+    virtual ~compound_statement_node();
+
+    virtual void accept(visitor& visitor);
+
+    std::vector<std::unique_ptr<variable_declaration_node>> local_decls;
+    std::vector<std::unique_ptr<statement_node>> statements;
+};
+
 /***********************************************************************/
 
 #endif
