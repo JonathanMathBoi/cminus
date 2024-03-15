@@ -27,5 +27,20 @@ void declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+function_declaration_node::function_declaration_node(
+    value_type type,
+    std::string identifier,
+    std::vector<std::unique_ptr<param_node>> params,
+    std::unique_ptr<compound_statement_node> body
+)
+    : declaration_node {type, identifier}
+    , parameters {std::move (params)}
+    , function_body {std::move (body)}
+{}
+
+void function_declaration_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
 /***********************************************************************/
 
