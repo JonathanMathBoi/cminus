@@ -150,6 +150,18 @@ struct variable_declaration_node : declaration_node {
     virtual void accept(visitor& visitor);
 };
 
+struct array_declaration_node : variable_declaration_node {
+    array_declaration_node(value_type type, std::string identifier, int size);
+
+    virtual ~array_declaration_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    // Using int as the grammar specifies the size as just a number.
+    // !! Check for bad values in semantic analysis. !!
+    int size;
+};
+
 /***********************************************************************/
 
 #endif
