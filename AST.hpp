@@ -68,6 +68,10 @@ enum class mul_op {
     TIMES, DIVIDE, /*, MOD */
 };
 
+enum class rel_op {
+    LT, LTE, GT, GTE, EQ, NEQ
+};
+
 /***********************************************************************/
 // Abstract Classes
 
@@ -349,6 +353,22 @@ struct multiplicative_expression_node : expression_node {
     virtual void accept(visitor& visitor);
 
     mul_op operation;
+    std::unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> right;
+};
+
+struct relational_expression_node : expression_node {
+    relational_expression_node(
+        rel_op operation,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs
+    );
+
+    virtual ~relational_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    rel_op operation;
     std::unique_ptr<expression_node> left;
     std::unique_ptr<expression_node> right;
 };
