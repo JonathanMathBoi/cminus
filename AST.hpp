@@ -174,6 +174,15 @@ struct param_node : declaration_node {
 };
 
 /***********************************************************************/
+// Statement Nodes
+
+struct statement_node : node {
+    virtual ~statement_node();
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
+/***********************************************************************/
 
 #endif
 
