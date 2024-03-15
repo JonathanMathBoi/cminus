@@ -140,7 +140,7 @@ struct declaration_node : node {
 
     virtual void accept(visitor& visitor) = 0;
 
-    value_type value_type;
+    value_type type;
     std::string identifier;
 
     int nest_level;
@@ -188,85 +188,6 @@ struct param_node : declaration_node {
     virtual ~param_node() = default;
 
     virtual void accept(visitor& visitor) override;
-};
-
-/***********************************************************************/
-// Statement Nodes
-
-struct statement_node : node {
-    virtual ~statement_node();
-
-    virtual void accept(visitor& visitor) = 0;
-};
-
-struct compound_statement_node : statement_node {
-    compound_statement_node(
-        std::vector<std::unique_ptr<variable_declaration_node>> decls,
-        std::vector<std::unique_ptr<statement_node>> stmts
-    );
-
-    virtual ~compound_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    std::vector<std::unique_ptr<variable_declaration_node>> local_decls;
-    std::vector<std::unique_ptr<statement_node>> statements;
-};
-
-struct if_statement_node : statement_node {
-    if_statement_node(
-        std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> then_stmt,
-        std::optional<std::unique_ptr<statement_node>> else_stmt = std::nullopt
-    );
-
-    virtual ~if_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    std::unique_ptr<expression_node> condition;
-    std::unique_ptr<statement_node> then_stmt;
-    std::optional<std::unique_ptr<statement_node>> else_stmt;
-};
-
-struct while_statement_node : statement_node {
-    while_statement_node(
-        std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> stmt
-    );
-
-    virtual ~while_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    std::unique_ptr<expression_node> condition;
-    std::unique_ptr<statement_node> body;
-};
-
-// Future Work: for_statement_node
-
-struct return_statement_node : statement_node {
-    return_statement_node(
-        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
-    );
-
-    virtual ~return_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    std::optional<std::unique_ptr<expression_node>> expression;
-};
-
-struct expression_statement_node : statement_node {
-    expression_statement_node(
-        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
-    );
-
-    virtual ~expression_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    std::optional<std::unique_ptr<expression_node>> expr;
 };
 
 /***********************************************************************/
@@ -387,6 +308,85 @@ struct integer_literal_expression_node : expression_node {
     virtual void accept(visitor& visitor) override;
 
     int value;
+};
+
+/***********************************************************************/
+// Statement Nodes
+
+struct statement_node : node {
+    virtual ~statement_node();
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
+struct compound_statement_node : statement_node {
+    compound_statement_node(
+        std::vector<std::unique_ptr<variable_declaration_node>> decls,
+        std::vector<std::unique_ptr<statement_node>> stmts
+    );
+
+    virtual ~compound_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    std::vector<std::unique_ptr<variable_declaration_node>> local_decls;
+    std::vector<std::unique_ptr<statement_node>> statements;
+};
+
+struct if_statement_node : statement_node {
+    if_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
+        std::optional<std::unique_ptr<statement_node>> else_stmt = std::nullopt
+    );
+
+    virtual ~if_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    std::unique_ptr<expression_node> condition;
+    std::unique_ptr<statement_node> then_stmt;
+    std::optional<std::unique_ptr<statement_node>> else_stmt;
+};
+
+struct while_statement_node : statement_node {
+    while_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> stmt
+    );
+
+    virtual ~while_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    std::unique_ptr<expression_node> condition;
+    std::unique_ptr<statement_node> body;
+};
+
+// Future Work: for_statement_node
+
+struct return_statement_node : statement_node {
+    return_statement_node(
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
+    );
+
+    virtual ~return_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    std::optional<std::unique_ptr<expression_node>> expression;
+};
+
+struct expression_statement_node : statement_node {
+    expression_statement_node(
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
+    );
+
+    virtual ~expression_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    std::optional<std::unique_ptr<expression_node>> expr;
 };
 
 /***********************************************************************/
