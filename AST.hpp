@@ -72,6 +72,10 @@ enum class rel_op {
     LT, LTE, GT, GTE, EQ, NEQ
 };
 
+enum class unary_op {
+    INCREMENT, DECREMENT
+};
+
 /***********************************************************************/
 // Abstract Classes
 
@@ -372,6 +376,8 @@ struct relational_expression_node : expression_node {
     std::unique_ptr<expression_node> left;
     std::unique_ptr<expression_node> right;
 };
+
+// Future Work: parse unary expressions
 
 /***********************************************************************/
 
