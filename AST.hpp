@@ -49,6 +49,41 @@ struct relational_expression_node;
 struct integer_literal_expression_node;
 
 /***********************************************************************/
+// Abstract Classes
+
+class visitor {
+public:
+    virtual void visit(program_node& node) = 0;
+
+    virtual void visit(declaration_node& node) = 0;
+    virtual void visit(function_declaration_node& node) = 0;
+    virtual void visit(variable_declaration_node& node) = 0;
+    virtual void visit(array_declaration_node& node) = 0;
+    virtual void visit(param_node& node) = 0;
+
+    virtual void visit(statement_node& node) = 0;
+    virtual void visit(compound_statement_node& node) = 0;
+    virtual void visit(if_statement_node& node) = 0;
+    virtual void visit(while_statement_node& node) = 0;
+    // Not parsing for statement yet
+    // virtual void visit(for_statement_node& node) = 0;
+    virtual void visit(return_statement_node& node) = 0;
+    virtual void visit(expression_statement_node& node) = 0;
+
+    virtual void visit(expression_node& node) = 0;
+    virtual void visit(assignment_expression_node& node) = 0;
+    virtual void visit(variable_expression_node& node) = 0;
+    virtual void visit(subscript_expression_node& node) = 0;
+    virtual void visit(call_expression_node& node) = 0;
+    virtual void visit(additive_expression_node& node) = 0;
+    virtual void visit(multiplicative_expression_node& node) = 0;
+    virtual void visit(relational_expression_node& node) = 0;
+    // Not parsing increment and decrement yet
+    // virtual void visit(unary_expression_node& node) = 0;
+    virtual void visit(integer_literal_expression_node& node) = 0;
+};
+
+/***********************************************************************/
 
 #endif
 
