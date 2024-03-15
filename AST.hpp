@@ -4,6 +4,7 @@
 /***********************************************************************/
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -194,6 +195,22 @@ struct compound_statement_node : statement_node {
 
     std::vector<std::unique_ptr<variable_declaration_node>> local_decls;
     std::vector<std::unique_ptr<statement_node>> statements;
+};
+
+struct if_statement_node : statement_node {
+    if_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
+        std::optional<std::unique_ptr<statement_node>> else_stmt = std::nullopt
+    );
+
+    virtual ~if_statement_node();
+
+    virtual void accept(visitor& visitor);
+
+    std::unique_ptr<expression_node> condition;
+    std::unique_ptr<statement_node> then_stmt;
+    std::optional<std::unique_ptr<statement_node>> else_stmt;
 };
 
 /***********************************************************************/
