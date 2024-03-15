@@ -17,4 +17,15 @@ void program_node::accept(visitor& visitor) {
 }
 
 /***********************************************************************/
+// Declaration Nodes
+
+declaration_node::declaration_node(value_type type, std::string identifier)
+    : type {type}, identifier {identifier}
+{}
+
+void declaration_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+/***********************************************************************/
 
