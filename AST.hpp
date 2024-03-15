@@ -50,6 +50,13 @@ struct relational_expression_node;
 struct integer_literal_expression_node;
 
 /***********************************************************************/
+// Enums
+
+enum class value_type {
+    VOID, INT, INT_ARRAY
+};
+
+/***********************************************************************/
 // Abstract Classes
 
 class visitor {
@@ -101,6 +108,22 @@ struct program_node : node {
     virtual void accept(visitor& visitor);
 
     std::vector<std::unique_ptr<declaration_node>> declarations;
+};
+
+/***********************************************************************/
+// Declaration Nodes
+
+struct declaration_node : node {
+    declaration_node(value_type type, std::string identifier);
+
+    virtual ~declaration_node() = default;
+
+    virtual void accept(visitor& visitor) = 0;
+
+    value_type value_type;
+    std::string identifier;
+
+    int nest_level;
 };
 
 /***********************************************************************/
