@@ -254,6 +254,15 @@ struct expression_statement_node : statement_node {
 };
 
 /***********************************************************************/
+// Expression Nodes
+
+struct expression_node : node {
+    virtual ~expression_node();
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
+/***********************************************************************/
 
 #endif
 
