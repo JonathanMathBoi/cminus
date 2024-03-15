@@ -189,7 +189,7 @@ struct compound_statement_node : statement_node {
         std::vector<std::unique_ptr<statement_node>> stmts
     );
 
-    virtual ~compound_statement_node();
+    virtual ~compound_statement_node() = default;
 
     virtual void accept(visitor& visitor);
 
@@ -204,7 +204,7 @@ struct if_statement_node : statement_node {
         std::optional<std::unique_ptr<statement_node>> else_stmt = std::nullopt
     );
 
-    virtual ~if_statement_node();
+    virtual ~if_statement_node() = default;
 
     virtual void accept(visitor& visitor);
 
