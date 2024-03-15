@@ -126,6 +126,22 @@ struct declaration_node : node {
     int nest_level;
 };
 
+struct function_declaration_node : declaration_node {
+    function_declaration_node(
+        value_type type,
+        std::string identifier,
+        std::vector<std::unique_ptr<param_node>> params,
+        std::unique_ptr<compound_statement_node> body
+    );
+
+    virtual ~function_declaration_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::vector<std::unique_ptr<param_node>> parameters;
+    std::unique_ptr<compound_statement_node> function_body;
+};
+
 /***********************************************************************/
 
 #endif
