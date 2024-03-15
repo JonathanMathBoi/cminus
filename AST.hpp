@@ -213,6 +213,20 @@ struct if_statement_node : statement_node {
     std::optional<std::unique_ptr<statement_node>> else_stmt;
 };
 
+struct while_statement_node : statement_node {
+    while_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> stmt
+    );
+
+    virtual ~while_statement_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::unique_ptr<expression_node> condition;
+    std::unique_ptr<statement_node> body;
+};
+
 /***********************************************************************/
 
 #endif
