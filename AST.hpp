@@ -227,6 +227,20 @@ struct while_statement_node : statement_node {
     std::unique_ptr<statement_node> body;
 };
 
+// Future Work: for_statement_node
+
+struct return_statement_node : statement_node {
+    return_statement_node(
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
+    );
+
+    virtual ~return_statement_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    std::optional<std::unique_ptr<expression_node>> expression;
+};
+
 /***********************************************************************/
 
 #endif
