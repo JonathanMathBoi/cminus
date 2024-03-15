@@ -60,6 +60,10 @@ struct value_type {
     bool is_array;
 };
 
+enum class add_op {
+    PLUS, MINUS
+};
+
 /***********************************************************************/
 // Abstract Classes
 
@@ -311,6 +315,22 @@ struct call_expression_node : expression_node {
 
     std::string identifier;
     std::vector<std::unique_ptr<expression_node>> arguments;
+};
+
+struct additive_expression_node : expression_node {
+    additive_expression_node(
+        add_op operation,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs
+    );
+
+    virtual ~additive_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    add_op operation;
+    std::unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> right;
 };
 
 /***********************************************************************/
