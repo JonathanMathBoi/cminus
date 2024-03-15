@@ -379,6 +379,16 @@ struct relational_expression_node : expression_node {
 
 // Future Work: parse unary expressions
 
+struct integer_literal_expression_node : expression_node {
+    integer_literal_expression_node(int value);
+
+    virtual ~integer_literal_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    int value;
+};
+
 /***********************************************************************/
 
 #endif
