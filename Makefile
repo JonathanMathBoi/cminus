@@ -8,6 +8,8 @@ Lexer.o : Lexer.cc Lexer.hpp
 
 Parser.o : Parser.cc Parser.hpp Lexer.hpp
 
+AST.o : AST.cc AST.hpp
+
 .PHONY: clean
 
 clean:
