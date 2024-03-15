@@ -64,6 +64,10 @@ enum class add_op {
     PLUS, MINUS
 };
 
+enum class mul_op {
+    TIMES, DIVIDE, /*, MOD */
+};
+
 /***********************************************************************/
 // Abstract Classes
 
@@ -329,6 +333,22 @@ struct additive_expression_node : expression_node {
     virtual void accept(visitor& visitor);
 
     add_op operation;
+    std::unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> right;
+};
+
+struct multiplicative_expression_node : expression_node {
+    multiplicative_expression_node(
+        mul_op operation,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs
+    );
+
+    virtual ~multiplicative_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    mul_op operation;
     std::unique_ptr<expression_node> left;
     std::unique_ptr<expression_node> right;
 };
