@@ -101,4 +101,41 @@ void call_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+additive_expression_node::additive_expression_node(
+    add_op operation,
+    std::unique_ptr<expression_node> lhs,
+    std::unique_ptr<expression_node> rhs)
+    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+
+void additive_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+multiplicative_expression_node::multiplicative_expression_node(
+    mul_op operation,
+    std::unique_ptr<expression_node> lhs,
+    std::unique_ptr<expression_node> rhs)
+    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+
+void multiplicative_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+relational_expression_node::relational_expression_node(
+    rel_op operation,
+    std::unique_ptr<expression_node> lhs,
+    std::unique_ptr<expression_node> rhs)
+    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+
+void relational_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+integer_literal_expression_node::integer_literal_expression_node(int value)
+    : value {value} {}
+
+void integer_literal_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
 /***********************************************************************/
