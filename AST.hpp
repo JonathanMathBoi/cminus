@@ -3,6 +3,8 @@
 
 /***********************************************************************/
 
+#include "MiscUtils.hpp"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -167,15 +169,8 @@ struct declaration_node : node {
     ///
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
-    /// \param line_num the line number of the source code where the declaration
-    ///                 begins
-    /// \param col_num the column number of the source code where the
-    ///                declaration begins
-    declaration_node(
-        value_type type,
-        std::string identifier,
-        int line_num,
-        int col_num);
+    /// \param loc the location where the declaration begins
+    declaration_node(value_type type, std::string identifier, location loc);
 
     virtual ~declaration_node() = default;
 
