@@ -161,17 +161,36 @@ struct program_node : node {
 /***********************************************************************/
 // Declaration Nodes
 
+/// Abstract Declaration Node
+///
+/// This node type serves as the base for all declaration nodes to inherit from.
+///
+/// When a smart pointer is needed to a declaration node, a `std::shared_ptr` is
+/// likely the best choice, as these nodes eventually need to be pointed to at
+/// both their parent and by all their references.
 struct declaration_node : node {
-    declaration_node(value_type type, std::string identifier);
+    /// Constructs a Declaration Node
+    ///
+    /// \param type the type for the declared construct
+    /// \param identifier the identifier for the declared construct
+    /// \param line_num the line number of the source code where the declaration
+    ///                 begins
+    /// \param col_num the column number of the source code where the
+    ///                declaration begins
+    declaration_node(
+        value_type type,
+        std::string identifier,
+        int line_num,
+        int col_num);
 
     virtual ~declaration_node() = default;
 
     virtual void accept(visitor& visitor) = 0;
 
+    /// The type of the declared construct
     value_type type;
+    /// The identifier of the declared construct
     std::string identifier;
-
-    int nest_level;
 };
 
 struct function_declaration_node : declaration_node {

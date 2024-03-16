@@ -20,8 +20,12 @@ void program_node::accept(visitor& visitor) {
 /***********************************************************************/
 // Declaration Nodes
 
-declaration_node::declaration_node(value_type type, std::string identifier)
-    : type {type}, identifier {identifier} {}
+declaration_node::declaration_node(
+    value_type type,
+    std::string identifier,
+    int line_num,
+    int col_num)
+    : node {line_num, col_num}, type {type}, identifier {identifier} {}
 
 void declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);
