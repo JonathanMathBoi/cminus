@@ -110,11 +110,9 @@ struct node {
     /// Because node is abstract, this constructor is only useful for extending
     /// classes and structs.
     ///
-    /// \param line_num the line number of the source code where the construct
+    /// \param location the location in the source code where the construct
     ///                 begins
-    /// \param col_num the column number of the source code where the construct
-    ///                begins
-    node(int line_num, int col_num) : line_num {line_num}, col_num {col_num} {}
+    node(location loc) : loc {loc} {}
 
     virtual ~node();
 
@@ -124,12 +122,8 @@ struct node {
     /// overload with the `this` parameter.
     virtual void accept(visitor& visitor) = 0;
 
-    /// The line number of the start of the construct which the node represents.
-    int line_num;
-
-    /// The column number of the start of the construct which the node
-    /// represents.
-    int col_num;
+    /// The location of the construct in the source code
+    location loc;
 };
 
 /***********************************************************************/

@@ -11,7 +11,7 @@
 // source file
 program_node::program_node(
     std::vector<std::shared_ptr<declaration_node>> declarations)
-    : node {1, 1}, declarations {declarations} {}
+    : node {location {1, 1}}, declarations {declarations} {}
 
 void program_node::accept(visitor& visitor) {
     visitor.visit(*this);
