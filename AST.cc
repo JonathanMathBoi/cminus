@@ -7,9 +7,11 @@
 /***********************************************************************/
 // Program Root Node
 
+// Uses fixed args for node constructor as the program node is always the entire
+// source file
 program_node::program_node(
-    std::vector<std::unique_ptr<declaration_node>> declarations)
-    : declarations {std::move(declarations)} {}
+    std::vector<std::shared_ptr<declaration_node>> declarations)
+    : node {1, 1}, declarations {declarations} {}
 
 void program_node::accept(visitor& visitor) {
     visitor.visit(*this);

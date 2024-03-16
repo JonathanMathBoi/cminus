@@ -135,14 +135,27 @@ struct node {
 /***********************************************************************/
 // Program Root Node
 
+/// Root Program Node
+///
+/// This node type serves as the root of the AST. It contains only a list of all
+/// the top level declarations.
 struct program_node : node {
-    program_node(std::vector<std::unique_ptr<declaration_node>> declarations);
+    /// Constructs a Program Node
+    ///
+    /// \param declarations a vector of all the top level declarations in the
+    ///                     program
+    program_node(std::vector<std::shared_ptr<declaration_node>> declarations);
 
     virtual ~program_node() = default;
 
     virtual void accept(visitor& visitor) override;
 
-    std::vector<std::unique_ptr<declaration_node>> declarations;
+    /// The list of all top level declarations in the program
+    ///
+    /// A vector of shared_ptr is used as usage of these identifers will
+    /// eventually be linked back to their delarations. As such a unique_ptr
+    /// would not be applicable.
+    std::vector<std::shared_ptr<declaration_node>> declarations;
 };
 
 /***********************************************************************/
