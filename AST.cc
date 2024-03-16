@@ -78,15 +78,20 @@ void param_node::accept(visitor& visitor) {
 
 assignment_expression_node::assignment_expression_node(
     std::unique_ptr<variable_expression_node> var,
-    std::unique_ptr<expression_node> expr)
-    : variable {std::move(var)}, expression {std::move(expr)} {}
+    std::unique_ptr<expression_node> expr,
+    location loc)
+    : expression_node {loc}
+    , variable {std::move(var)}
+    , expression {std::move(expr)} {}
 
 void assignment_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
-variable_expression_node::variable_expression_node(std::string identifier)
-    : identifier {identifier} {}
+variable_expression_node::variable_expression_node(
+    std::string identifier,
+    location loc)
+    : expression_node {loc}, identifier {identifier} {}
 
 void variable_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
@@ -94,8 +99,9 @@ void variable_expression_node::accept(visitor& visitor) {
 
 subscript_expression_node::subscript_expression_node(
     std::string identifier,
-    std::unique_ptr<expression_node> index)
-    : variable_expression_node {identifier}, index {std::move(index)} {}
+    std::unique_ptr<expression_node> index,
+    location loc)
+    : variable_expression_node {identifier, loc}, index {std::move(index)} {}
 
 void subscript_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
@@ -103,8 +109,11 @@ void subscript_expression_node::accept(visitor& visitor) {
 
 call_expression_node::call_expression_node(
     std::string identifier,
-    std::vector<std::unique_ptr<expression_node>> args)
-    : identifier {identifier}, arguments {std::move(args)} {}
+    std::vector<std::unique_ptr<expression_node>> args,
+    location loc)
+    : expression_node {loc}
+    , identifier {identifier}
+    , arguments {std::move(args)} {}
 
 void call_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
@@ -113,8 +122,12 @@ void call_expression_node::accept(visitor& visitor) {
 additive_expression_node::additive_expression_node(
     add_op operation,
     std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs)
-    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+    std::unique_ptr<expression_node> rhs,
+    location loc)
+    : expression_node {loc}
+    , operation {operation}
+    , left {std::move(lhs)}
+    , right {std::move(rhs)} {}
 
 void additive_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
@@ -123,8 +136,12 @@ void additive_expression_node::accept(visitor& visitor) {
 multiplicative_expression_node::multiplicative_expression_node(
     mul_op operation,
     std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs)
-    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+    std::unique_ptr<expression_node> rhs,
+    location)
+    : expression_node {loc}
+    , operation {operation}
+    , left {std::move(lhs)}
+    , right {std::move(rhs)} {}
 
 void multiplicative_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
@@ -133,15 +150,21 @@ void multiplicative_expression_node::accept(visitor& visitor) {
 relational_expression_node::relational_expression_node(
     rel_op operation,
     std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs)
-    : operation {operation}, left {std::move(lhs)}, right {std::move(rhs)} {}
+    std::unique_ptr<expression_node> rhs,
+    location loc)
+    : expression_node {loc}
+    , operation {operation}
+    , left {std::move(lhs)}
+    , right {std::move(rhs)} {}
 
 void relational_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
-integer_literal_expression_node::integer_literal_expression_node(int value)
-    : value {value} {}
+integer_literal_expression_node::integer_literal_expression_node(
+    int value,
+    location loc)
+    : expression_node {loc}, value {value} {}
 
 void integer_literal_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
