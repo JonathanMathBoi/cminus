@@ -58,15 +58,16 @@ void variable_declaration_node::accept(visitor& visitor) {
 array_declaration_node::array_declaration_node(
     value_type type,
     std::string identifier,
-    int size)
-    : variable_declaration_node {type, identifier}, size {size} {}
+    int size,
+    location loc)
+    : variable_declaration_node {type, identifier, loc}, size {size} {}
 
 void array_declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
-param_node::param_node(value_type type, std::string identifier)
-    : declaration_node {type, identifier} {}
+param_node::param_node(value_type type, std::string identifier, location loc)
+    : declaration_node {type, identifier, loc} {}
 
 void param_node::accept(visitor& visitor) {
     visitor.visit(*this);

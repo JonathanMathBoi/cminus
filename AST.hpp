@@ -233,20 +233,43 @@ struct variable_declaration_node : declaration_node {
     virtual void accept(visitor& visitor) override;
 };
 
+/// Array Declaration Node
+///
+/// This node type represents the declaration of an array variable.
 struct array_declaration_node : variable_declaration_node {
-    array_declaration_node(value_type type, std::string identifier, int size);
+    /// Constructs an Array Declaration Node
+    ///
+    /// \param type the type of the array
+    /// \param identifier the identifier for the array
+    /// \param size the length of the array
+    /// \param loc the location where the array is declared
+    array_declaration_node(
+        value_type type,
+        std::string identifier,
+        int size,
+        location loc);
 
     virtual ~array_declaration_node() = default;
 
     virtual void accept(visitor& visitor) override;
 
-    // Using int as the grammar specifies the size as just a number.
-    // !! Check for bad values in semantic analysis. !!
+    /// The size of the array
+    ///
+    /// Should be positive. This is to be checked at semantic analysis as the
+    /// grammar allows any integer literal as the size durring parsing.
     int size;
 };
 
+/// Parameter Declaration Node
+///
+/// This node type represents a parameter in a function declaration.
 struct param_node : declaration_node {
-    param_node(value_type type, std::string identifier);
+    /// Constructs a Parameter Declaration Node
+    ///
+    /// \param type the type of the parameter
+    /// \param identifier the name of the parameter
+    /// \param loc the location where the parameter is declared
+    param_node(value_type type, std::string identifier, location loc);
 
     virtual ~param_node() = default;
 
