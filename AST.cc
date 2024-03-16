@@ -48,8 +48,10 @@ void function_declaration_node::accept(visitor& visitor) {
 
 variable_declaration_node::variable_declaration_node(
     value_type type,
-    std::string identifier)
-    : declaration_node {type, identifier} {}
+    std::string identifier,
+    int line_num,
+    int col_num)
+    : declaration_node {type, identifier, line_num, col_num} {}
 
 void variable_declaration_node::accept(visitor& visitor) {
     visitor.visit(*this);

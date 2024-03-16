@@ -227,8 +227,21 @@ struct function_declaration_node : declaration_node {
     std::unique_ptr<compound_statement_node> function_body;
 };
 
+/// Variable Declaration Node
+///
+/// This node type represents a variable declaration.
 struct variable_declaration_node : declaration_node {
-    variable_declaration_node(value_type type, std::string identifier);
+    /// Constructs a Variable Declaration Node
+    ///
+    /// \param type the type of the variable
+    /// \param identifier the identifier for the variable
+    /// \param line_num the line where the variable is declared
+    /// \param col_no the column where the variable is declared
+    variable_declaration_node(
+        value_type type,
+        std::string identifier,
+        int line_num,
+        int col_no);
 
     virtual ~variable_declaration_node() = default;
 
