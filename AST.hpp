@@ -193,18 +193,37 @@ struct declaration_node : node {
     std::string identifier;
 };
 
+/// Function Declaration Node
+///
+/// This node type represents a function declaration.
 struct function_declaration_node : declaration_node {
+    /// Constructs a Function Declaration Node
+    ///
+    /// \param type the function return type
+    /// \param identifier the function name
+    /// \param params the list of parameters of the function
+    /// \param body the function body
+    /// \param line_num the line number where the function is declared
+    /// \param col_num the column number where the function is declared
     function_declaration_node(
         value_type type,
         std::string identifier,
-        std::vector<std::unique_ptr<param_node>> params,
-        std::unique_ptr<compound_statement_node> body);
+        std::vector<std::shared_ptr<param_node>> params,
+        std::unique_ptr<compound_statement_node> body,
+        int line_num,
+        int col_num);
 
     virtual ~function_declaration_node() = default;
 
     virtual void accept(visitor& visitor) override;
 
-    std::vector<std::unique_ptr<param_node>> parameters;
+    /// This list of all the parameters to the function
+    ///
+    /// A vector of shared_ptr is used as usage of these parameters will
+    /// eventually be linked back to their delarations here. As such a
+    /// unique_ptr would not be applicable.
+    std::vector<std::shared_ptr<param_node>> parameters;
+    /// The statement block serving as the body of the function
     std::unique_ptr<compound_statement_node> function_body;
 };
 
