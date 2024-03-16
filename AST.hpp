@@ -102,9 +102,14 @@ public:
 };
 
 struct node {
+    node(int line_num, int col_num) : line_num {line_num}, col_num {col_num} {}
+
     virtual ~node();
 
     virtual void accept(visitor& visitor) = 0;
+
+    int line_num;
+    int col_num;
 };
 
 /***********************************************************************/
