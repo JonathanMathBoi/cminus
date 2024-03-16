@@ -192,15 +192,13 @@ struct function_declaration_node : declaration_node {
     /// \param identifier the function name
     /// \param params the list of parameters of the function
     /// \param body the function body
-    /// \param line_num the line number where the function is declared
-    /// \param col_num the column number where the function is declared
+    /// \param loc the location where the function is declared
     function_declaration_node(
         value_type type,
         std::string identifier,
         std::vector<std::shared_ptr<param_node>> params,
         std::unique_ptr<compound_statement_node> body,
-        int line_num,
-        int col_num);
+        location loc);
 
     virtual ~function_declaration_node() = default;
 

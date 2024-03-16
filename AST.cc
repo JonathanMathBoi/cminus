@@ -36,9 +36,8 @@ function_declaration_node::function_declaration_node(
     std::string identifier,
     std::vector<std::shared_ptr<param_node>> params,
     std::unique_ptr<compound_statement_node> body,
-    int line_num,
-    int col_num)
-    : declaration_node {type, identifier, line_num, col_num}
+    location loc)
+    : declaration_node {type, identifier, loc}
     , parameters {params}
     , function_body {std::move(body)} {}
 
