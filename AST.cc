@@ -1,8 +1,11 @@
 #include "AST.hpp"
 #include "MiscUtils.hpp"
 
+#include <algorithm>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 /***********************************************************************/
@@ -170,4 +173,77 @@ void integer_literal_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+/***********************************************************************/
+// Statement Nodes
+
+compound_statement_node::compound_statement_node(
+    std::vector<std::shared_ptr<variable_declaration_node>> decls,
+    std::vector<std::unique_ptr<statement_node>> stmts,
+    location loc)
+    : statement_node {loc}
+    , local_decls {decls}
+    , statements {std::move(stmts)} {}
+
+void compound_statement_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+if_statement_node::if_statement_node(
+    std::unique_ptr<expression_node> condition,
+    std::unique_ptr<statement_node> then_stmt,
+    std::unique_ptr<statement_node> else_stmt,
+    location loc)
+    : statement_node {loc}
+    , condition {std::move(condition)}
+    , then_stmt {std::move(then_stmt)}
+    , else_stmt {std::move(else_stmt)} {}
+
+if_statement_node::if_statement_node(
+    std::unique_ptr<expression_node> condition,
+    std::unique_ptr<statement_node> then_stmt,
+    location loc)
+    : statement_node {loc}
+    , condition {std::move(condition)}
+    , then_stmt {std::move(then_stmt)}
+    , else_stmt {std::nullopt} {}
+
+void if_statement_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+while_statement_node::while_statement_node(
+    std::unique_ptr<expression_node> condition,
+    std::unique_ptr<statement_node> stmt,
+    location loc)
+    : statement_node {loc}
+    , condition {std::move(condition)}
+    , body {std::move(stmt)} {}
+
+void while_statement_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+return_statement_node::return_statement_node(
+    std::unique_ptr<expression_node> expr,
+    location loc)
+    : statement_node {loc}, expression {std::move(expr)} {}
+
+return_statement_node::return_statement_node(location loc)
+    : statement_node {loc}, expression {std::nullopt} {}
+
+void return_statement_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
+expression_statement_node::expression_statement_node(
+    std::unique_ptr<expression_node> expr,
+    location loc)
+    : statement_node {loc}, expr {std::move(expr)} {}
+
+expression_statement_node::expression_statement_node(location loc)
+    : statement_node {loc}, expr {std::nullopt} {}
+
+void expression_statement_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
 /***********************************************************************/
