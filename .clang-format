@@ -1,0 +1,14 @@
+﻿---
+BasedOnStyle: Chromium
+AccessModifierOffset: '-4'
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveMacros: 'true'
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+IndentCaseLabels: 'false'
+IndentWidth: '4'
+ReflowComments: 'true'
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeCpp11BracedList: 'true'
+
+...

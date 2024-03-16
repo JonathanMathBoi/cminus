@@ -101,15 +101,14 @@ private:
      * @param expected_token the token to match against
      */
     void match(const std::string_view function, const TokenType expected_token);
-   
+
     /**
      * Throws an error indicating the function which encountered an error and
      * what token it had expected.
      */
     void error(
         const std::string_view function,
-        const std::string_view expected
-    );
+        const std::string_view expected);
 
 private:
     lexer m_lexer;
@@ -124,8 +123,7 @@ public:
     parser_exception(
         const std::string_view construct,
         Token received_token,
-        const std::string_view expected
-    );
+        const std::string_view expected);
 
     virtual char const* what() const noexcept;
 

@@ -54,27 +54,17 @@ struct integer_literal_expression_node;
 // Enums and bookkeeping
 
 struct value_type {
-    enum type {
-        VOID, INT /*, FLOAT */
-    } type;
+    enum type { VOID, INT } type;
     bool is_array;
 };
 
-enum class add_op {
-    PLUS, MINUS
-};
+enum class add_op { PLUS, MINUS };
 
-enum class mul_op {
-    TIMES, DIVIDE, /*, MOD */
-};
+enum class mul_op { TIMES, DIVIDE };
 
-enum class rel_op {
-    LT, LTE, GT, GTE, EQ, NEQ
-};
+enum class rel_op { LT, LTE, GT, GTE, EQ, NEQ };
 
-enum class unary_op {
-    INCREMENT, DECREMENT
-};
+enum class unary_op { INCREMENT, DECREMENT };
 
 /***********************************************************************/
 // Abstract Classes
@@ -151,8 +141,7 @@ struct function_declaration_node : declaration_node {
         value_type type,
         std::string identifier,
         std::vector<std::unique_ptr<param_node>> params,
-        std::unique_ptr<compound_statement_node> body
-    );
+        std::unique_ptr<compound_statement_node> body);
 
     virtual ~function_declaration_node() = default;
 
@@ -202,8 +191,7 @@ struct expression_node : node {
 struct assignment_expression_node : expression_node {
     assignment_expression_node(
         std::unique_ptr<variable_expression_node> var,
-        std::unique_ptr<expression_node> expr
-    );
+        std::unique_ptr<expression_node> expr);
 
     virtual ~assignment_expression_node() = default;
 
@@ -226,8 +214,7 @@ struct variable_expression_node : expression_node {
 struct subscript_expression_node : variable_expression_node {
     subscript_expression_node(
         std::string identifier,
-        std::unique_ptr<expression_node> index
-    );
+        std::unique_ptr<expression_node> index);
 
     virtual ~subscript_expression_node() = default;
 
@@ -239,8 +226,7 @@ struct subscript_expression_node : variable_expression_node {
 struct call_expression_node : expression_node {
     call_expression_node(
         std::string identifier,
-        std::vector<std::unique_ptr<expression_node>> args
-    );
+        std::vector<std::unique_ptr<expression_node>> args);
 
     virtual ~call_expression_node() = default;
 
@@ -254,8 +240,7 @@ struct additive_expression_node : expression_node {
     additive_expression_node(
         add_op operation,
         std::unique_ptr<expression_node> lhs,
-        std::unique_ptr<expression_node> rhs
-    );
+        std::unique_ptr<expression_node> rhs);
 
     virtual ~additive_expression_node() = default;
 
@@ -270,8 +255,7 @@ struct multiplicative_expression_node : expression_node {
     multiplicative_expression_node(
         mul_op operation,
         std::unique_ptr<expression_node> lhs,
-        std::unique_ptr<expression_node> rhs
-    );
+        std::unique_ptr<expression_node> rhs);
 
     virtual ~multiplicative_expression_node() = default;
 
@@ -286,8 +270,7 @@ struct relational_expression_node : expression_node {
     relational_expression_node(
         rel_op operation,
         std::unique_ptr<expression_node> lhs,
-        std::unique_ptr<expression_node> rhs
-    );
+        std::unique_ptr<expression_node> rhs);
 
     virtual ~relational_expression_node() = default;
 
@@ -322,8 +305,7 @@ struct statement_node : node {
 struct compound_statement_node : statement_node {
     compound_statement_node(
         std::vector<std::unique_ptr<variable_declaration_node>> decls,
-        std::vector<std::unique_ptr<statement_node>> stmts
-    );
+        std::vector<std::unique_ptr<statement_node>> stmts);
 
     virtual ~compound_statement_node() = default;
 
@@ -337,8 +319,8 @@ struct if_statement_node : statement_node {
     if_statement_node(
         std::unique_ptr<expression_node> condition,
         std::unique_ptr<statement_node> then_stmt,
-        std::optional<std::unique_ptr<statement_node>> else_stmt = std::nullopt
-    );
+        std::optional<std::unique_ptr<statement_node>> else_stmt =
+            std::nullopt);
 
     virtual ~if_statement_node() = default;
 
@@ -352,8 +334,7 @@ struct if_statement_node : statement_node {
 struct while_statement_node : statement_node {
     while_statement_node(
         std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> stmt
-    );
+        std::unique_ptr<statement_node> stmt);
 
     virtual ~while_statement_node() = default;
 
@@ -367,8 +348,7 @@ struct while_statement_node : statement_node {
 
 struct return_statement_node : statement_node {
     return_statement_node(
-        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
-    );
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt);
 
     virtual ~return_statement_node() = default;
 
@@ -379,8 +359,7 @@ struct return_statement_node : statement_node {
 
 struct expression_statement_node : statement_node {
     expression_statement_node(
-        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt
-    );
+        std::optional<std::unique_ptr<expression_node>> expr = std::nullopt);
 
     virtual ~expression_statement_node() = default;
 
@@ -392,4 +371,3 @@ struct expression_statement_node : statement_node {
 /***********************************************************************/
 
 #endif
-

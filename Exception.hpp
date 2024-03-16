@@ -10,8 +10,7 @@
 class cminus_exception : public std::exception {
 public:
     cminus_exception(int line_num, int col_num)
-        : m_line_num(line_num), m_col_num(col_num)
-    {}
+        : m_line_num(line_num), m_col_num(col_num) {}
 
 protected:
     int m_line_num;

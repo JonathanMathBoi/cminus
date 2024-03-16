@@ -7,7 +7,7 @@
 
 /***********************************************************************/
 
-int main (int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cout << "No source file provided" << std::endl;
         return 1;
@@ -15,7 +15,7 @@ int main (int argc, char* argv[]) {
 
     std::ifstream source {argv[1]};
 
-    lexer lexer {std::move (source)};
+    lexer lexer {std::move(source)};
 
     parser parser {std::move(lexer)};
 
@@ -26,4 +26,3 @@ int main (int argc, char* argv[]) {
         std::cout << exception.what() << std::endl;
     }
 }
-

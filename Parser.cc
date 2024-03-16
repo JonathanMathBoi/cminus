@@ -1,6 +1,6 @@
 #include "Parser.hpp"
-#include "Lexer.hpp"
 #include "Exception.hpp"
+#include "Lexer.hpp"
 
 #include <cstddef>
 #include <iomanip>
@@ -24,7 +24,7 @@ void parser::program() {
 void parser::decl_list() {
     do {
         declaration();
-    } while(m_current_token.type != END_OF_FILE);
+    } while (m_current_token.type != END_OF_FILE);
 }
 
 /**
@@ -50,7 +50,7 @@ void parser::declaration() {
 /**
  * Parses var-declaration -> type-specifier ID SEMI
  *                         | type-specifier ID LBRACK NUM RBRACK SEMI
- * 
+ *
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
@@ -149,7 +149,7 @@ void parser::compound_stmt() {
 /**
  * Parses local-declarations -> local-delarations var-delcaration
  *                            | empty
- * 
+ *
  * Implemented as local-declarations -> { var-declaration }
  */
 void parser::local_decls() {
@@ -208,7 +208,7 @@ void parser::expr_stmt() {
     }
 
     expression();
-    match("expression statement", SEMI); 
+    match("expression statement", SEMI);
 }
 
 /**
@@ -249,7 +249,7 @@ void parser::while_statement() {
  */
 void parser::return_stmt() {
     match("return statement", RETURN);
-    
+
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
         return;
@@ -271,7 +271,9 @@ void parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
         assignment_expr();
         return;
-    } else if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
+    }
+
+    if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
         size_t peek_idx {1};
         unsigned nest_level {0};
         do {
@@ -493,8 +495,7 @@ void parser::args_list() {
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
-    : m_lexer {std::move (lexer)}, m_current_token {Token {END_OF_FILE}}
-{}
+    : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
 void parser::parse() {
     // Pull first token from lexer to start with good state
@@ -530,30 +531,19 @@ Token const& parser::peek_token(size_t index) {
 
 void parser::match(
     const std::string_view function,
-    const TokenType expected_token
-)
-{
+    const TokenType expected_token) {
     if (m_current_token.type == expected_token) {
         get_token();
     } else {
         throw parser_exception {
-            function,
-            m_current_token,
-            token_types.at(expected_token)
-        };
+            function, m_current_token, token_types.at(expected_token)};
     }
 }
 
 void parser::error(
     const std::string_view function,
-    const std::string_view expected
-)
-{
-    throw parser_exception {
-        function,
-        m_current_token,
-        expected
-    };
+    const std::string_view expected) {
+    throw parser_exception {function, m_current_token, expected};
 }
 
 /***********************************************************************/
@@ -561,16 +551,15 @@ void parser::error(
 parser_exception::parser_exception(
     const std::string_view construct,
     Token received_token,
-    const std::string_view expected
-)
+    const std::string_view expected)
     : cminus_exception {received_token.line_num, received_token.col_num}
-    , m_received_token {received_token}
-{
+    , m_received_token {received_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'
-        << "  Encountered: " << std::quoted(m_received_token.lexeme)
-        << " (line " << m_line_num << ", column " << m_col_num << ")\n"
-        << "  Expected   : " << expected;
+                   << "  Encountered: " << std::quoted(m_received_token.lexeme)
+                   << " (line " << m_line_num << ", column " << m_col_num
+                   << ")\n"
+                   << "  Expected   : " << expected;
     m_error_message = message_buffer.str();
 }
 
@@ -579,4 +568,3 @@ char const* parser_exception::what() const noexcept {
 }
 
 /***********************************************************************/
-
