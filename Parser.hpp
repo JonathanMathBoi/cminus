@@ -28,8 +28,10 @@ private:
     std::unique_ptr<program_node> program();
     std::vector<std::shared_ptr<declaration_node>> decl_list();
     std::unique_ptr<declaration_node> declaration();
-    basic_type type_spec();
-
+    /// Parses a type specifier
+    ///
+    /// \returns the type specified and its location in the code
+    std::pair<basic_type, location> type_spec();
     std::unique_ptr<variable_declaration_node> var_decl();
 
     std::unique_ptr<function_declaration_node> fun_decl();

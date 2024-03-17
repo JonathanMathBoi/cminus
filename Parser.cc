@@ -8,6 +8,7 @@
 #include <memory>
 #include <sstream>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 /***********************************************************************/
@@ -59,29 +60,44 @@ std::unique_ptr<declaration_node> parser::declaration() {
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
 std::unique_ptr<variable_declaration_node> parser::var_decl() {
-    type_spec();
-    match("variable declaration", ID);
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("variable declaration", ID).lexeme};
+
+    std::unique_ptr<variable_declaration_node> new_node;
 
     if (m_current_token.type == LBRACK) {
+        type.is_array = true;
+
         match("variable declaration", LBRACK);
-        match("variable declaration", NUM);
+        int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
+
+        new_node =
+            std::make_unique<array_declaration_node>(type, id, size, loc);
+    } else {
+        new_node = std::make_unique<variable_declaration_node>(type, id, loc);
     }
 
     match("variable declaration", SEMI);
+
+    return new_node;
 }
 
 /**
  * Parses type-specifier -> INT | VOID
  */
-basic_type parser::type_spec() {
+std::pair<basic_type, location> parser::type_spec() {
     static const std::map<TokenType, basic_type> types {
         {VOID, basic_type::VOID}, {INT, basic_type::INT}};
 
     if (types.contains(m_current_token.type)) {
-        basic_type type {types.at(m_current_token.type)};
+        std::pair<basic_type, location> ret {
+            types.at(m_current_token.type), m_current_token.loc};
         get_token();
-        return type;
+        return ret;
     }
 
     throw error("type specifier", "INT or VOID");
