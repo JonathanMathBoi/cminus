@@ -81,16 +81,17 @@ std::unique_ptr<variable_declaration_node> parser::var_decl() {
 /**
  * Parses type-specifier -> INT | VOID
  */
-void parser::type_spec() {
-    switch (m_current_token.type) {
-    case INT:
-    case VOID:
+basic_type parser::type_spec() {
+    static const std::map<TokenType, basic_type> types {
+        {VOID, basic_type::VOID}, {INT, basic_type::INT}};
+
+    if (types.contains(m_current_token.type)) {
+        basic_type type {types.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        error("type specifier", "INT or VOID");
-        break;
+        return type;
     }
+
+    error("type specifier", "INT or VOID");
 }
 
 /**

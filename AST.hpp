@@ -43,8 +43,10 @@ struct integer_literal_expression_node;
 
 /***********************************************************************/
 
+enum class basic_type { VOID, INT };
+
 struct value_type {
-    enum type { VOID, INT } type;
+    basic_type type;
     bool is_array;
 };
 
