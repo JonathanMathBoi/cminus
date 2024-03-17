@@ -307,16 +307,17 @@ std::unique_ptr<while_statement_node> parser::while_statement() {
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
 std::unique_ptr<return_statement_node> parser::return_stmt() {
-    match("return statement", RETURN);
+    location loc {match("return statement", RETURN).loc};
 
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
-        // TODO: build real node
-        return nullptr;
+        return std::make_unique<return_statement_node>(loc);
     }
 
-    expression();
+    auto expr {expression()};
     match("return expression", SEMI);
+
+    return std::make_unique<return_statement_node>(std::move(expr), loc);
 }
 
 /**

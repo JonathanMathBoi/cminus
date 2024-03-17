@@ -304,7 +304,9 @@ struct return_statement_node : statement_node {
     ///
     /// \param expr the expression to be returned
     /// \param loc the location of the return statement in the source code
-    return_statement_node(std::unique_ptr<expression_node> expr, location loc);
+    return_statement_node(
+        std::optional<std::unique_ptr<expression_node>> expr,
+        location loc);
 
     /// Constructs a Return Statement Node
     ///

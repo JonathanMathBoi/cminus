@@ -224,7 +224,7 @@ void while_statement_node::accept(visitor& visitor) {
 }
 
 return_statement_node::return_statement_node(
-    std::unique_ptr<expression_node> expr,
+    std::optional<std::unique_ptr<expression_node>> expr,
     location loc)
     : statement_node {loc}, expression {std::move(expr)} {}
 
