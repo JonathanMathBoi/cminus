@@ -1,19 +1,22 @@
 #include "Parser.hpp"
+#include "AST.hpp"
 #include "Lexer.hpp"
 #include "MiscUtils.hpp"
 
 #include <cstddef>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 /***********************************************************************/
 
 /**
  * Parses program -> decleration-list
  */
-void parser::program() {
-    decl_list();
+std::unique_ptr<program_node> parser::program() {
+    return std::make_unique<program_node>(decl_list());
 }
 
 /**
@@ -21,7 +24,7 @@ void parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-void parser::decl_list() {
+std::vector<std::shared_ptr<declaration_node>> parser::decl_list() {
     do {
         declaration();
     } while (m_current_token.type != END_OF_FILE);
@@ -497,11 +500,11 @@ void parser::args_list() {
 parser::parser(lexer&& lexer)
     : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
-void parser::parse() {
+std::unique_ptr<node> parser::parse() {
     // Pull first token from lexer to start with good state
     get_token();
 
-    program();
+    return program();
 }
 
 Token const& parser::get_token() {

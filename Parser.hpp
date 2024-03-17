@@ -8,7 +8,9 @@
 #include "MiscUtils.hpp"
 
 #include <deque>
+#include <memory>
 #include <string_view>
+#include <vector>
 
 /***********************************************************************/
 
@@ -16,12 +18,12 @@ class parser {
 public:
     parser(lexer&& lexer);
 
-    void parse();
+    std::unique_ptr<node> parse();
 
 private:
-    void program();
+    std::unique_ptr<program_node> program();
 
-    void decl_list();
+    std::vector<std::shared_ptr<declaration_node>> decl_list();
 
     void declaration();
 
