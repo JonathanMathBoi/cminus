@@ -409,8 +409,9 @@ unique_ptr<variable_expression_node> parser::variable() {
  * Implemented as simple-expression
  *                  -> additive-expression [ relop additive-expression ]
  */
-unique_ptr<relational_expression_node> parser::relational_expr() {
-    add_expr();
+unique_ptr<expression_node> parser::relational_expr() {
+    auto lhs {add_expr()};
+    location loc {lhs->loc};
 
     switch (m_current_token.type) {
     case LT:
@@ -418,31 +419,34 @@ unique_ptr<relational_expression_node> parser::relational_expr() {
     case GT:
     case GTE:
     case EQ:
-    case NEQ:
-        relation_op();
-        add_expr();
-        break;
+    case NEQ: {
+        rel_op operation {relation_op()};
+        auto rhs {add_expr()};
+        return make_unique<relational_expression_node>(
+            operation, std::move(lhs), std::move(rhs), loc);
+    }
     default:
         break;
     }
+
+    return lhs;
 }
 
 /**
  * Parses relop -> LTE | LT | GT | GTE | EQ | NEQ
  */
-void parser::relation_op() {
-    switch (m_current_token.type) {
-    case LT:
-    case LTE:
-    case GT:
-    case GTE:
-    case EQ:
-    case NEQ:
+rel_op parser::relation_op() {
+    static const std::map<TokenType, rel_op> rel_ops {
+        {LT, rel_op::LT},   {LTE, rel_op::LTE}, {GT, rel_op::GT},
+        {GTE, rel_op::GTE}, {EQ, rel_op::EQ},   {NEQ, rel_op::NEQ}};
+
+    if (rel_ops.contains(m_current_token.type)) {
+        rel_op operation {rel_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
+        return operation;
     }
+
+    throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
 }
 
 /**
@@ -450,7 +454,7 @@ void parser::relation_op() {
  *
  * Implemented as additive-expression -> term { addop term }
  */
-void parser::add_expr() {
+unique_ptr<expression_node> parser::add_expr() {
     term();
 
     while (m_current_token.type == PLUS || m_current_token.type == MINUS) {
