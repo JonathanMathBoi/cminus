@@ -115,6 +115,61 @@ struct node {
     location loc;
 };
 
+/// Abstract Declaration Node
+///
+/// This node type serves as the base for all declaration nodes to inherit from.
+///
+/// When a smart pointer is needed to a declaration node, a `std::shared_ptr` is
+/// likely the best choice, as these nodes eventually need to be pointed to at
+/// both their parent and by all their references.
+struct declaration_node : node {
+    /// Constructs a Declaration Node
+    ///
+    /// \param type the type for the declared construct
+    /// \param identifier the identifier for the declared construct
+    /// \param loc the location where the declaration begins
+    declaration_node(value_type type, std::string identifier, location loc);
+
+    virtual ~declaration_node() = default;
+
+    virtual void accept(visitor& visitor) = 0;
+
+    /// The type of the declared construct
+    value_type type;
+    /// The identifier of the declared construct
+    std::string identifier;
+};
+
+/// Abstract Expression Node
+///
+/// This node type serves as the base for all types of expression nodes to
+/// derive from.
+struct expression_node : node {
+    /// Constructs an Expression Node
+    ///
+    /// \param loc the location of the expression in the source code
+    expression_node(location loc) : node {loc} {}
+
+    virtual ~expression_node() = default;
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
+/// Abstract Statement Node
+///
+/// This node type serves as the base for all types of statement nodes to derive
+/// from.
+struct statement_node : node {
+    /// Constructs a Statement Node
+    ///
+    /// \param loc the location of the statement in the source code
+    statement_node(location loc) : node {loc} {}
+
+    virtual ~statement_node() = default;
+
+    virtual void accept(visitor& visitor) = 0;
+};
+
 /***********************************************************************/
 
 /// Root Program Node
@@ -141,31 +196,6 @@ struct program_node : node {
 };
 
 /***********************************************************************/
-
-/// Abstract Declaration Node
-///
-/// This node type serves as the base for all declaration nodes to inherit from.
-///
-/// When a smart pointer is needed to a declaration node, a `std::shared_ptr` is
-/// likely the best choice, as these nodes eventually need to be pointed to at
-/// both their parent and by all their references.
-struct declaration_node : node {
-    /// Constructs a Declaration Node
-    ///
-    /// \param type the type for the declared construct
-    /// \param identifier the identifier for the declared construct
-    /// \param loc the location where the declaration begins
-    declaration_node(value_type type, std::string identifier, location loc);
-
-    virtual ~declaration_node() = default;
-
-    virtual void accept(visitor& visitor) = 0;
-
-    /// The type of the declared construct
-    value_type type;
-    /// The identifier of the declared construct
-    std::string identifier;
-};
 
 /// Function Declaration Node
 ///
@@ -262,21 +292,6 @@ struct param_node : declaration_node {
 };
 
 /***********************************************************************/
-
-/// Abstract Expression Node
-///
-/// This node type serves as the base for all types of expression nodes to
-/// derive from.
-struct expression_node : node {
-    /// Constructs an Expression Node
-    ///
-    /// \param loc the location of the expression in the source code
-    expression_node(location loc) : node {loc} {}
-
-    virtual ~expression_node() = default;
-
-    virtual void accept(visitor& visitor) = 0;
-};
 
 /// Assignment Expression Node
 ///
@@ -469,21 +484,6 @@ struct integer_literal_expression_node : expression_node {
 };
 
 /***********************************************************************/
-
-/// Abstract Statement Node
-///
-/// This node type serves as the base for all types of statement nodes to derive
-/// from.
-struct statement_node : node {
-    /// Constructs a Statement Node
-    ///
-    /// \param loc the location of the statement in the source code
-    statement_node(location loc) : node {loc} {}
-
-    virtual ~statement_node() = default;
-
-    virtual void accept(visitor& visitor) = 0;
-};
 
 /// Compound Statement Node
 ///
