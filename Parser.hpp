@@ -40,16 +40,15 @@ private:
     std::unique_ptr<compound_statement_node> compound_stmt();
     std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
     std::vector<std::unique_ptr<statement_node>> stmt_list();
-
     std::unique_ptr<statement_node> statement();
 
-    void expr_stmt();
+    std::unique_ptr<expression_statement_node> expr_stmt();
 
-    void if_statement();
+    std::unique_ptr<if_statement_node> if_statement();
 
-    void while_statement();
+    std::unique_ptr<while_statement_node> while_statement();
 
-    void return_stmt();
+    std::unique_ptr<return_statement_node> return_stmt();
 
     void expression();
 

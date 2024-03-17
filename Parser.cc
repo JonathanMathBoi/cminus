@@ -231,20 +231,15 @@ std::vector<std::unique_ptr<statement_node>> parser::stmt_list() {
 std::unique_ptr<statement_node> parser::statement() {
     switch (m_current_token.type) {
     case IF:
-        if_statement();
-        break;
+        return if_statement();
     case WHILE:
-        while_statement();
-        break;
+        return while_statement();
     case RETURN:
-        return_stmt();
-        break;
+        return return_stmt();
     case LBRACE:
-        compound_stmt();
-        break;
+        return compound_stmt();
     default:
-        expr_stmt();
-        break;
+        return expr_stmt();
     }
 }
 
@@ -253,10 +248,11 @@ std::unique_ptr<statement_node> parser::statement() {
  *
  * Implemented as expression-stmt -> [ expression ] SEMI
  */
-void parser::expr_stmt() {
+std::unique_ptr<expression_statement_node> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
         match("expression statement", SEMI);
-        return;
+        // TODO: Build real node
+        return nullptr;
     }
 
     expression();
@@ -270,7 +266,7 @@ void parser::expr_stmt() {
  * Implemented as selection-stmt
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
-void parser::if_statement() {
+std::unique_ptr<if_statement_node> parser::if_statement() {
     match("if statement", IF);
     match("if statement", LPAREN);
     expression();
@@ -286,7 +282,7 @@ void parser::if_statement() {
 /**
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
-void parser::while_statement() {
+std::unique_ptr<while_statement_node> parser::while_statement() {
     match("while statement", WHILE);
     match("while statement", LPAREN);
     expression();
@@ -299,12 +295,13 @@ void parser::while_statement() {
  *
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
-void parser::return_stmt() {
+std::unique_ptr<return_statement_node> parser::return_stmt() {
     match("return statement", RETURN);
 
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
-        return;
+        // TODO: build real node
+        return nullptr;
     }
 
     expression();
