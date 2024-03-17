@@ -446,6 +446,24 @@ struct param_node : declaration_node {
 
 /***********************************************************************/
 
+/// Variable Expression Node
+///
+/// The node represents a variable used in an expression
+struct variable_expression_node : expression_node {
+    /// Constructs a Variable Expression Node
+    ///
+    /// \param identifier the name of the variable referenced
+    /// \param loc the location of the reference in the source code
+    variable_expression_node(std::string identifier, location loc);
+
+    virtual ~variable_expression_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// The identifier of the variable being referenced
+    std::string identifier;
+};
+
 /// Assignment Expression Node
 ///
 /// This node represents an assignment expression of the form `var = <expr>`.
@@ -468,24 +486,6 @@ struct assignment_expression_node : expression_node {
     std::unique_ptr<variable_expression_node> variable;
     /// The expression which will be assigned to the variable
     std::unique_ptr<expression_node> expression;
-};
-
-/// Variable Expression Node
-///
-/// The node represents a variable used in an expression
-struct variable_expression_node : expression_node {
-    /// Constructs a Variable Expression Node
-    ///
-    /// \param identifier the name of the variable referenced
-    /// \param loc the location of the reference in the source code
-    variable_expression_node(std::string identifier, location loc);
-
-    virtual ~variable_expression_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// The identifier of the variable being referenced
-    std::string identifier;
 };
 
 /// Subscript Expression Node
