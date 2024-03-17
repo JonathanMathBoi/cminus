@@ -3,6 +3,7 @@
 
 /***********************************************************************/
 
+#include "AST.hpp"
 #include "Lexer.hpp"
 #include "MiscUtils.hpp"
 
@@ -92,15 +93,22 @@ private:
      */
     Token const& peek_token(size_t index);
 
-    /**
-     * Checks to see if the current token matches the expected. If it matches,
-     * the token is consumed and current is moved forward. Otherwise a
-     * parse_exception is thrown.
-     *
-     * @param function the name of the function calling match
-     * @param expected_token the token to match against
-     */
-    void match(const std::string_view function, const TokenType expected_token);
+    /// Matches on a TokenType
+    ///
+    /// Checks to see if the current token matches the expected. If it matches,
+    /// the token is consumed and current is moved forward. Otherwise a
+    /// parse_exception is thrown.
+    ///
+    /// \param construct the name of the construct being parsed
+    /// \param expected_token the TokenType to be matched against
+    ///
+    /// \returns the successfully matched Token
+    ///
+    /// \throws parser_exception if the current token does not match the
+    ///                          expected type
+    Token const match(
+        const std::string_view construct,
+        const TokenType expected_token);
 
     /**
      * Throws an error indicating the function which encountered an error and

@@ -529,14 +529,16 @@ Token const& parser::peek_token(size_t index) {
     return m_peeked_tokens[index];
 }
 
-void parser::match(
-    const std::string_view function,
+Token const parser::match(
+    const std::string_view construct,
     const TokenType expected_token) {
     if (m_current_token.type == expected_token) {
+        Token matched_tok {m_current_token};
         get_token();
+        return matched_tok;
     } else {
         throw parser_exception {
-            function, m_current_token, token_types.at(expected_token)};
+            construct, m_current_token, token_types.at(expected_token)};
     }
 }
 
