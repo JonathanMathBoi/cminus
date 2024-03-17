@@ -291,11 +291,14 @@ std::unique_ptr<if_statement_node> parser::if_statement() {
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
 std::unique_ptr<while_statement_node> parser::while_statement() {
-    match("while statement", WHILE);
+    location loc {match("while statement", WHILE).loc};
     match("while statement", LPAREN);
-    expression();
+    auto condition {expression()};
     match("while statement", RPAREN);
-    statement();
+    auto body {statement()};
+
+    return std::make_unique<while_statement_node>(
+        std::move(condition), std::move(body), loc);
 }
 
 /**
