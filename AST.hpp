@@ -331,7 +331,7 @@ struct expression_statement_node : statement_node {
     /// \param expr the expression to be evaluated
     /// \param loc the location of the expression in the source code.
     expression_statement_node(
-        std::unique_ptr<expression_node> expr,
+        std::optional<std::unique_ptr<expression_node>> expr,
         location loc);
 
     /// Constructs an Expression Statement

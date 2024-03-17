@@ -236,7 +236,7 @@ void return_statement_node::accept(visitor& visitor) {
 }
 
 expression_statement_node::expression_statement_node(
-    std::unique_ptr<expression_node> expr,
+    std::optional<std::unique_ptr<expression_node>> expr,
     location loc)
     : statement_node {loc}, expr {std::move(expr)} {}
 

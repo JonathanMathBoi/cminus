@@ -250,13 +250,15 @@ std::unique_ptr<statement_node> parser::statement() {
  */
 std::unique_ptr<expression_statement_node> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
-        match("expression statement", SEMI);
-        // TODO: Build real node
-        return nullptr;
+        location loc {match("expression statement", SEMI).loc};
+        return std::make_unique<expression_statement_node>(loc);
     }
 
-    expression();
+    auto expr {expression()};
+    location loc {expr->loc};
     match("expression statement", SEMI);
+
+    return std::make_unique<expression_statement_node>(std::move(expr), loc);
 }
 
 /**
@@ -316,10 +318,11 @@ std::unique_ptr<return_statement_node> parser::return_stmt() {
  * Ad-hoc solution used to check for assignment expression with an indexed array
  * as the variable.
  */
-void parser::expression() {
+std::unique_ptr<expression_node> parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
         assignment_expr();
-        return;
+        // TODO: Build real node.
+        return nullptr;
     }
 
     if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
@@ -346,7 +349,8 @@ void parser::expression() {
 
         if (peek_token(peek_idx).type == ASSIGN) {
             assignment_expr();
-            return;
+            // TODO: Build real node.
+            return nullptr;
         }
     }
 
