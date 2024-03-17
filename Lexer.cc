@@ -20,7 +20,7 @@ int lexer::get_column_num() const {
 }
 
 Token lexer::make_token(TokenType type, std::string lexeme, int number) const {
-    return Token {type, lexeme, number, m_token_line, m_token_col};
+    return Token {type, lexeme, number, location {m_token_line, m_token_col}};
 }
 
 Token lexer::get_token() {
@@ -203,13 +203,12 @@ bool is_digit(char c) {
 }
 
 lexer_exception::lexer_exception(Token bad_token)
-    : cminus_exception {bad_token.line_num, bad_token.col_num}
-    , m_bad_token {bad_token} {
+    : cminus_exception {bad_token.loc}, m_bad_token {bad_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
                    << "  Encountered: " << std::quoted(m_bad_token.lexeme)
-                   << " (line " << m_line_num << ", column " << m_col_num
-                   << ")";
+                   << " (line " << location.line_num << ", column "
+                   << location.col_num << ")";
     m_error_message = message_buffer.str();
 }
 

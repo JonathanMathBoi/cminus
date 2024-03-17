@@ -89,30 +89,24 @@ const std::map<TokenType, std::string> token_types {
 
 /***********************************************************************/
 
+/// Token Struct
+///
+/// A lexed token from a source file.
+///
+/// Consists of its TokenType, its lexeme, an optional number (used for NUM
+/// tokens), and its location in the code.
 struct Token {
-    Token(TokenType pType, std::string pLexeme = "", int pNumber = 0)
-        : Token {pType, pLexeme, pNumber, -1, -1} {}
-
     Token(
         TokenType pType,
-        std::string pLexeme,
-        int pNumber,
-        int line_num,
-        int col_num)
-        : type {pType}
-        , lexeme {pLexeme}
-        , number {pNumber}
-        , line_num {line_num}
-        , col_num {col_num} {}
+        std::string pLexeme = "",
+        int pNumber = 0,
+        location loc = location {-1, -1})
+        : type {pType}, lexeme {pLexeme}, number {pNumber}, loc {loc} {}
 
     TokenType type;
     std::string lexeme;
     int number;
-
-    int line_num;
-
-    /* The column number where the token starts */
-    int col_num;
+    location loc;
 };
 
 /***********************************************************************/

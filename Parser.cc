@@ -552,13 +552,12 @@ parser_exception::parser_exception(
     const std::string_view construct,
     Token received_token,
     const std::string_view expected)
-    : cminus_exception {received_token.line_num, received_token.col_num}
-    , m_received_token {received_token} {
+    : cminus_exception {received_token.loc}, m_received_token {received_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'
                    << "  Encountered: " << std::quoted(m_received_token.lexeme)
-                   << " (line " << m_line_num << ", column " << m_col_num
-                   << ")\n"
+                   << " (line " << location.line_num << ", column "
+                   << location.col_num << ")\n"
                    << "  Expected   : " << expected;
     m_error_message = message_buffer.str();
 }
