@@ -25,15 +25,19 @@ std::unique_ptr<program_node> parser::program() {
  * Implemented as declaration-list -> declaration { declaration }
  */
 std::vector<std::shared_ptr<declaration_node>> parser::decl_list() {
+    std::vector<std::shared_ptr<declaration_node>> decls;
+
     do {
-        declaration();
+        decls.emplace_back(declaration());
     } while (m_current_token.type != END_OF_FILE);
+
+    return decls;
 }
 
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-void parser::declaration() {
+std::unique_ptr<declaration_node> parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
     case LBRACK:
