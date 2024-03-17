@@ -50,10 +50,9 @@ private:
     unique_ptr<while_statement_node> while_statement();
     unique_ptr<return_statement_node> return_stmt();
     unique_ptr<expression_node> expression();
-
     unique_ptr<assignment_expression_node> assignment_expr();
 
-    void variable();
+    unique_ptr<variable_expression_node> variable();
 
     unique_ptr<relational_expression_node> relational_expr();
 

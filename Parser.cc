@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
@@ -21,7 +22,7 @@ using std::vector;
  * Parses program -> decleration-list
  */
 unique_ptr<program_node> parser::program() {
-    return std::make_unique<program_node>(decl_list());
+    return make_unique<program_node>(decl_list());
 }
 
 /**
@@ -79,10 +80,9 @@ unique_ptr<variable_declaration_node> parser::var_decl() {
         int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
 
-        new_node =
-            std::make_unique<array_declaration_node>(type, id, size, loc);
+        new_node = make_unique<array_declaration_node>(type, id, size, loc);
     } else {
-        new_node = std::make_unique<variable_declaration_node>(type, id, loc);
+        new_node = make_unique<variable_declaration_node>(type, id, loc);
     }
 
     match("variable declaration", SEMI);
@@ -126,7 +126,7 @@ unique_ptr<function_declaration_node> parser::fun_decl() {
 
     auto body {compound_stmt()};
 
-    return std::make_unique<function_declaration_node>(
+    return make_unique<function_declaration_node>(
         type, id, parameters, std::move(body), loc);
 }
 
@@ -179,7 +179,7 @@ unique_ptr<param_node> parser::param() {
         type.is_array = true;
     }
 
-    return std::make_unique<param_node>(type, id, loc);
+    return make_unique<param_node>(type, id, loc);
 }
 
 /**
@@ -190,7 +190,7 @@ unique_ptr<compound_statement_node> parser::compound_stmt() {
     auto locals {local_decls()};
     auto statements {stmt_list()};
     match("compound statement", RBRACE);
-    return std::make_unique<compound_statement_node>(
+    return make_unique<compound_statement_node>(
         locals, std::move(statements), loc);
 }
 
@@ -255,14 +255,14 @@ unique_ptr<statement_node> parser::statement() {
 unique_ptr<expression_statement_node> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
         location loc {match("expression statement", SEMI).loc};
-        return std::make_unique<expression_statement_node>(loc);
+        return make_unique<expression_statement_node>(loc);
     }
 
     auto expr {expression()};
     location loc {expr->loc};
     match("expression statement", SEMI);
 
-    return std::make_unique<expression_statement_node>(std::move(expr), loc);
+    return make_unique<expression_statement_node>(std::move(expr), loc);
 }
 
 /**
@@ -282,12 +282,12 @@ unique_ptr<if_statement_node> parser::if_statement() {
     if (m_current_token.type == ELSE) {
         match("if statement", ELSE);
         auto else_stmt {statement()};
-        return std::make_unique<if_statement_node>(
+        return make_unique<if_statement_node>(
             std::move(condition), std::move(then_stmt), std::move(else_stmt),
             loc);
     }
 
-    return std::make_unique<if_statement_node>(
+    return make_unique<if_statement_node>(
         std::move(condition), std::move(then_stmt), loc);
 }
 
@@ -301,7 +301,7 @@ unique_ptr<while_statement_node> parser::while_statement() {
     match("while statement", RPAREN);
     auto body {statement()};
 
-    return std::make_unique<while_statement_node>(
+    return make_unique<while_statement_node>(
         std::move(condition), std::move(body), loc);
 }
 
@@ -315,13 +315,13 @@ unique_ptr<return_statement_node> parser::return_stmt() {
 
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
-        return std::make_unique<return_statement_node>(loc);
+        return make_unique<return_statement_node>(loc);
     }
 
     auto expr {expression()};
     match("return expression", SEMI);
 
-    return std::make_unique<return_statement_node>(std::move(expr), loc);
+    return make_unique<return_statement_node>(std::move(expr), loc);
 }
 
 /**
@@ -372,9 +372,14 @@ unique_ptr<expression_node> parser::expression() {
  * Parses assign-expression -> var ASSIGN expression
  */
 unique_ptr<assignment_expression_node> parser::assignment_expr() {
-    variable();
+    auto var {variable()};
     match("assignment expression", ASSIGN);
-    expression();
+    auto expr {expression()};
+
+    location loc {var->loc};
+
+    return make_unique<assignment_expression_node>(
+        std::move(var), std::move(expr), loc);
 }
 
 /**
@@ -382,7 +387,7 @@ unique_ptr<assignment_expression_node> parser::assignment_expr() {
  *
  * Implemented as var -> ID [ LBARCK expression RBRACK ]
  */
-void parser::variable() {
+unique_ptr<variable_expression_node> parser::variable() {
     match("variable", ID);
 
     if (m_current_token.type == LBRACK) {
