@@ -103,7 +103,7 @@ struct node {
     ///                 begins
     node(location loc) : loc {loc} {}
 
-    virtual ~node();
+    virtual ~node() = default;
 
     /// Accepts a visitor to visit this node
     ///
@@ -273,7 +273,7 @@ struct expression_node : node {
     /// \param loc the location of the expression in the source code
     expression_node(location loc) : node {loc} {}
 
-    virtual ~expression_node();
+    virtual ~expression_node() = default;
 
     virtual void accept(visitor& visitor) = 0;
 };
@@ -480,7 +480,7 @@ struct statement_node : node {
     /// \param loc the location of the statement in the source code
     statement_node(location loc) : node {loc} {}
 
-    virtual ~statement_node();
+    virtual ~statement_node() = default;
 
     virtual void accept(visitor& visitor) = 0;
 };
