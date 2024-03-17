@@ -23,14 +23,13 @@ public:
 private:
     std::unique_ptr<program_node> program();
     std::vector<std::shared_ptr<declaration_node>> decl_list();
-
     std::unique_ptr<declaration_node> declaration();
 
-    void var_decl();
+    std::unique_ptr<variable_declaration_node> var_decl();
 
     void type_spec();
 
-    void fun_decl();
+    std::unique_ptr<function_declaration_node> fun_decl();
 
     void params();
 

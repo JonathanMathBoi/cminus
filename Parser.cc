@@ -41,10 +41,10 @@ std::unique_ptr<declaration_node> parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
     case LBRACK:
-        var_decl();
+        return var_decl();
         break;
     case LPAREN:
-        fun_decl();
+        return fun_decl();
         break;
     default:
         type_spec();
@@ -52,6 +52,10 @@ std::unique_ptr<declaration_node> parser::declaration() {
         error("declaration", "';', '[', or '('");
         break;
     }
+
+    // Will never happen as error will throw
+    // This is to apease compiler warning
+    return nullptr;
 }
 
 /**
@@ -61,7 +65,7 @@ std::unique_ptr<declaration_node> parser::declaration() {
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-void parser::var_decl() {
+std::unique_ptr<variable_declaration_node> parser::var_decl() {
     type_spec();
     match("variable declaration", ID);
 
@@ -93,7 +97,7 @@ void parser::type_spec() {
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-void parser::fun_decl() {
+std::unique_ptr<function_declaration_node> parser::fun_decl() {
     type_spec();
     match("function declaration", ID);
     match("function declaration", LPAREN);
