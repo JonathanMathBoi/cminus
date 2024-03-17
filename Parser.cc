@@ -108,24 +108,35 @@ std::pair<basic_type, location> parser::type_spec() {
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
 std::unique_ptr<function_declaration_node> parser::fun_decl() {
-    type_spec();
-    match("function declaration", ID);
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("function declaration", ID).lexeme};
+
     match("function declaration", LPAREN);
-    params();
+
+    auto parameters {params()};
+
     match("function declaration", RPAREN);
-    compound_stmt();
+
+    auto body {compound_stmt()};
+
+    return std::make_unique<function_declaration_node>(
+        type, id, parameters, std::move(body), loc);
 }
 
 /**
  * Parses params -> param-list | VOID
  */
-void parser::params() {
+std::vector<std::shared_ptr<param_node>> parser::params() {
     if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
         match("parameters", VOID);
-        return;
+        // returns an empty vector
+        return {};
     }
 
-    param_list();
+    return param_list();
 }
 
 /**
@@ -133,13 +144,17 @@ void parser::params() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-void parser::param_list() {
-    param();
+std::vector<std::shared_ptr<param_node>> parser::param_list() {
+    std::vector<std::shared_ptr<param_node>> params;
+
+    params.emplace_back(param());
 
     while (m_current_token.type == COMMA) {
         match("parameter list", COMMA);
-        param();
+        params.emplace_back(param());
     }
+
+    return params;
 }
 
 /**
@@ -147,20 +162,26 @@ void parser::param_list() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-void parser::param() {
-    type_spec();
-    match("parameter", ID);
+std::unique_ptr<param_node> parser::param() {
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("parameter", ID).lexeme};
 
     if (m_current_token.type == LBRACK) {
         match("parameter", LBRACK);
         match("parameter", RBRACK);
+        type.is_array = true;
     }
+
+    return std::make_unique<param_node>(type, id, loc);
 }
 
 /**
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
-void parser::compound_stmt() {
+std::unique_ptr<compound_statement_node> parser::compound_stmt() {
     match("compound statement", LBRACE);
     local_decls();
     stmt_list();

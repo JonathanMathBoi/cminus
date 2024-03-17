@@ -33,16 +33,12 @@ private:
     /// \returns the type specified and its location in the code
     std::pair<basic_type, location> type_spec();
     std::unique_ptr<variable_declaration_node> var_decl();
-
     std::unique_ptr<function_declaration_node> fun_decl();
+    std::vector<std::shared_ptr<param_node>> params();
+    std::vector<std::shared_ptr<param_node>> param_list();
+    std::unique_ptr<param_node> param();
 
-    void params();
-
-    void param_list();
-
-    void param();
-
-    void compound_stmt();
+    std::unique_ptr<compound_statement_node> compound_stmt();
 
     void local_decls();
 
