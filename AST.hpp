@@ -241,7 +241,7 @@ struct if_statement_node : statement_node {
     if_statement_node(
         std::unique_ptr<expression_node> condition,
         std::unique_ptr<statement_node> then_stmt,
-        std::unique_ptr<statement_node> else_stmt,
+        std::optional<std::unique_ptr<statement_node>> else_stmt,
         location loc);
 
     /// Constructs an If Statement Node

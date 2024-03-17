@@ -269,16 +269,22 @@ std::unique_ptr<expression_statement_node> parser::expr_stmt() {
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
 std::unique_ptr<if_statement_node> parser::if_statement() {
-    match("if statement", IF);
+    location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
-    expression();
+    auto condition {expression()};
     match("if statement", RPAREN);
-    statement();
+    auto then_stmt {statement()};
 
     if (m_current_token.type == ELSE) {
         match("if statement", ELSE);
-        statement();
+        auto else_stmt {statement()};
+        return std::make_unique<if_statement_node>(
+            std::move(condition), std::move(then_stmt), std::move(else_stmt),
+            loc);
     }
+
+    return std::make_unique<if_statement_node>(
+        std::move(condition), std::move(then_stmt), loc);
 }
 
 /**

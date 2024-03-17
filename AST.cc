@@ -191,7 +191,7 @@ void compound_statement_node::accept(visitor& visitor) {
 if_statement_node::if_statement_node(
     std::unique_ptr<expression_node> condition,
     std::unique_ptr<statement_node> then_stmt,
-    std::unique_ptr<statement_node> else_stmt,
+    std::optional<std::unique_ptr<statement_node>> else_stmt,
     location loc)
     : statement_node {loc}
     , condition {std::move(condition)}
