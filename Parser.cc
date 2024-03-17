@@ -42,20 +42,13 @@ std::unique_ptr<declaration_node> parser::declaration() {
     case SEMI:
     case LBRACK:
         return var_decl();
-        break;
     case LPAREN:
         return fun_decl();
-        break;
     default:
         type_spec();
         match("declaration", ID);
-        error("declaration", "';', '[', or '('");
-        break;
+        throw error("declaration", "';', '[', or '('");
     }
-
-    // Will never happen as error will throw
-    // This is to apease compiler warning
-    return nullptr;
 }
 
 /**
@@ -91,7 +84,7 @@ basic_type parser::type_spec() {
         return type;
     }
 
-    error("type specifier", "INT or VOID");
+    throw error("type specifier", "INT or VOID");
 }
 
 /**
@@ -379,8 +372,7 @@ void parser::relation_op() {
         get_token();
         break;
     default:
-        error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
-        break;
+        throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
     }
 }
 
@@ -408,8 +400,7 @@ void parser::add_op() {
         get_token();
         break;
     default:
-        error("addition operator", "PLUS or MINUS");
-        break;
+        throw error("addition operator", "PLUS or MINUS");
     }
 }
 
@@ -437,8 +428,7 @@ void parser::mul_op() {
         get_token();
         break;
     default:
-        error("multiplication operator", "TIMES or DIVIDE");
-        break;
+        throw error("multiplication operator", "TIMES or DIVIDE");
     }
 }
 
@@ -464,8 +454,8 @@ void parser::factor() {
         variable();
         break;
     default:
-        error("factor", "( expression ), variable, function call, or literal");
-        break;
+        throw error(
+            "factor", "( expression ), variable, function call, or literal");
     }
 }
 
@@ -554,10 +544,10 @@ Token const parser::match(
     }
 }
 
-void parser::error(
+parser_exception parser::error(
     const std::string_view function,
     const std::string_view expected) {
-    throw parser_exception {function, m_current_token, expected};
+    return parser_exception {function, m_current_token, expected};
 }
 
 /***********************************************************************/

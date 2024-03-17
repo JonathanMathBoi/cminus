@@ -14,6 +14,10 @@
 
 /***********************************************************************/
 
+class parser_exception;
+
+/***********************************************************************/
+
 class parser {
 public:
     parser(lexer&& lexer);
@@ -113,7 +117,7 @@ private:
      * Throws an error indicating the function which encountered an error and
      * what token it had expected.
      */
-    void error(
+    parser_exception error(
         const std::string_view function,
         const std::string_view expected);
 
