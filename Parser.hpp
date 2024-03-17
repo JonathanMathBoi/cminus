@@ -12,6 +12,10 @@
 #include <string_view>
 #include <vector>
 
+using std::shared_ptr;
+using std::unique_ptr;
+using std::vector;
+
 /***********************************************************************/
 
 class parser_exception;
@@ -22,31 +26,31 @@ class parser {
 public:
     parser(lexer&& lexer);
 
-    std::unique_ptr<node> parse();
+    unique_ptr<node> parse();
 
 private:
-    std::unique_ptr<program_node> program();
-    std::vector<std::shared_ptr<declaration_node>> decl_list();
-    std::unique_ptr<declaration_node> declaration();
+    unique_ptr<program_node> program();
+    vector<shared_ptr<declaration_node>> decl_list();
+    unique_ptr<declaration_node> declaration();
     /// Parses a type specifier
     ///
     /// \returns the type specified and its location in the code
     std::pair<basic_type, location> type_spec();
-    std::unique_ptr<variable_declaration_node> var_decl();
-    std::unique_ptr<function_declaration_node> fun_decl();
-    std::vector<std::shared_ptr<param_node>> params();
-    std::vector<std::shared_ptr<param_node>> param_list();
-    std::unique_ptr<param_node> param();
-    std::unique_ptr<compound_statement_node> compound_stmt();
-    std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
-    std::vector<std::unique_ptr<statement_node>> stmt_list();
-    std::unique_ptr<statement_node> statement();
-    std::unique_ptr<expression_statement_node> expr_stmt();
-    std::unique_ptr<if_statement_node> if_statement();
-    std::unique_ptr<while_statement_node> while_statement();
-    std::unique_ptr<return_statement_node> return_stmt();
+    unique_ptr<variable_declaration_node> var_decl();
+    unique_ptr<function_declaration_node> fun_decl();
+    vector<shared_ptr<param_node>> params();
+    vector<shared_ptr<param_node>> param_list();
+    unique_ptr<param_node> param();
+    unique_ptr<compound_statement_node> compound_stmt();
+    vector<shared_ptr<variable_declaration_node>> local_decls();
+    vector<unique_ptr<statement_node>> stmt_list();
+    unique_ptr<statement_node> statement();
+    unique_ptr<expression_statement_node> expr_stmt();
+    unique_ptr<if_statement_node> if_statement();
+    unique_ptr<while_statement_node> while_statement();
+    unique_ptr<return_statement_node> return_stmt();
 
-    std::unique_ptr<expression_node> expression();
+    unique_ptr<expression_node> expression();
 
     void assignment_expr();
 

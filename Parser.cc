@@ -11,12 +11,16 @@
 #include <utility>
 #include <vector>
 
+using std::shared_ptr;
+using std::unique_ptr;
+using std::vector;
+
 /***********************************************************************/
 
 /**
  * Parses program -> decleration-list
  */
-std::unique_ptr<program_node> parser::program() {
+unique_ptr<program_node> parser::program() {
     return std::make_unique<program_node>(decl_list());
 }
 
@@ -25,8 +29,8 @@ std::unique_ptr<program_node> parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-std::vector<std::shared_ptr<declaration_node>> parser::decl_list() {
-    std::vector<std::shared_ptr<declaration_node>> decls;
+vector<shared_ptr<declaration_node>> parser::decl_list() {
+    vector<shared_ptr<declaration_node>> decls;
 
     do {
         decls.emplace_back(declaration());
@@ -38,7 +42,7 @@ std::vector<std::shared_ptr<declaration_node>> parser::decl_list() {
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-std::unique_ptr<declaration_node> parser::declaration() {
+unique_ptr<declaration_node> parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
     case LBRACK:
@@ -59,14 +63,14 @@ std::unique_ptr<declaration_node> parser::declaration() {
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-std::unique_ptr<variable_declaration_node> parser::var_decl() {
+unique_ptr<variable_declaration_node> parser::var_decl() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
 
     std::string id {match("variable declaration", ID).lexeme};
 
-    std::unique_ptr<variable_declaration_node> new_node;
+    unique_ptr<variable_declaration_node> new_node;
 
     if (m_current_token.type == LBRACK) {
         type.is_array = true;
@@ -107,7 +111,7 @@ std::pair<basic_type, location> parser::type_spec() {
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-std::unique_ptr<function_declaration_node> parser::fun_decl() {
+unique_ptr<function_declaration_node> parser::fun_decl() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
@@ -129,7 +133,7 @@ std::unique_ptr<function_declaration_node> parser::fun_decl() {
 /**
  * Parses params -> param-list | VOID
  */
-std::vector<std::shared_ptr<param_node>> parser::params() {
+vector<shared_ptr<param_node>> parser::params() {
     if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
         match("parameters", VOID);
         // returns an empty vector
@@ -144,8 +148,8 @@ std::vector<std::shared_ptr<param_node>> parser::params() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-std::vector<std::shared_ptr<param_node>> parser::param_list() {
-    std::vector<std::shared_ptr<param_node>> params;
+vector<shared_ptr<param_node>> parser::param_list() {
+    vector<shared_ptr<param_node>> params;
 
     params.emplace_back(param());
 
@@ -162,7 +166,7 @@ std::vector<std::shared_ptr<param_node>> parser::param_list() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-std::unique_ptr<param_node> parser::param() {
+unique_ptr<param_node> parser::param() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
@@ -181,7 +185,7 @@ std::unique_ptr<param_node> parser::param() {
 /**
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
-std::unique_ptr<compound_statement_node> parser::compound_stmt() {
+unique_ptr<compound_statement_node> parser::compound_stmt() {
     location loc {match("compound statement", LBRACE).loc};
     auto locals {local_decls()};
     auto statements {stmt_list()};
@@ -196,8 +200,8 @@ std::unique_ptr<compound_statement_node> parser::compound_stmt() {
  *
  * Implemented as local-declarations -> { var-declaration }
  */
-std::vector<std::shared_ptr<variable_declaration_node>> parser::local_decls() {
-    std::vector<std::shared_ptr<variable_declaration_node>> decls;
+vector<shared_ptr<variable_declaration_node>> parser::local_decls() {
+    vector<shared_ptr<variable_declaration_node>> decls;
 
     while (m_current_token.type == VOID || m_current_token.type == INT) {
         decls.emplace_back(var_decl());
@@ -211,8 +215,8 @@ std::vector<std::shared_ptr<variable_declaration_node>> parser::local_decls() {
  *
  * Implemented as statement-list -> { statement }
  */
-std::vector<std::unique_ptr<statement_node>> parser::stmt_list() {
-    std::vector<std::unique_ptr<statement_node>> stmts;
+vector<unique_ptr<statement_node>> parser::stmt_list() {
+    vector<unique_ptr<statement_node>> stmts;
 
     while (m_current_token.type != RBRACE) {
         stmts.emplace_back(statement());
@@ -228,7 +232,7 @@ std::vector<std::unique_ptr<statement_node>> parser::stmt_list() {
  *                   | iteration-stmt
  *                   | return-stmt
  */
-std::unique_ptr<statement_node> parser::statement() {
+unique_ptr<statement_node> parser::statement() {
     switch (m_current_token.type) {
     case IF:
         return if_statement();
@@ -248,7 +252,7 @@ std::unique_ptr<statement_node> parser::statement() {
  *
  * Implemented as expression-stmt -> [ expression ] SEMI
  */
-std::unique_ptr<expression_statement_node> parser::expr_stmt() {
+unique_ptr<expression_statement_node> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
         location loc {match("expression statement", SEMI).loc};
         return std::make_unique<expression_statement_node>(loc);
@@ -268,7 +272,7 @@ std::unique_ptr<expression_statement_node> parser::expr_stmt() {
  * Implemented as selection-stmt
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
-std::unique_ptr<if_statement_node> parser::if_statement() {
+unique_ptr<if_statement_node> parser::if_statement() {
     location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
     auto condition {expression()};
@@ -290,7 +294,7 @@ std::unique_ptr<if_statement_node> parser::if_statement() {
 /**
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
-std::unique_ptr<while_statement_node> parser::while_statement() {
+unique_ptr<while_statement_node> parser::while_statement() {
     location loc {match("while statement", WHILE).loc};
     match("while statement", LPAREN);
     auto condition {expression()};
@@ -306,7 +310,7 @@ std::unique_ptr<while_statement_node> parser::while_statement() {
  *
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
-std::unique_ptr<return_statement_node> parser::return_stmt() {
+unique_ptr<return_statement_node> parser::return_stmt() {
     location loc {match("return statement", RETURN).loc};
 
     if (m_current_token.type == SEMI) {
@@ -328,7 +332,7 @@ std::unique_ptr<return_statement_node> parser::return_stmt() {
  * Ad-hoc solution used to check for assignment expression with an indexed array
  * as the variable.
  */
-std::unique_ptr<expression_node> parser::expression() {
+unique_ptr<expression_node> parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
         assignment_expr();
         // TODO: Build real node.
@@ -557,7 +561,7 @@ void parser::args_list() {
 parser::parser(lexer&& lexer)
     : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
-std::unique_ptr<node> parser::parse() {
+unique_ptr<node> parser::parse() {
     // Pull first token from lexer to start with good state
     get_token();
 

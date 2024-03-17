@@ -8,13 +8,16 @@
 #include <utility>
 #include <vector>
 
+using std::shared_ptr;
+using std::unique_ptr;
+using std::vector;
+
 /***********************************************************************/
 // Program Root Node
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-program_node::program_node(
-    std::vector<std::shared_ptr<declaration_node>> declarations)
+program_node::program_node(vector<shared_ptr<declaration_node>> declarations)
     : node {location {1, 1}}, declarations {declarations} {}
 
 void program_node::accept(visitor& visitor) {
@@ -37,8 +40,8 @@ void declaration_node::accept(visitor& visitor) {
 function_declaration_node::function_declaration_node(
     value_type type,
     std::string identifier,
-    std::vector<std::shared_ptr<param_node>> params,
-    std::unique_ptr<compound_statement_node> body,
+    vector<shared_ptr<param_node>> params,
+    unique_ptr<compound_statement_node> body,
     location loc)
     : declaration_node {type, identifier, loc}
     , parameters {params}
@@ -80,8 +83,8 @@ void param_node::accept(visitor& visitor) {
 // Expression Nodes
 
 assignment_expression_node::assignment_expression_node(
-    std::unique_ptr<variable_expression_node> var,
-    std::unique_ptr<expression_node> expr,
+    unique_ptr<variable_expression_node> var,
+    unique_ptr<expression_node> expr,
     location loc)
     : expression_node {loc}
     , variable {std::move(var)}
@@ -102,7 +105,7 @@ void variable_expression_node::accept(visitor& visitor) {
 
 subscript_expression_node::subscript_expression_node(
     std::string identifier,
-    std::unique_ptr<expression_node> index,
+    unique_ptr<expression_node> index,
     location loc)
     : variable_expression_node {identifier, loc}, index {std::move(index)} {}
 
@@ -112,7 +115,7 @@ void subscript_expression_node::accept(visitor& visitor) {
 
 call_expression_node::call_expression_node(
     std::string identifier,
-    std::vector<std::unique_ptr<expression_node>> args,
+    vector<unique_ptr<expression_node>> args,
     location loc)
     : expression_node {loc}
     , identifier {identifier}
@@ -124,8 +127,8 @@ void call_expression_node::accept(visitor& visitor) {
 
 additive_expression_node::additive_expression_node(
     add_op operation,
-    std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs,
+    unique_ptr<expression_node> lhs,
+    unique_ptr<expression_node> rhs,
     location loc)
     : expression_node {loc}
     , operation {operation}
@@ -138,8 +141,8 @@ void additive_expression_node::accept(visitor& visitor) {
 
 multiplicative_expression_node::multiplicative_expression_node(
     mul_op operation,
-    std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs,
+    unique_ptr<expression_node> lhs,
+    unique_ptr<expression_node> rhs,
     location)
     : expression_node {loc}
     , operation {operation}
@@ -152,8 +155,8 @@ void multiplicative_expression_node::accept(visitor& visitor) {
 
 relational_expression_node::relational_expression_node(
     rel_op operation,
-    std::unique_ptr<expression_node> lhs,
-    std::unique_ptr<expression_node> rhs,
+    unique_ptr<expression_node> lhs,
+    unique_ptr<expression_node> rhs,
     location loc)
     : expression_node {loc}
     , operation {operation}
@@ -177,8 +180,8 @@ void integer_literal_expression_node::accept(visitor& visitor) {
 // Statement Nodes
 
 compound_statement_node::compound_statement_node(
-    std::vector<std::shared_ptr<variable_declaration_node>> decls,
-    std::vector<std::unique_ptr<statement_node>> stmts,
+    vector<shared_ptr<variable_declaration_node>> decls,
+    vector<unique_ptr<statement_node>> stmts,
     location loc)
     : statement_node {loc}
     , local_decls {decls}
@@ -189,9 +192,9 @@ void compound_statement_node::accept(visitor& visitor) {
 }
 
 if_statement_node::if_statement_node(
-    std::unique_ptr<expression_node> condition,
-    std::unique_ptr<statement_node> then_stmt,
-    std::optional<std::unique_ptr<statement_node>> else_stmt,
+    unique_ptr<expression_node> condition,
+    unique_ptr<statement_node> then_stmt,
+    std::optional<unique_ptr<statement_node>> else_stmt,
     location loc)
     : statement_node {loc}
     , condition {std::move(condition)}
@@ -199,8 +202,8 @@ if_statement_node::if_statement_node(
     , else_stmt {std::move(else_stmt)} {}
 
 if_statement_node::if_statement_node(
-    std::unique_ptr<expression_node> condition,
-    std::unique_ptr<statement_node> then_stmt,
+    unique_ptr<expression_node> condition,
+    unique_ptr<statement_node> then_stmt,
     location loc)
     : statement_node {loc}
     , condition {std::move(condition)}
@@ -212,8 +215,8 @@ void if_statement_node::accept(visitor& visitor) {
 }
 
 while_statement_node::while_statement_node(
-    std::unique_ptr<expression_node> condition,
-    std::unique_ptr<statement_node> stmt,
+    unique_ptr<expression_node> condition,
+    unique_ptr<statement_node> stmt,
     location loc)
     : statement_node {loc}
     , condition {std::move(condition)}
@@ -224,7 +227,7 @@ void while_statement_node::accept(visitor& visitor) {
 }
 
 return_statement_node::return_statement_node(
-    std::optional<std::unique_ptr<expression_node>> expr,
+    std::optional<unique_ptr<expression_node>> expr,
     location loc)
     : statement_node {loc}, expression {std::move(expr)} {}
 
@@ -236,7 +239,7 @@ void return_statement_node::accept(visitor& visitor) {
 }
 
 expression_statement_node::expression_statement_node(
-    std::optional<std::unique_ptr<expression_node>> expr,
+    std::optional<unique_ptr<expression_node>> expr,
     location loc)
     : statement_node {loc}, expr {std::move(expr)} {}
 
