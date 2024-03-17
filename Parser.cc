@@ -334,9 +334,7 @@ unique_ptr<return_statement_node> parser::return_stmt() {
  */
 unique_ptr<expression_node> parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
-        assignment_expr();
-        // TODO: Build real node.
-        return nullptr;
+        return assignment_expr();
     }
 
     if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
@@ -355,6 +353,7 @@ unique_ptr<expression_node> parser::expression() {
                 // If ID LBRACK EOF is hit, call variable which will recognize
                 // the bad variable
                 variable();
+                break;
             default:
                 break;
             }
@@ -362,19 +361,17 @@ unique_ptr<expression_node> parser::expression() {
         } while (nest_level != 0);
 
         if (peek_token(peek_idx).type == ASSIGN) {
-            assignment_expr();
-            // TODO: Build real node.
-            return nullptr;
+            return assignment_expr();
         }
     }
 
-    simple_expr();
+    return relational_expr();
 }
 
 /**
  * Parses assign-expression -> var ASSIGN expression
  */
-void parser::assignment_expr() {
+unique_ptr<assignment_expression_node> parser::assignment_expr() {
     variable();
     match("assignment expression", ASSIGN);
     expression();
@@ -402,7 +399,7 @@ void parser::variable() {
  * Implemented as simple-expression
  *                  -> additive-expression [ relop additive-expression ]
  */
-void parser::simple_expr() {
+unique_ptr<relational_expression_node> parser::relational_expr() {
     add_expr();
 
     switch (m_current_token.type) {
