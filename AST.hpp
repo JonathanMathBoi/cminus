@@ -197,6 +197,159 @@ struct program_node : node {
 
 /***********************************************************************/
 
+/// Compound Statement Node
+///
+/// The node for a braced block of statements.
+struct compound_statement_node : statement_node {
+    /// Constructs a Compound Statement Node
+    ///
+    /// \param decls the list of variable declarations at the start of the block
+    /// \param stmts the list of statments in the block
+    /// \param loc the location of the start of the block in the source code
+    compound_statement_node(
+        std::vector<std::shared_ptr<variable_declaration_node>> decls,
+        std::vector<std::unique_ptr<statement_node>> stmts,
+        location loc);
+
+    virtual ~compound_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// The list of local declarations at the start of the block
+    ///
+    /// A vector of shared_ptr is used as usage of these variables will
+    /// eventually be linked back to their delarations here. As such a
+    /// unique_ptr would not be applicable.
+    std::vector<std::shared_ptr<variable_declaration_node>> local_decls;
+    /// The list of statements in the block
+    std::vector<std::unique_ptr<statement_node>> statements;
+};
+
+/// If Statement Node
+///
+/// The node for an if statement.
+struct if_statement_node : statement_node {
+    /// Constructs an If Statement Node
+    ///
+    /// \param condition the conditional expression in the if
+    /// \param then_stmt the then statement of the if statement
+    /// \param else_stmt the else statement attached to the if statment
+    /// \param loc the location of the start of the if statement in the source
+    ///            code
+    if_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
+        std::unique_ptr<statement_node> else_stmt,
+        location loc);
+
+    /// Constructs an If Statement Node
+    ///
+    /// Constructs an If Statement with no attached else block.
+    ///
+    /// \param condition the conditional expression in the if
+    /// \param then_stmt the then statement of the if statement
+    /// \param loc the location of the start of the if statement in the source
+    ///            code
+    if_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
+        location loc);
+
+    virtual ~if_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// The conditional expression for the if statement
+    std::unique_ptr<expression_node> condition;
+    /// The then statement for the if statement
+    std::unique_ptr<statement_node> then_stmt;
+    /// An optional else statement attached to the if statement
+    std::optional<std::unique_ptr<statement_node>> else_stmt;
+};
+
+/// While Statement Node
+///
+/// The node for a while loop statement.
+struct while_statement_node : statement_node {
+    /// Constructs a While Statement Node
+    ///
+    /// \param condition the condition for the while loop to continue
+    /// \param stmt the statement to be executed in the loop
+    /// \param loc the location of the start of the while statement in the
+    ///            source code
+    while_statement_node(
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> stmt,
+        location loc);
+
+    virtual ~while_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// The condition for execution of the while loop
+    std::unique_ptr<expression_node> condition;
+    /// The body of the while loop
+    std::unique_ptr<statement_node> body;
+};
+
+// Future Work: for_statement_node
+
+/// Return Statement Node
+///
+/// The node for a return statement.
+struct return_statement_node : statement_node {
+    /// Constructs a Return Statement Node
+    ///
+    /// \param expr the expression to be returned
+    /// \param loc the location of the return statement in the source code
+    return_statement_node(std::unique_ptr<expression_node> expr, location loc);
+
+    /// Constructs a Return Statement Node
+    ///
+    /// Constructs a Return Statement Node with no associated returned
+    /// expression.
+    ///
+    /// \param loc the location of the return statement in the source code
+    return_statement_node(location loc);
+
+    virtual ~return_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// An option expression to be returned
+    std::optional<std::unique_ptr<expression_node>> expression;
+};
+
+/// Expression Statement Node
+///
+/// The node for any semicolon delimited expression statement.
+struct expression_statement_node : statement_node {
+    /// Constructs an Expression Statement
+    ///
+    /// \param expr the expression to be evaluated
+    /// \param loc the location of the expression in the source code.
+    expression_statement_node(
+        std::unique_ptr<expression_node> expr,
+        location loc);
+
+    /// Constructs an Expression Statement
+    ///
+    /// Constructs an Expression Statement with no associated expression. (i.e.
+    /// the statement `;`.)
+    ///
+    /// \param loc the location of the expression in the source code.
+    expression_statement_node(location loc);
+
+    virtual ~expression_statement_node() = default;
+
+    virtual void accept(visitor& visitor) override;
+
+    /// The optional expression to be evaluated
+    std::optional<std::unique_ptr<expression_node>> expr;
+};
+
+/***********************************************************************/
+
 /// Function Declaration Node
 ///
 /// This node type represents a function declaration.
@@ -481,159 +634,6 @@ struct integer_literal_expression_node : expression_node {
 
     /// The value of the integer literal
     int value;
-};
-
-/***********************************************************************/
-
-/// Compound Statement Node
-///
-/// The node for a braced block of statements.
-struct compound_statement_node : statement_node {
-    /// Constructs a Compound Statement Node
-    ///
-    /// \param decls the list of variable declarations at the start of the block
-    /// \param stmts the list of statments in the block
-    /// \param loc the location of the start of the block in the source code
-    compound_statement_node(
-        std::vector<std::shared_ptr<variable_declaration_node>> decls,
-        std::vector<std::unique_ptr<statement_node>> stmts,
-        location loc);
-
-    virtual ~compound_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// The list of local declarations at the start of the block
-    ///
-    /// A vector of shared_ptr is used as usage of these variables will
-    /// eventually be linked back to their delarations here. As such a
-    /// unique_ptr would not be applicable.
-    std::vector<std::shared_ptr<variable_declaration_node>> local_decls;
-    /// The list of statements in the block
-    std::vector<std::unique_ptr<statement_node>> statements;
-};
-
-/// If Statement Node
-///
-/// The node for an if statement.
-struct if_statement_node : statement_node {
-    /// Constructs an If Statement Node
-    ///
-    /// \param condition the conditional expression in the if
-    /// \param then_stmt the then statement of the if statement
-    /// \param else_stmt the else statement attached to the if statment
-    /// \param loc the location of the start of the if statement in the source
-    ///            code
-    if_statement_node(
-        std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> then_stmt,
-        std::unique_ptr<statement_node> else_stmt,
-        location loc);
-
-    /// Constructs an If Statement Node
-    ///
-    /// Constructs an If Statement with no attached else block.
-    ///
-    /// \param condition the conditional expression in the if
-    /// \param then_stmt the then statement of the if statement
-    /// \param loc the location of the start of the if statement in the source
-    ///            code
-    if_statement_node(
-        std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> then_stmt,
-        location loc);
-
-    virtual ~if_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// The conditional expression for the if statement
-    std::unique_ptr<expression_node> condition;
-    /// The then statement for the if statement
-    std::unique_ptr<statement_node> then_stmt;
-    /// An optional else statement attached to the if statement
-    std::optional<std::unique_ptr<statement_node>> else_stmt;
-};
-
-/// While Statement Node
-///
-/// The node for a while loop statement.
-struct while_statement_node : statement_node {
-    /// Constructs a While Statement Node
-    ///
-    /// \param condition the condition for the while loop to continue
-    /// \param stmt the statement to be executed in the loop
-    /// \param loc the location of the start of the while statement in the
-    ///            source code
-    while_statement_node(
-        std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> stmt,
-        location loc);
-
-    virtual ~while_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// The condition for execution of the while loop
-    std::unique_ptr<expression_node> condition;
-    /// The body of the while loop
-    std::unique_ptr<statement_node> body;
-};
-
-// Future Work: for_statement_node
-
-/// Return Statement Node
-///
-/// The node for a return statement.
-struct return_statement_node : statement_node {
-    /// Constructs a Return Statement Node
-    ///
-    /// \param expr the expression to be returned
-    /// \param loc the location of the return statement in the source code
-    return_statement_node(std::unique_ptr<expression_node> expr, location loc);
-
-    /// Constructs a Return Statement Node
-    ///
-    /// Constructs a Return Statement Node with no associated returned
-    /// expression.
-    ///
-    /// \param loc the location of the return statement in the source code
-    return_statement_node(location loc);
-
-    virtual ~return_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// An option expression to be returned
-    std::optional<std::unique_ptr<expression_node>> expression;
-};
-
-/// Expression Statement Node
-///
-/// The node for any semicolon delimited expression statement.
-struct expression_statement_node : statement_node {
-    /// Constructs an Expression Statement
-    ///
-    /// \param expr the expression to be evaluated
-    /// \param loc the location of the expression in the source code.
-    expression_statement_node(
-        std::unique_ptr<expression_node> expr,
-        location loc);
-
-    /// Constructs an Expression Statement
-    ///
-    /// Constructs an Expression Statement with no associated expression. (i.e.
-    /// the statement `;`.)
-    ///
-    /// \param loc the location of the expression in the source code.
-    expression_statement_node(location loc);
-
-    virtual ~expression_statement_node() = default;
-
-    virtual void accept(visitor& visitor) override;
-
-    /// The optional expression to be evaluated
-    std::optional<std::unique_ptr<expression_node>> expr;
 };
 
 /***********************************************************************/
