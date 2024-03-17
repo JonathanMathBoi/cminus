@@ -182,10 +182,12 @@ std::unique_ptr<param_node> parser::param() {
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
 std::unique_ptr<compound_statement_node> parser::compound_stmt() {
-    match("compound statement", LBRACE);
-    local_decls();
-    stmt_list();
+    location loc {match("compound statement", LBRACE).loc};
+    auto locals {local_decls()};
+    auto statements {stmt_list()};
     match("compound statement", RBRACE);
+    return std::make_unique<compound_statement_node>(
+        locals, std::move(statements), loc);
 }
 
 /**
@@ -194,10 +196,14 @@ std::unique_ptr<compound_statement_node> parser::compound_stmt() {
  *
  * Implemented as local-declarations -> { var-declaration }
  */
-void parser::local_decls() {
+std::vector<std::shared_ptr<variable_declaration_node>> parser::local_decls() {
+    std::vector<std::shared_ptr<variable_declaration_node>> decls;
+
     while (m_current_token.type == VOID || m_current_token.type == INT) {
-        var_decl();
+        decls.emplace_back(var_decl());
     }
+
+    return decls;
 }
 
 /**
@@ -205,10 +211,14 @@ void parser::local_decls() {
  *
  * Implemented as statement-list -> { statement }
  */
-void parser::stmt_list() {
+std::vector<std::unique_ptr<statement_node>> parser::stmt_list() {
+    std::vector<std::unique_ptr<statement_node>> stmts;
+
     while (m_current_token.type != RBRACE) {
-        statement();
+        stmts.emplace_back(statement());
     }
+
+    return stmts;
 }
 
 /**
@@ -218,7 +228,7 @@ void parser::stmt_list() {
  *                   | iteration-stmt
  *                   | return-stmt
  */
-void parser::statement() {
+std::unique_ptr<statement_node> parser::statement() {
     switch (m_current_token.type) {
     case IF:
         if_statement();

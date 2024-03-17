@@ -37,14 +37,11 @@ private:
     std::vector<std::shared_ptr<param_node>> params();
     std::vector<std::shared_ptr<param_node>> param_list();
     std::unique_ptr<param_node> param();
-
     std::unique_ptr<compound_statement_node> compound_stmt();
+    std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
+    std::vector<std::unique_ptr<statement_node>> stmt_list();
 
-    void local_decls();
-
-    void stmt_list();
-
-    void statement();
+    std::unique_ptr<statement_node> statement();
 
     void expr_stmt();
 
