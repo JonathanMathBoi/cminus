@@ -48,6 +48,10 @@ public:
     virtual void visit(paren_expression_node& node) override;
 
 private:
+    /// Prints the indent in front of the next to be printed element
+    void print_indent();
+
+private:
     /// The output stream to be printed to
     std::ostream& output;
     /// The current nest depth of the tree
