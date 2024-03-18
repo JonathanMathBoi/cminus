@@ -58,10 +58,9 @@ private:
     add_op additive_op();
     unique_ptr<expression_node> term();
     mul_op mult_op();
-
     unique_ptr<expression_node> factor();
 
-    void fun_call();
+    unique_ptr<call_expression_node> fun_call();
 
     void fun_args();
 

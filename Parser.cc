@@ -526,22 +526,22 @@ mul_op parser::mult_op() {
  */
 unique_ptr<expression_node> parser::factor() {
     switch (m_current_token.type) {
-    case LPAREN:
-        match("factor", LPAREN);
-        expression();
+    case LPAREN: {
+        location loc {match("factor", LPAREN).loc};
+        auto expr {expression()};
         match("factor", RPAREN);
-        break;
-    case NUM:
-        match("factor", NUM);
-        break;
+        return make_unique<paren_expression_node>(std::move(expr), loc);
+    }
+    case NUM: {
+        auto [_, __, num, loc] {match("factor", NUM)};
+        return make_unique<integer_literal_expression_node>(num, loc);
+    }
     case ID:
         if (peek_token(1).type == LPAREN) {
-            fun_call();
-            return;
+            return fun_call();
         }
 
-        variable();
-        break;
+        return variable();
     default:
         throw error(
             "factor", "( expression ), variable, function call, or literal");
@@ -551,7 +551,7 @@ unique_ptr<expression_node> parser::factor() {
 /**
  * Parses call -> ID LPAREN RPAREN
  */
-void parser::fun_call() {
+unique_ptr<call_expression_node> parser::fun_call() {
     match("function call", ID);
     match("function call", LPAREN);
     fun_args();

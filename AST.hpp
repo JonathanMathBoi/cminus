@@ -44,6 +44,7 @@ struct additive_expression_node;
 struct multiplicative_expression_node;
 struct relational_expression_node;
 struct integer_literal_expression_node;
+struct paren_expression_node;
 
 /***********************************************************************/
 
@@ -94,6 +95,7 @@ public:
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) = 0;
     virtual void visit(integer_literal_expression_node& node) = 0;
+    virtual void visit(paren_expression_node& node) = 0;
 };
 
 /// Abstract AST Node
@@ -642,6 +644,24 @@ struct integer_literal_expression_node : expression_node {
 
     /// The value of the integer literal
     int value;
+};
+
+/// Parenthesized Expression Node
+///
+/// Represents a parenthesized expression
+struct paren_expression_node : expression_node {
+    /// Constructs a parenthesized expression
+    ///
+    /// \param expr the expression inside the parens
+    /// \param loc the location of the opening paren
+    paren_expression_node(unique_ptr<expression_node> expr, location loc);
+
+    virtual ~paren_expression_node() = default;
+
+    virtual void accept(visitor& visitor);
+
+    /// The parenthesized expression
+    unique_ptr<expression_node> expression;
 };
 
 /***********************************************************************/

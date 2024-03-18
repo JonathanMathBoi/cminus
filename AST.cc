@@ -176,6 +176,15 @@ void integer_literal_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
+paren_expression_node::paren_expression_node(
+    unique_ptr<expression_node> expr,
+    location loc)
+    : expression_node {loc}, expression {std::move(expr)} {}
+
+void paren_expression_node::accept(visitor& visitor) {
+    visitor.visit(*this);
+}
+
 /***********************************************************************/
 // Statement Nodes
 
