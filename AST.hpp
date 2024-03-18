@@ -10,10 +10,6 @@
 #include <string>
 #include <vector>
 
-using std::shared_ptr;
-using std::unique_ptr;
-using std::vector;
-
 /***********************************************************************/
 
 class visitor;
@@ -189,7 +185,7 @@ struct program_node : node {
     ///
     /// \param declarations a vector of all the top level declarations in the
     ///                     program
-    program_node(vector<shared_ptr<declaration_node>> declarations);
+    program_node(std::vector<std::shared_ptr<declaration_node>> declarations);
 
     virtual ~program_node() = default;
 
@@ -200,7 +196,7 @@ struct program_node : node {
     /// A vector of shared_ptr is used as usage of these identifers will
     /// eventually be linked back to their delarations. As such a unique_ptr
     /// would not be applicable.
-    vector<shared_ptr<declaration_node>> declarations;
+    std::vector<std::shared_ptr<declaration_node>> declarations;
 };
 
 /***********************************************************************/
@@ -215,8 +211,8 @@ struct compound_statement_node : statement_node {
     /// \param stmts the list of statments in the block
     /// \param loc the location of the start of the block in the source code
     compound_statement_node(
-        vector<shared_ptr<variable_declaration_node>> decls,
-        vector<unique_ptr<statement_node>> stmts,
+        std::vector<std::shared_ptr<variable_declaration_node>> decls,
+        std::vector<std::unique_ptr<statement_node>> stmts,
         location loc);
 
     virtual ~compound_statement_node() = default;
@@ -228,9 +224,9 @@ struct compound_statement_node : statement_node {
     /// A vector of shared_ptr is used as usage of these variables will
     /// eventually be linked back to their delarations here. As such a
     /// unique_ptr would not be applicable.
-    vector<shared_ptr<variable_declaration_node>> local_decls;
+    std::vector<std::shared_ptr<variable_declaration_node>> local_decls;
     /// The list of statements in the block
-    vector<unique_ptr<statement_node>> statements;
+    std::vector<std::unique_ptr<statement_node>> statements;
 };
 
 /// If Statement Node
@@ -245,9 +241,9 @@ struct if_statement_node : statement_node {
     /// \param loc the location of the start of the if statement in the source
     ///            code
     if_statement_node(
-        unique_ptr<expression_node> condition,
-        unique_ptr<statement_node> then_stmt,
-        std::optional<unique_ptr<statement_node>> else_stmt,
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
+        std::optional<std::unique_ptr<statement_node>> else_stmt,
         location loc);
 
     /// Constructs an If Statement Node
@@ -259,8 +255,8 @@ struct if_statement_node : statement_node {
     /// \param loc the location of the start of the if statement in the source
     ///            code
     if_statement_node(
-        unique_ptr<expression_node> condition,
-        unique_ptr<statement_node> then_stmt,
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> then_stmt,
         location loc);
 
     virtual ~if_statement_node() = default;
@@ -268,11 +264,11 @@ struct if_statement_node : statement_node {
     virtual void accept(visitor& visitor) override;
 
     /// The conditional expression for the if statement
-    unique_ptr<expression_node> condition;
+    std::unique_ptr<expression_node> condition;
     /// The then statement for the if statement
-    unique_ptr<statement_node> then_stmt;
+    std::unique_ptr<statement_node> then_stmt;
     /// An optional else statement attached to the if statement
-    std::optional<unique_ptr<statement_node>> else_stmt;
+    std::optional<std::unique_ptr<statement_node>> else_stmt;
 };
 
 /// While Statement Node
@@ -286,8 +282,8 @@ struct while_statement_node : statement_node {
     /// \param loc the location of the start of the while statement in the
     ///            source code
     while_statement_node(
-        unique_ptr<expression_node> condition,
-        unique_ptr<statement_node> stmt,
+        std::unique_ptr<expression_node> condition,
+        std::unique_ptr<statement_node> stmt,
         location loc);
 
     virtual ~while_statement_node() = default;
@@ -295,9 +291,9 @@ struct while_statement_node : statement_node {
     virtual void accept(visitor& visitor) override;
 
     /// The condition for execution of the while loop
-    unique_ptr<expression_node> condition;
+    std::unique_ptr<expression_node> condition;
     /// The body of the while loop
-    unique_ptr<statement_node> body;
+    std::unique_ptr<statement_node> body;
 };
 
 // Future Work: for_statement_node
@@ -311,7 +307,7 @@ struct return_statement_node : statement_node {
     /// \param expr the expression to be returned
     /// \param loc the location of the return statement in the source code
     return_statement_node(
-        std::optional<unique_ptr<expression_node>> expr,
+        std::optional<std::unique_ptr<expression_node>> expr,
         location loc);
 
     /// Constructs a Return Statement Node
@@ -327,7 +323,7 @@ struct return_statement_node : statement_node {
     virtual void accept(visitor& visitor) override;
 
     /// An option expression to be returned
-    std::optional<unique_ptr<expression_node>> expression;
+    std::optional<std::unique_ptr<expression_node>> expression;
 };
 
 /// Expression Statement Node
@@ -339,7 +335,7 @@ struct expression_statement_node : statement_node {
     /// \param expr the expression to be evaluated
     /// \param loc the location of the expression in the source code.
     expression_statement_node(
-        std::optional<unique_ptr<expression_node>> expr,
+        std::optional<std::unique_ptr<expression_node>> expr,
         location loc);
 
     /// Constructs an Expression Statement
@@ -355,7 +351,7 @@ struct expression_statement_node : statement_node {
     virtual void accept(visitor& visitor) override;
 
     /// The optional expression to be evaluated
-    std::optional<unique_ptr<expression_node>> expr;
+    std::optional<std::unique_ptr<expression_node>> expr;
 };
 
 /***********************************************************************/
@@ -374,8 +370,8 @@ struct function_declaration_node : declaration_node {
     function_declaration_node(
         value_type type,
         std::string identifier,
-        vector<shared_ptr<param_node>> params,
-        unique_ptr<compound_statement_node> body,
+        std::vector<std::shared_ptr<param_node>> params,
+        std::unique_ptr<compound_statement_node> body,
         location loc);
 
     virtual ~function_declaration_node() = default;
@@ -387,9 +383,9 @@ struct function_declaration_node : declaration_node {
     /// A vector of shared_ptr is used as usage of these parameters will
     /// eventually be linked back to their delarations here. As such a
     /// unique_ptr would not be applicable.
-    vector<shared_ptr<param_node>> parameters;
+    std::vector<std::shared_ptr<param_node>> parameters;
     /// The statement block serving as the body of the function
-    unique_ptr<compound_statement_node> function_body;
+    std::unique_ptr<compound_statement_node> function_body;
 };
 
 /// Variable Declaration Node
@@ -484,8 +480,8 @@ struct assignment_expression_node : expression_node {
     /// \param expr the expression to be assigned to the variable
     /// \param loc the location of the assignment in the source code
     assignment_expression_node(
-        unique_ptr<variable_expression_node> var,
-        unique_ptr<expression_node> expr,
+        std::unique_ptr<variable_expression_node> var,
+        std::unique_ptr<expression_node> expr,
         location loc);
 
     virtual ~assignment_expression_node() = default;
@@ -493,9 +489,9 @@ struct assignment_expression_node : expression_node {
     virtual void accept(visitor& visitor) override;
 
     /// The variable being assigned to
-    unique_ptr<variable_expression_node> variable;
+    std::unique_ptr<variable_expression_node> variable;
     /// The expression which will be assigned to the variable
-    unique_ptr<expression_node> expression;
+    std::unique_ptr<expression_node> expression;
 };
 
 /// Subscript Expression Node
@@ -509,7 +505,7 @@ struct subscript_expression_node : variable_expression_node {
     /// \param loc the location of the subscript expression in the source code
     subscript_expression_node(
         std::string identifier,
-        unique_ptr<expression_node> index,
+        std::unique_ptr<expression_node> index,
         location loc);
 
     virtual ~subscript_expression_node() = default;
@@ -517,7 +513,7 @@ struct subscript_expression_node : variable_expression_node {
     virtual void accept(visitor& visitor) override;
 
     /// The expression indexing the variable
-    unique_ptr<expression_node> index;
+    std::unique_ptr<expression_node> index;
 };
 
 /// Function Call Expression Node
@@ -531,7 +527,7 @@ struct call_expression_node : expression_node {
     /// \param loc the location of the function call in the source code
     call_expression_node(
         std::string identifier,
-        vector<unique_ptr<expression_node>> args,
+        std::vector<std::unique_ptr<expression_node>> args,
         location loc);
 
     virtual ~call_expression_node() = default;
@@ -541,7 +537,7 @@ struct call_expression_node : expression_node {
     /// The name of the function being called
     std::string identifier;
     /// The list of arguments being passed to the function
-    vector<unique_ptr<expression_node>> arguments;
+    std::vector<std::unique_ptr<expression_node>> arguments;
 };
 
 /// Additive Expression Node
@@ -555,8 +551,8 @@ struct additive_expression_node : expression_node {
     /// \param rhs the right hand side expression of the binary operation
     additive_expression_node(
         add_op operation,
-        unique_ptr<expression_node> lhs,
-        unique_ptr<expression_node> rhs,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs,
         location loc);
 
     virtual ~additive_expression_node() = default;
@@ -566,9 +562,9 @@ struct additive_expression_node : expression_node {
     /// The additive operation to be applied
     add_op operation;
     /// The left hand side of the expression
-    unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> left;
     /// The right hand side of the expression
-    unique_ptr<expression_node> right;
+    std::unique_ptr<expression_node> right;
 };
 
 /// Multiplicative Expression Node
@@ -582,8 +578,8 @@ struct multiplicative_expression_node : expression_node {
     /// \param rhs the right hand side expression of the binary operation
     multiplicative_expression_node(
         mul_op operation,
-        unique_ptr<expression_node> lhs,
-        unique_ptr<expression_node> rhs,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs,
         location loc);
 
     virtual ~multiplicative_expression_node() = default;
@@ -593,9 +589,9 @@ struct multiplicative_expression_node : expression_node {
     /// The multiplicative expression to be applied
     mul_op operation;
     /// The left hand side of the expression
-    unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> left;
     /// The right hand side of the expression
-    unique_ptr<expression_node> right;
+    std::unique_ptr<expression_node> right;
 };
 
 /// Relational Expression Node
@@ -610,8 +606,8 @@ struct relational_expression_node : expression_node {
     /// \param loc the location of the relational expression in the source code
     relational_expression_node(
         rel_op operation,
-        unique_ptr<expression_node> lhs,
-        unique_ptr<expression_node> rhs,
+        std::unique_ptr<expression_node> lhs,
+        std::unique_ptr<expression_node> rhs,
         location loc);
 
     virtual ~relational_expression_node() = default;
@@ -621,9 +617,9 @@ struct relational_expression_node : expression_node {
     /// The comparison to be made
     rel_op operation;
     /// The left hand side of the comparison expression
-    unique_ptr<expression_node> left;
+    std::unique_ptr<expression_node> left;
     /// The right hand side of the comparison expression
-    unique_ptr<expression_node> right;
+    std::unique_ptr<expression_node> right;
 };
 
 // Future Work: parse unary expressions
@@ -654,14 +650,14 @@ struct paren_expression_node : expression_node {
     ///
     /// \param expr the expression inside the parens
     /// \param loc the location of the opening paren
-    paren_expression_node(unique_ptr<expression_node> expr, location loc);
+    paren_expression_node(std::unique_ptr<expression_node> expr, location loc);
 
     virtual ~paren_expression_node() = default;
 
     virtual void accept(visitor& visitor);
 
     /// The parenthesized expression
-    unique_ptr<expression_node> expression;
+    std::unique_ptr<expression_node> expression;
 };
 
 /***********************************************************************/
