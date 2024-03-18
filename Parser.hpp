@@ -54,12 +54,10 @@ private:
     unique_ptr<variable_expression_node> variable();
     unique_ptr<expression_node> relational_expr();
     rel_op relation_op();
-
     unique_ptr<expression_node> add_expr();
+    add_op additive_op();
 
-    void add_op();
-
-    void term();
+    unique_ptr<expression_node> term();
 
     void mul_op();
 

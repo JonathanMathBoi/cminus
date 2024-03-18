@@ -449,32 +449,40 @@ rel_op parser::relation_op() {
     throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
 }
 
+const std::map<TokenType, add_op> add_ops {
+    {PLUS, add_op::PLUS},
+    {MINUS, add_op::MINUS}};
+
 /**
  * Parses additive-expression -> additive-expression addop term | term
  *
  * Implemented as additive-expression -> term { addop term }
  */
 unique_ptr<expression_node> parser::add_expr() {
-    term();
+    auto root {term()};
+    location loc {root->loc};
 
-    while (m_current_token.type == PLUS || m_current_token.type == MINUS) {
-        add_op();
-        term();
+    while (add_ops.contains(m_current_token.type)) {
+        auto operation {additive_op()};
+        auto rhs {term()};
+        root = make_unique<additive_expression_node>(
+            operation, std::move(root), std::move(rhs), loc);
     }
+
+    return root;
 }
 
 /**
  * Parses addop -> PLUS | MINUS
  */
-void parser::add_op() {
-    switch (m_current_token.type) {
-    case PLUS:
-    case MINUS:
+add_op parser::additive_op() {
+    if (add_ops.contains(m_current_token.type)) {
+        add_op operation {add_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        throw error("addition operator", "PLUS or MINUS");
+        return operation;
     }
+
+    throw error("addition operator", "PLUS or MINUS");
 }
 
 /**
@@ -482,7 +490,7 @@ void parser::add_op() {
  *
  * Implemented as term -> factor { mulop factor }
  */
-void parser::term() {
+unique_ptr<expression_node> parser::term() {
     factor();
 
     while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
