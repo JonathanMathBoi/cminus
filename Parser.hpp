@@ -59,12 +59,9 @@ private:
     unique_ptr<expression_node> term();
     mul_op mult_op();
     unique_ptr<expression_node> factor();
-
     unique_ptr<call_expression_node> fun_call();
-
-    void fun_args();
-
-    void args_list();
+    vector<unique_ptr<expression_node>> fun_args();
+    vector<unique_ptr<expression_node>> args_list();
 
 private:
     /**

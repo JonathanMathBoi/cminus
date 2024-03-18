@@ -552,21 +552,23 @@ unique_ptr<expression_node> parser::factor() {
  * Parses call -> ID LPAREN RPAREN
  */
 unique_ptr<call_expression_node> parser::fun_call() {
-    match("function call", ID);
+    auto [_, id, __, loc] {match("function call", ID)};
     match("function call", LPAREN);
-    fun_args();
+    auto args {fun_args()};
     match("function call", RPAREN);
+
+    return make_unique<call_expression_node>(id, std::move(args), loc);
 }
 
 /**
  * Parses args -> arg-list | empty
  */
-void parser::fun_args() {
+vector<unique_ptr<expression_node>> parser::fun_args() {
     if (m_current_token.type == RPAREN) {
-        return;
+        return {};
     }
 
-    args_list();
+    return args_list();
 }
 
 /**
@@ -574,13 +576,17 @@ void parser::fun_args() {
  *
  * Implemented as args-list -> expression { COMMA expression }
  */
-void parser::args_list() {
-    expression();
+vector<unique_ptr<expression_node>> parser::args_list() {
+    vector<unique_ptr<expression_node>> args;
+
+    args.emplace_back(expression());
 
     while (m_current_token.type == COMMA) {
         match("argument list", COMMA);
-        expression();
+        args.emplace_back(expression());
     }
+
+    return args;
 }
 
 /***********************************************************************/
