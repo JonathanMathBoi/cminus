@@ -56,12 +56,10 @@ private:
     rel_op relation_op();
     unique_ptr<expression_node> add_expr();
     add_op additive_op();
-
     unique_ptr<expression_node> term();
+    mul_op mult_op();
 
-    void mul_op();
-
-    void factor();
+    unique_ptr<expression_node> factor();
 
     void fun_call();
 

@@ -485,38 +485,46 @@ add_op parser::additive_op() {
     throw error("addition operator", "PLUS or MINUS");
 }
 
+const std::map<TokenType, mul_op> mul_ops {
+    {TIMES, mul_op::TIMES},
+    {DIVIDE, mul_op::DIVIDE}};
+
 /**
  * Parses term -> term mulop factor | factor
  *
  * Implemented as term -> factor { mulop factor }
  */
 unique_ptr<expression_node> parser::term() {
-    factor();
+    auto root {factor()};
+    location loc {root->loc};
 
     while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
-        mul_op();
-        factor();
+        auto operation {mult_op()};
+        auto rhs {factor()};
+        root = make_unique<multiplicative_expression_node>(
+            operation, std::move(root), std::move(rhs), loc);
     }
+
+    return root;
 }
 
 /**
  * Parses mulop -> TIMES | DIVIDE
  */
-void parser::mul_op() {
-    switch (m_current_token.type) {
-    case TIMES:
-    case DIVIDE:
+mul_op parser::mult_op() {
+    if (mul_ops.contains(m_current_token.type)) {
+        mul_op operation {mul_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        throw error("multiplication operator", "TIMES or DIVIDE");
+        return operation;
     }
+
+    throw error("multiplication operator", "TIMES or DIVIDE");
 }
 
 /**
  * Parses factor -> LPAREN expression RPAREN | var | call | NUM
  */
-void parser::factor() {
+unique_ptr<expression_node> parser::factor() {
     switch (m_current_token.type) {
     case LPAREN:
         match("factor", LPAREN);
