@@ -549,7 +549,7 @@ unique_ptr<expression_node> parser::factor() {
 }
 
 /**
- * Parses call -> ID LPAREN RPAREN
+ * Parses call -> ID LPAREN args RPAREN
  */
 unique_ptr<call_expression_node> parser::fun_call() {
     auto [_, id, __, loc] {match("function call", ID)};
