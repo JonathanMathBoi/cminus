@@ -49,7 +49,8 @@ public:
 
 private:
     /// Prints the indent in front of the next to be printed element
-    void print_indent();
+    std::string indent() const;
+    friend struct nest_guard;
 
 private:
     /// The output stream to be printed to
