@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS = -Wall -O0 -g -std=c++2b
+CXXFLAGS = -Wall -O0 -g -std=c++23
 
 CMinus : CMinus.cc Lexer.hpp Lexer.o AST.hpp AST.o Parser.hpp Parser.o
 	$(CXX) $(CXXFLAGS) -o CMinus CMinus.cc Lexer.o Parser.o AST.o
