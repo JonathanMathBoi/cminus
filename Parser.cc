@@ -1,19 +1,28 @@
 #include "Parser.hpp"
+#include "AST.hpp"
 #include "Lexer.hpp"
-#include "Exception.hpp"
+#include "MiscUtils.hpp"
 
 #include <cstddef>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string_view>
+#include <utility>
+#include <vector>
+
+using std::make_unique;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::vector;
 
 /***********************************************************************/
 
 /**
  * Parses program -> decleration-list
  */
-void parser::program() {
-    decl_list();
+unique_ptr<program_node> parser::program() {
+    return make_unique<program_node>(decl_list());
 }
 
 /**
@@ -21,90 +30,117 @@ void parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-void parser::decl_list() {
+vector<shared_ptr<declaration_node>> parser::decl_list() {
+    vector<shared_ptr<declaration_node>> decls;
+
     do {
-        declaration();
-    } while(m_current_token.type != END_OF_FILE);
+        decls.emplace_back(declaration());
+    } while (m_current_token.type != END_OF_FILE);
+
+    return decls;
 }
 
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-void parser::declaration() {
+unique_ptr<declaration_node> parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
     case LBRACK:
-        var_decl();
-        break;
+        return var_decl();
     case LPAREN:
-        fun_decl();
-        break;
+        return fun_decl();
     default:
         type_spec();
         match("declaration", ID);
-        error("declaration", "';', '[', or '('");
-        break;
+        throw error("declaration", "';', '[', or '('");
     }
 }
 
 /**
  * Parses var-declaration -> type-specifier ID SEMI
  *                         | type-specifier ID LBRACK NUM RBRACK SEMI
- * 
+ *
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-void parser::var_decl() {
-    type_spec();
-    match("variable declaration", ID);
+unique_ptr<variable_declaration_node> parser::var_decl() {
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("variable declaration", ID).lexeme};
+
+    unique_ptr<variable_declaration_node> new_node;
 
     if (m_current_token.type == LBRACK) {
+        type.is_array = true;
+
         match("variable declaration", LBRACK);
-        match("variable declaration", NUM);
+        int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
+
+        new_node = make_unique<array_declaration_node>(type, id, size, loc);
+    } else {
+        new_node = make_unique<variable_declaration_node>(type, id, loc);
     }
 
     match("variable declaration", SEMI);
+
+    return new_node;
 }
 
 /**
  * Parses type-specifier -> INT | VOID
  */
-void parser::type_spec() {
-    switch (m_current_token.type) {
-    case INT:
-    case VOID:
+std::pair<basic_type, location> parser::type_spec() {
+    static const std::map<TokenType, basic_type> types {
+        {VOID, basic_type::VOID}, {INT, basic_type::INT}};
+
+    if (types.contains(m_current_token.type)) {
+        std::pair<basic_type, location> ret {
+            types.at(m_current_token.type), m_current_token.loc};
         get_token();
-        break;
-    default:
-        error("type specifier", "INT or VOID");
-        break;
+        return ret;
     }
+
+    throw error("type specifier", "INT or VOID");
 }
 
 /**
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-void parser::fun_decl() {
-    type_spec();
-    match("function declaration", ID);
+unique_ptr<function_declaration_node> parser::fun_decl() {
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("function declaration", ID).lexeme};
+
     match("function declaration", LPAREN);
-    params();
+
+    auto parameters {params()};
+
     match("function declaration", RPAREN);
-    compound_stmt();
+
+    auto body {compound_stmt()};
+
+    return make_unique<function_declaration_node>(
+        type, id, parameters, std::move(body), loc);
 }
 
 /**
  * Parses params -> param-list | VOID
  */
-void parser::params() {
+vector<shared_ptr<param_node>> parser::params() {
     if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
         match("parameters", VOID);
-        return;
+        // returns an empty vector
+        return {};
     }
 
-    param_list();
+    return param_list();
 }
 
 /**
@@ -112,13 +148,17 @@ void parser::params() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-void parser::param_list() {
-    param();
+vector<shared_ptr<param_node>> parser::param_list() {
+    vector<shared_ptr<param_node>> params;
+
+    params.emplace_back(param());
 
     while (m_current_token.type == COMMA) {
         match("parameter list", COMMA);
-        param();
+        params.emplace_back(param());
     }
+
+    return params;
 }
 
 /**
@@ -126,36 +166,48 @@ void parser::param_list() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-void parser::param() {
-    type_spec();
-    match("parameter", ID);
+unique_ptr<param_node> parser::param() {
+    auto spec {type_spec()};
+    value_type type {spec.first};
+    location loc {spec.second};
+
+    std::string id {match("parameter", ID).lexeme};
 
     if (m_current_token.type == LBRACK) {
         match("parameter", LBRACK);
         match("parameter", RBRACK);
+        type.is_array = true;
     }
+
+    return make_unique<param_node>(type, id, loc);
 }
 
 /**
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
-void parser::compound_stmt() {
-    match("compound statement", LBRACE);
-    local_decls();
-    stmt_list();
+unique_ptr<compound_statement_node> parser::compound_stmt() {
+    location loc {match("compound statement", LBRACE).loc};
+    auto locals {local_decls()};
+    auto statements {stmt_list()};
     match("compound statement", RBRACE);
+    return make_unique<compound_statement_node>(
+        locals, std::move(statements), loc);
 }
 
 /**
  * Parses local-declarations -> local-delarations var-delcaration
  *                            | empty
- * 
+ *
  * Implemented as local-declarations -> { var-declaration }
  */
-void parser::local_decls() {
+vector<shared_ptr<variable_declaration_node>> parser::local_decls() {
+    vector<shared_ptr<variable_declaration_node>> decls;
+
     while (m_current_token.type == VOID || m_current_token.type == INT) {
-        var_decl();
+        decls.emplace_back(var_decl());
     }
+
+    return decls;
 }
 
 /**
@@ -163,10 +215,14 @@ void parser::local_decls() {
  *
  * Implemented as statement-list -> { statement }
  */
-void parser::stmt_list() {
+vector<unique_ptr<statement_node>> parser::stmt_list() {
+    vector<unique_ptr<statement_node>> stmts;
+
     while (m_current_token.type != RBRACE) {
-        statement();
+        stmts.emplace_back(statement());
     }
+
+    return stmts;
 }
 
 /**
@@ -176,23 +232,18 @@ void parser::stmt_list() {
  *                   | iteration-stmt
  *                   | return-stmt
  */
-void parser::statement() {
+unique_ptr<statement_node> parser::statement() {
     switch (m_current_token.type) {
     case IF:
-        if_statement();
-        break;
+        return if_statement();
     case WHILE:
-        while_statement();
-        break;
+        return while_statement();
     case RETURN:
-        return_stmt();
-        break;
+        return return_stmt();
     case LBRACE:
-        compound_stmt();
-        break;
+        return compound_stmt();
     default:
-        expr_stmt();
-        break;
+        return expr_stmt();
     }
 }
 
@@ -201,14 +252,17 @@ void parser::statement() {
  *
  * Implemented as expression-stmt -> [ expression ] SEMI
  */
-void parser::expr_stmt() {
+unique_ptr<expression_statement_node> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
-        match("expression statement", SEMI);
-        return;
+        location loc {match("expression statement", SEMI).loc};
+        return make_unique<expression_statement_node>(loc);
     }
 
-    expression();
-    match("expression statement", SEMI); 
+    auto expr {expression()};
+    location loc {expr->loc};
+    match("expression statement", SEMI);
+
+    return make_unique<expression_statement_node>(std::move(expr), loc);
 }
 
 /**
@@ -218,28 +272,37 @@ void parser::expr_stmt() {
  * Implemented as selection-stmt
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
-void parser::if_statement() {
-    match("if statement", IF);
+unique_ptr<if_statement_node> parser::if_statement() {
+    location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
-    expression();
+    auto condition {expression()};
     match("if statement", RPAREN);
-    statement();
+    auto then_stmt {statement()};
 
     if (m_current_token.type == ELSE) {
         match("if statement", ELSE);
-        statement();
+        auto else_stmt {statement()};
+        return make_unique<if_statement_node>(
+            std::move(condition), std::move(then_stmt), std::move(else_stmt),
+            loc);
     }
+
+    return make_unique<if_statement_node>(
+        std::move(condition), std::move(then_stmt), loc);
 }
 
 /**
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
-void parser::while_statement() {
-    match("while statement", WHILE);
+unique_ptr<while_statement_node> parser::while_statement() {
+    location loc {match("while statement", WHILE).loc};
     match("while statement", LPAREN);
-    expression();
+    auto condition {expression()};
     match("while statement", RPAREN);
-    statement();
+    auto body {statement()};
+
+    return make_unique<while_statement_node>(
+        std::move(condition), std::move(body), loc);
 }
 
 /**
@@ -247,16 +310,18 @@ void parser::while_statement() {
  *
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
-void parser::return_stmt() {
-    match("return statement", RETURN);
-    
+unique_ptr<return_statement_node> parser::return_stmt() {
+    location loc {match("return statement", RETURN).loc};
+
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
-        return;
+        return make_unique<return_statement_node>(loc);
     }
 
-    expression();
+    auto expr {expression()};
     match("return expression", SEMI);
+
+    return make_unique<return_statement_node>(std::move(expr), loc);
 }
 
 /**
@@ -267,11 +332,12 @@ void parser::return_stmt() {
  * Ad-hoc solution used to check for assignment expression with an indexed array
  * as the variable.
  */
-void parser::expression() {
+unique_ptr<expression_node> parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
-        assignment_expr();
-        return;
-    } else if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
+        return assignment_expr();
+    }
+
+    if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
         size_t peek_idx {1};
         unsigned nest_level {0};
         do {
@@ -287,6 +353,7 @@ void parser::expression() {
                 // If ID LBRACK EOF is hit, call variable which will recognize
                 // the bad variable
                 variable();
+                break;
             default:
                 break;
             }
@@ -294,21 +361,25 @@ void parser::expression() {
         } while (nest_level != 0);
 
         if (peek_token(peek_idx).type == ASSIGN) {
-            assignment_expr();
-            return;
+            return assignment_expr();
         }
     }
 
-    simple_expr();
+    return relational_expr();
 }
 
 /**
  * Parses assign-expression -> var ASSIGN expression
  */
-void parser::assignment_expr() {
-    variable();
+unique_ptr<assignment_expression_node> parser::assignment_expr() {
+    auto var {variable()};
     match("assignment expression", ASSIGN);
-    expression();
+    auto expr {expression()};
+
+    location loc {var->loc};
+
+    return make_unique<assignment_expression_node>(
+        std::move(var), std::move(expr), loc);
 }
 
 /**
@@ -316,14 +387,19 @@ void parser::assignment_expr() {
  *
  * Implemented as var -> ID [ LBARCK expression RBRACK ]
  */
-void parser::variable() {
-    match("variable", ID);
+unique_ptr<variable_expression_node> parser::variable() {
+    auto [_, id, __, loc] {match("variable", ID)};
 
     if (m_current_token.type == LBRACK) {
         match("variable", LBRACK);
-        expression();
+        auto subscript {expression()};
         match("variable", RBRACK);
+
+        return make_unique<subscript_expression_node>(
+            id, std::move(subscript), loc);
     }
+
+    return make_unique<variable_expression_node>(id, loc);
 }
 
 /**
@@ -333,8 +409,9 @@ void parser::variable() {
  * Implemented as simple-expression
  *                  -> additive-expression [ relop additive-expression ]
  */
-void parser::simple_expr() {
-    add_expr();
+unique_ptr<expression_node> parser::relational_expr() {
+    auto lhs {add_expr()};
+    location loc {lhs->loc};
 
     switch (m_current_token.type) {
     case LT:
@@ -342,138 +419,156 @@ void parser::simple_expr() {
     case GT:
     case GTE:
     case EQ:
-    case NEQ:
-        relation_op();
-        add_expr();
-        break;
+    case NEQ: {
+        rel_op operation {relation_op()};
+        auto rhs {add_expr()};
+        return make_unique<relational_expression_node>(
+            operation, std::move(lhs), std::move(rhs), loc);
+    }
     default:
         break;
     }
+
+    return lhs;
 }
 
 /**
  * Parses relop -> LTE | LT | GT | GTE | EQ | NEQ
  */
-void parser::relation_op() {
-    switch (m_current_token.type) {
-    case LT:
-    case LTE:
-    case GT:
-    case GTE:
-    case EQ:
-    case NEQ:
+rel_op parser::relation_op() {
+    static const std::map<TokenType, rel_op> rel_ops {
+        {LT, rel_op::LT},   {LTE, rel_op::LTE}, {GT, rel_op::GT},
+        {GTE, rel_op::GTE}, {EQ, rel_op::EQ},   {NEQ, rel_op::NEQ}};
+
+    if (rel_ops.contains(m_current_token.type)) {
+        rel_op operation {rel_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
-        break;
+        return operation;
     }
+
+    throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
 }
+
+const std::map<TokenType, add_op> add_ops {
+    {PLUS, add_op::PLUS},
+    {MINUS, add_op::MINUS}};
 
 /**
  * Parses additive-expression -> additive-expression addop term | term
  *
  * Implemented as additive-expression -> term { addop term }
  */
-void parser::add_expr() {
-    term();
+unique_ptr<expression_node> parser::add_expr() {
+    auto root {term()};
+    location loc {root->loc};
 
-    while (m_current_token.type == PLUS || m_current_token.type == MINUS) {
-        add_op();
-        term();
+    while (add_ops.contains(m_current_token.type)) {
+        auto operation {additive_op()};
+        auto rhs {term()};
+        root = make_unique<additive_expression_node>(
+            operation, std::move(root), std::move(rhs), loc);
     }
+
+    return root;
 }
 
 /**
  * Parses addop -> PLUS | MINUS
  */
-void parser::add_op() {
-    switch (m_current_token.type) {
-    case PLUS:
-    case MINUS:
+add_op parser::additive_op() {
+    if (add_ops.contains(m_current_token.type)) {
+        add_op operation {add_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        error("addition operator", "PLUS or MINUS");
-        break;
+        return operation;
     }
+
+    throw error("addition operator", "PLUS or MINUS");
 }
+
+const std::map<TokenType, mul_op> mul_ops {
+    {TIMES, mul_op::TIMES},
+    {DIVIDE, mul_op::DIVIDE}};
 
 /**
  * Parses term -> term mulop factor | factor
  *
  * Implemented as term -> factor { mulop factor }
  */
-void parser::term() {
-    factor();
+unique_ptr<expression_node> parser::term() {
+    auto root {factor()};
+    location loc {root->loc};
 
     while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
-        mul_op();
-        factor();
+        auto operation {mult_op()};
+        auto rhs {factor()};
+        root = make_unique<multiplicative_expression_node>(
+            operation, std::move(root), std::move(rhs), loc);
     }
+
+    return root;
 }
 
 /**
  * Parses mulop -> TIMES | DIVIDE
  */
-void parser::mul_op() {
-    switch (m_current_token.type) {
-    case TIMES:
-    case DIVIDE:
+mul_op parser::mult_op() {
+    if (mul_ops.contains(m_current_token.type)) {
+        mul_op operation {mul_ops.at(m_current_token.type)};
         get_token();
-        break;
-    default:
-        error("multiplication operator", "TIMES or DIVIDE");
-        break;
+        return operation;
     }
+
+    throw error("multiplication operator", "TIMES or DIVIDE");
 }
 
 /**
  * Parses factor -> LPAREN expression RPAREN | var | call | NUM
  */
-void parser::factor() {
+unique_ptr<expression_node> parser::factor() {
     switch (m_current_token.type) {
-    case LPAREN:
+    case LPAREN: {
         match("factor", LPAREN);
-        expression();
+        auto expr {expression()};
         match("factor", RPAREN);
-        break;
-    case NUM:
-        match("factor", NUM);
-        break;
+        return expr;
+    }
+    case NUM: {
+        auto [_, __, num, loc] {match("factor", NUM)};
+        return make_unique<integer_literal_expression_node>(num, loc);
+    }
     case ID:
         if (peek_token(1).type == LPAREN) {
-            fun_call();
-            return;
+            return fun_call();
         }
 
-        variable();
-        break;
+        return variable();
     default:
-        error("factor", "( expression ), variable, function call, or literal");
-        break;
+        throw error(
+            "factor", "( expression ), variable, function call, or literal");
     }
 }
 
 /**
- * Parses call -> ID LPAREN RPAREN
+ * Parses call -> ID LPAREN args RPAREN
  */
-void parser::fun_call() {
-    match("function call", ID);
+unique_ptr<call_expression_node> parser::fun_call() {
+    auto [_, id, __, loc] {match("function call", ID)};
     match("function call", LPAREN);
-    fun_args();
+    auto args {fun_args()};
     match("function call", RPAREN);
+
+    return make_unique<call_expression_node>(id, std::move(args), loc);
 }
 
 /**
  * Parses args -> arg-list | empty
  */
-void parser::fun_args() {
+vector<unique_ptr<expression_node>> parser::fun_args() {
     if (m_current_token.type == RPAREN) {
-        return;
+        return {};
     }
 
-    args_list();
+    return args_list();
 }
 
 /**
@@ -481,26 +576,29 @@ void parser::fun_args() {
  *
  * Implemented as args-list -> expression { COMMA expression }
  */
-void parser::args_list() {
-    expression();
+vector<unique_ptr<expression_node>> parser::args_list() {
+    vector<unique_ptr<expression_node>> args;
+
+    args.emplace_back(expression());
 
     while (m_current_token.type == COMMA) {
         match("argument list", COMMA);
-        expression();
+        args.emplace_back(expression());
     }
+
+    return args;
 }
 
 /***********************************************************************/
 
 parser::parser(lexer&& lexer)
-    : m_lexer {std::move (lexer)}, m_current_token {Token {END_OF_FILE}}
-{}
+    : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
-void parser::parse() {
+unique_ptr<node> parser::parse() {
     // Pull first token from lexer to start with good state
     get_token();
 
-    program();
+    return program();
 }
 
 Token const& parser::get_token() {
@@ -528,32 +626,23 @@ Token const& parser::peek_token(size_t index) {
     return m_peeked_tokens[index];
 }
 
-void parser::match(
-    const std::string_view function,
-    const TokenType expected_token
-)
-{
+Token const parser::match(
+    const std::string_view construct,
+    const TokenType expected_token) {
     if (m_current_token.type == expected_token) {
+        Token matched_tok {m_current_token};
         get_token();
+        return matched_tok;
     } else {
         throw parser_exception {
-            function,
-            m_current_token,
-            token_types.at(expected_token)
-        };
+            construct, m_current_token, token_types.at(expected_token)};
     }
 }
 
-void parser::error(
+parser_exception parser::error(
     const std::string_view function,
-    const std::string_view expected
-)
-{
-    throw parser_exception {
-        function,
-        m_current_token,
-        expected
-    };
+    const std::string_view expected) {
+    return parser_exception {function, m_current_token, expected};
 }
 
 /***********************************************************************/
@@ -561,16 +650,14 @@ void parser::error(
 parser_exception::parser_exception(
     const std::string_view construct,
     Token received_token,
-    const std::string_view expected
-)
-    : cminus_exception {received_token.line_num, received_token.col_num}
-    , m_received_token {received_token}
-{
+    const std::string_view expected)
+    : cminus_exception {received_token.loc}, m_received_token {received_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'
-        << "  Encountered: " << std::quoted(m_received_token.lexeme)
-        << " (line " << m_line_num << ", column " << m_col_num << ")\n"
-        << "  Expected   : " << expected;
+                   << "  Encountered: " << std::quoted(m_received_token.lexeme)
+                   << " (line " << location.line_num << ", column "
+                   << location.col_num << ")\n"
+                   << "  Expected   : " << expected;
     m_error_message = message_buffer.str();
 }
 
@@ -579,4 +666,3 @@ char const* parser_exception::what() const noexcept {
 }
 
 /***********************************************************************/
-

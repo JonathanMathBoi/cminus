@@ -1,49 +1,34 @@
 #include "Lexer.hpp"
-#include "Exception.hpp"
+#include "MiscUtils.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <algorithm>
 
-lexer::lexer (std::ifstream&& source_file)
-    : m_sourceFile {std::move (source_file)}
-    , m_lineNum {1}
-    , m_colNum {0}
-{}
+lexer::lexer(std::ifstream&& source_file)
+    : m_sourceFile {std::move(source_file)}, m_lineNum {1}, m_colNum {0} {}
 
-int lexer::get_line_num () const
-{
+int lexer::get_line_num() const {
     return m_lineNum;
 }
 
-int lexer::get_column_num () const
-{
+int lexer::get_column_num() const {
     return m_colNum;
 }
 
-Token
-lexer::make_token (TokenType type, std::string lexeme, int number) const
-{
-    return Token {
-        type,
-        lexeme,
-        number,
-        m_token_line,
-        m_token_col
-    };
+Token lexer::make_token(TokenType type, std::string lexeme, int number) const {
+    return Token {type, lexeme, number, location {m_token_line, m_token_col}};
 }
 
-Token lexer::get_token ()
-{
-    char c {get_char ()};
+Token lexer::get_token() {
+    char c {get_char()};
     m_token_line = m_lineNum;
     m_token_col = m_colNum;
 
-    switch (c)
-    {
+    switch (c) {
     /* Special Chars */
     case EOF:
         return make_token(END_OF_FILE);
@@ -65,7 +50,7 @@ Token lexer::get_token ()
         return make_token(LBRACE, "{");
     case '}':
         return make_token(RBRACE, "}");
-    
+
     /* Simple Operators */
     case '+':
         return next_or_else('+', '+', INCREMENT, PLUS);
@@ -76,176 +61,157 @@ Token lexer::get_token ()
 
     /* Divison and Comments */
     case '/':
-        if (peek_char () == '*') {
-            get_char ();
-            eat_comment ();
-            return get_token ();
+        if (peek_char() == '*') {
+            get_char();
+            eat_comment();
+            return get_token();
         }
         return make_token(DIVIDE, "/");
 
     /* Equals and Assign */
     case '=':
-       return next_or_else('=', '=', EQ, ASSIGN);
+        return next_or_else('=', '=', EQ, ASSIGN);
     case '!':
-       return next_or_else('!', '=', NEQ, ERROR);
+        return next_or_else('!', '=', NEQ, ERROR);
 
     /* Relational Operators */
     case '<':
-       return next_or_else('<', '=', LTE, LT);
+        return next_or_else('<', '=', LTE, LT);
     case '>':
-       return next_or_else('>', '=', GTE, GT);
+        return next_or_else('>', '=', GTE, GT);
 
     default:
         if (!is_alphanum(c)) {
             std::string lexeme {c};
-            throw lexer_exception {
-                make_token(ERROR, lexeme)
-            };
+            throw lexer_exception {make_token(ERROR, lexeme)};
         }
 
         // Move cursor back for literal, keyword, and id handling
-        unget_char (c);
+        unget_char(c);
 
         if (is_digit(c)) {
-            return lex_literal ();
+            return lex_literal();
         }
 
-        return lex_keyword_id ();
+        return lex_keyword_id();
     }
 }
 
-Token lexer::lex_literal ()
-{
+Token lexer::lex_literal() {
     std::string lexeme {};
     do {
-        lexeme += get_char ();
-    } while (peek_char () == '_' || is_digit (peek_char ()));
+        lexeme += get_char();
+    } while (peek_char() == '_' || is_digit(peek_char()));
 
-    if (is_alpha (peek_char ())) {
+    if (is_alpha(peek_char())) {
         do {
-            lexeme += get_char ();
-        } while (is_alphanum (peek_char ()));
+            lexeme += get_char();
+        } while (is_alphanum(peek_char()));
 
-        throw lexer_exception {
-            make_token(ERROR, lexeme)
-        };
+        throw lexer_exception {make_token(ERROR, lexeme)};
     }
 
     // Strip out '_'s
     std::string num {lexeme};
     num.erase(std::remove(num.begin(), num.end(), '_'), num.end());
-    int value = std::stoi (num);
+    int value = std::stoi(num);
 
     return make_token(NUM, lexeme, value);
 }
 
-Token lexer::lex_keyword_id ()
-{
+Token lexer::lex_keyword_id() {
     std::string lexeme {};
     do {
-        lexeme += get_char ();
-    } while (is_alphanum (peek_char ()) || peek_char () == '_');
+        lexeme += get_char();
+    } while (is_alphanum(peek_char()) || peek_char() == '_');
 
-    if (keywords.contains (lexeme)) {
-        return make_token(keywords.at (lexeme), lexeme);
+    if (keywords.contains(lexeme)) {
+        return make_token(keywords.at(lexeme), lexeme);
     }
 
     return make_token(ID, lexeme);
 }
 
-Token
-lexer::next_or_else (
+Token lexer::next_or_else(
     char cur,
     char look_for,
     TokenType found,
-    TokenType not_found
-)
-{
+    TokenType not_found) {
     std::string lexeme {cur};
-    if (peek_char () == look_for) {
-        lexeme += get_char ();
+    if (peek_char() == look_for) {
+        lexeme += get_char();
         return make_token(found, lexeme);
     }
     return make_token(not_found, lexeme);
 }
 
-void lexer::eat_comment ()
-{
-    char c {get_char ()};
+void lexer::eat_comment() {
+    char c {get_char()};
     while (c != EOF) {
-        if (c == '*' && peek_char () == '/') {
-            get_char ();
+        if (c == '*' && peek_char() == '/') {
+            get_char();
             return;
         }
 
-        c = get_char ();
+        c = get_char();
     }
 
     // If EOF is hit, put it back for getToken to hit
-    unget_char (c);
+    unget_char(c);
 }
 
-char lexer::get_char ()
-{
-    char c {static_cast<char> (m_sourceFile.get ())};
+char lexer::get_char() {
+    char c {static_cast<char>(m_sourceFile.get())};
     switch (c) {
     case '\n':
         m_lineNum++;
         m_colNum = 0;
-        return get_char ();
+        return get_char();
     case '\t':
         m_colNum += 4 - (m_colNum % 4);
-        return get_char ();
+        return get_char();
     case '\r':
-        return get_char ();
+        return get_char();
     case ' ':
         m_colNum++;
-        return get_char ();
+        return get_char();
     default:
         m_colNum++;
         return c;
     }
 }
 
-char lexer::peek_char ()
-{
-    return m_sourceFile.peek ();
+char lexer::peek_char() {
+    return m_sourceFile.peek();
 }
 
-void lexer::unget_char (char c)
-{
-    m_sourceFile.putback (c);
+void lexer::unget_char(char c) {
+    m_sourceFile.putback(c);
     m_colNum--;
 }
 
-bool is_alphanum(char c)
-{
-    return std::isalnum (static_cast<unsigned char> (c));
+bool is_alphanum(char c) {
+    return std::isalnum(static_cast<unsigned char>(c));
 }
 
-bool is_alpha(char c)
-{
-    return std::isalpha (static_cast<unsigned char> (c));
+bool is_alpha(char c) {
+    return std::isalpha(static_cast<unsigned char>(c));
 }
 
-bool is_digit(char c)
-{
-    return std::isdigit (static_cast<unsigned char> (c));
+bool is_digit(char c) {
+    return std::isdigit(static_cast<unsigned char>(c));
 }
 
 lexer_exception::lexer_exception(Token bad_token)
-    : cminus_exception {bad_token.line_num, bad_token.col_num}
-    , m_bad_token {bad_token}
-{
+    : cminus_exception {bad_token.loc}, m_bad_token {bad_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
-        << "  Encountered: "
-        << std::quoted (m_bad_token.lexeme)
-        << " (line " << m_line_num << ", column " << m_col_num << ")";
+                   << "  Encountered: " << std::quoted(m_bad_token.lexeme)
+                   << " (line " << location.line_num << ", column "
+                   << location.col_num << ")";
     m_error_message = message_buffer.str();
 }
 
 char const* lexer_exception::what() const noexcept {
     return m_error_message.c_str();
 }
-

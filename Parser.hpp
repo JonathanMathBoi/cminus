@@ -3,11 +3,18 @@
 
 /***********************************************************************/
 
-#include "Exception.hpp"
+#include "AST.hpp"
 #include "Lexer.hpp"
+#include "MiscUtils.hpp"
 
 #include <deque>
+#include <memory>
 #include <string_view>
+#include <vector>
+
+/***********************************************************************/
+
+class parser_exception;
 
 /***********************************************************************/
 
@@ -15,68 +22,42 @@ class parser {
 public:
     parser(lexer&& lexer);
 
-    void parse();
+    std::unique_ptr<node> parse();
 
 private:
-    void program();
-
-    void decl_list();
-
-    void declaration();
-
-    void var_decl();
-
-    void type_spec();
-
-    void fun_decl();
-
-    void params();
-
-    void param_list();
-
-    void param();
-
-    void compound_stmt();
-
-    void local_decls();
-
-    void stmt_list();
-
-    void statement();
-
-    void expr_stmt();
-
-    void if_statement();
-
-    void while_statement();
-
-    void return_stmt();
-
-    void expression();
-
-    void assignment_expr();
-
-    void variable();
-
-    void simple_expr();
-
-    void relation_op();
-
-    void add_expr();
-
-    void add_op();
-
-    void term();
-
-    void mul_op();
-
-    void factor();
-
-    void fun_call();
-
-    void fun_args();
-
-    void args_list();
+    std::unique_ptr<program_node> program();
+    std::vector<std::shared_ptr<declaration_node>> decl_list();
+    std::unique_ptr<declaration_node> declaration();
+    /// Parses a type specifier
+    ///
+    /// \returns the type specified and its location in the code
+    std::pair<basic_type, location> type_spec();
+    std::unique_ptr<variable_declaration_node> var_decl();
+    std::unique_ptr<function_declaration_node> fun_decl();
+    std::vector<std::shared_ptr<param_node>> params();
+    std::vector<std::shared_ptr<param_node>> param_list();
+    std::unique_ptr<param_node> param();
+    std::unique_ptr<compound_statement_node> compound_stmt();
+    std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
+    std::vector<std::unique_ptr<statement_node>> stmt_list();
+    std::unique_ptr<statement_node> statement();
+    std::unique_ptr<expression_statement_node> expr_stmt();
+    std::unique_ptr<if_statement_node> if_statement();
+    std::unique_ptr<while_statement_node> while_statement();
+    std::unique_ptr<return_statement_node> return_stmt();
+    std::unique_ptr<expression_node> expression();
+    std::unique_ptr<assignment_expression_node> assignment_expr();
+    std::unique_ptr<variable_expression_node> variable();
+    std::unique_ptr<expression_node> relational_expr();
+    rel_op relation_op();
+    std::unique_ptr<expression_node> add_expr();
+    add_op additive_op();
+    std::unique_ptr<expression_node> term();
+    mul_op mult_op();
+    std::unique_ptr<expression_node> factor();
+    std::unique_ptr<call_expression_node> fun_call();
+    std::vector<std::unique_ptr<expression_node>> fun_args();
+    std::vector<std::unique_ptr<expression_node>> args_list();
 
 private:
     /**
@@ -92,24 +73,30 @@ private:
      */
     Token const& peek_token(size_t index);
 
-    /**
-     * Checks to see if the current token matches the expected. If it matches,
-     * the token is consumed and current is moved forward. Otherwise a
-     * parse_exception is thrown.
-     *
-     * @param function the name of the function calling match
-     * @param expected_token the token to match against
-     */
-    void match(const std::string_view function, const TokenType expected_token);
-   
+    /// Matches on a TokenType
+    ///
+    /// Checks to see if the current token matches the expected. If it matches,
+    /// the token is consumed and current is moved forward. Otherwise a
+    /// parse_exception is thrown.
+    ///
+    /// \param construct the name of the construct being parsed
+    /// \param expected_token the TokenType to be matched against
+    ///
+    /// \returns the successfully matched Token
+    ///
+    /// \throws parser_exception if the current token does not match the
+    ///                          expected type
+    Token const match(
+        const std::string_view construct,
+        const TokenType expected_token);
+
     /**
      * Throws an error indicating the function which encountered an error and
      * what token it had expected.
      */
-    void error(
+    parser_exception error(
         const std::string_view function,
-        const std::string_view expected
-    );
+        const std::string_view expected);
 
 private:
     lexer m_lexer;
@@ -124,8 +111,7 @@ public:
     parser_exception(
         const std::string_view construct,
         Token received_token,
-        const std::string_view expected
-    );
+        const std::string_view expected);
 
     virtual char const* what() const noexcept;
 

@@ -8,3 +8,7 @@ test
 # Ignore clangd config
 compile_flags.txt
 
+# Ignore generatedd documentation
+html/
+latex/
+
