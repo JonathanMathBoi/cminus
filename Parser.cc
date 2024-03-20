@@ -527,10 +527,10 @@ mul_op parser::mult_op() {
 unique_ptr<expression_node> parser::factor() {
     switch (m_current_token.type) {
     case LPAREN: {
-        location loc {match("factor", LPAREN).loc};
+        match("factor", LPAREN);
         auto expr {expression()};
         match("factor", RPAREN);
-        return make_unique<paren_expression_node>(std::move(expr), loc);
+        return expr;
     }
     case NUM: {
         auto [_, __, num, loc] {match("factor", NUM)};

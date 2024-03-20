@@ -45,7 +45,6 @@ public:
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) override;
     virtual void visit(integer_literal_expression_node& node) override;
-    virtual void visit(paren_expression_node& node) override;
 
 private:
     /// Prints the indent in front of the next to be printed element

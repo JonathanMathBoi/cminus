@@ -1,7 +1,6 @@
 #include "AST.hpp"
 #include "MiscUtils.hpp"
 
-#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -173,15 +172,6 @@ integer_literal_expression_node::integer_literal_expression_node(
     : expression_node {loc}, value {value} {}
 
 void integer_literal_expression_node::accept(visitor& visitor) {
-    visitor.visit(*this);
-}
-
-paren_expression_node::paren_expression_node(
-    unique_ptr<expression_node> expr,
-    location loc)
-    : expression_node {loc}, expression {std::move(expr)} {}
-
-void paren_expression_node::accept(visitor& visitor) {
     visitor.visit(*this);
 }
 
