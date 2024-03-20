@@ -10,7 +10,7 @@
 /***********************************************************************/
 
 /// AST Visitor for printing AST
-class print_visitor : visitor {
+class print_visitor : public visitor {
 public:
     /// Constructs a print visitor
     ///

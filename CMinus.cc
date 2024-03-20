@@ -1,9 +1,15 @@
+#include "AST.hpp"
 #include "Lexer.hpp"
 #include "MiscUtils.hpp"
 #include "Parser.hpp"
+#include "PrintVisitor.hpp"
 
+#include <filesystem>
 #include <fstream>
+#include <ios>
 #include <iostream>
+#include <memory>
+#include <string_view>
 
 /***********************************************************************/
 
@@ -13,16 +19,32 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::ifstream source {argv[1]};
+    const std::string_view input_file {argv[1]};
+
+    // ifstream needs a full std::string or raw char const*
+    std::ifstream source {input_file.data()};
 
     lexer lexer {std::move(source)};
 
     parser parser {std::move(lexer)};
 
+    std::unique_ptr<node> ast;
+
     try {
-        parser.parse();
+        ast = parser.parse();
         std::cout << "Valid!" << std::endl;
     } catch (cminus_exception const& exception) {
         std::cout << exception.what() << std::endl;
+        return -1;
     }
+
+    std::filesystem::path old_path {input_file};
+    std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
+    new_path += ".ast";
+
+    std::ofstream ast_file {new_path, std::ios::trunc};
+
+    print_visitor printer {ast_file};
+
+    ast->accept(printer);
 }
