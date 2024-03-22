@@ -84,7 +84,7 @@ void ParameterNode::accept(Visitor& visitor) {
 /***********************************************************************/
 // Expression Nodes
 
-assignment_expression_node::assignment_expression_node(
+AssignmentExpressionNode::AssignmentExpressionNode(
     unique_ptr<variable_expression_node> var,
     unique_ptr<ExpressionNode> expr,
     location loc)
@@ -92,7 +92,7 @@ assignment_expression_node::assignment_expression_node(
     , variable {std::move(var)}
     , expression {std::move(expr)} {}
 
-void assignment_expression_node::accept(Visitor& visitor) {
+void AssignmentExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

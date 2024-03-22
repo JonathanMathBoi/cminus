@@ -32,7 +32,7 @@ struct ReturnStatementNode;
 struct ExpressionStatementNode;
 
 struct ExpressionNode;
-struct assignment_expression_node;
+struct AssignmentExpressionNode;
 struct variable_expression_node;
 struct subscript_expression_node;
 struct call_expression_node;
@@ -80,7 +80,7 @@ public:
     virtual void visit(ExpressionStatementNode& node) = 0;
 
     virtual void visit(ExpressionNode& node) = 0;
-    virtual void visit(assignment_expression_node& node) = 0;
+    virtual void visit(AssignmentExpressionNode& node) = 0;
     virtual void visit(variable_expression_node& node) = 0;
     virtual void visit(subscript_expression_node& node) = 0;
     virtual void visit(call_expression_node& node) = 0;
@@ -471,18 +471,18 @@ struct variable_expression_node : ExpressionNode {
 /// Assignment Expression Node
 ///
 /// This node represents an assignment expression of the form `var = <expr>`.
-struct assignment_expression_node : ExpressionNode {
+struct AssignmentExpressionNode : ExpressionNode {
     /// Constructs an Assignment Expression Node
     ///
     /// \param var the variable being assigned
     /// \param expr the expression to be assigned to the variable
     /// \param loc the location of the assignment in the source code
-    assignment_expression_node(
+    AssignmentExpressionNode(
         std::unique_ptr<variable_expression_node> var,
         std::unique_ptr<ExpressionNode> expr,
         location loc);
 
-    virtual ~assignment_expression_node() = default;
+    virtual ~AssignmentExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

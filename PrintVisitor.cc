@@ -168,7 +168,7 @@ void PrintVisitor::visit(ExpressionNode& node) {
     node.accept(*this);
 }
 
-void PrintVisitor::visit(assignment_expression_node& node) {
+void PrintVisitor::visit(AssignmentExpressionNode& node) {
     output << indent() << "Assignment:\n";
 
     nest_guard guard {*this};

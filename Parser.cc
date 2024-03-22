@@ -371,14 +371,14 @@ unique_ptr<ExpressionNode> parser::expression() {
 /**
  * Parses assign-expression -> var ASSIGN expression
  */
-unique_ptr<assignment_expression_node> parser::assignment_expr() {
+unique_ptr<AssignmentExpressionNode> parser::assignment_expr() {
     auto var {variable()};
     match("assignment expression", ASSIGN);
     auto expr {expression()};
 
     location loc {var->loc};
 
-    return make_unique<assignment_expression_node>(
+    return make_unique<AssignmentExpressionNode>(
         std::move(var), std::move(expr), loc);
 }
 
