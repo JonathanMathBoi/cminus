@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 
     Lexer lexer {std::move(source)};
 
-    parser parser {std::move(lexer)};
+    Parser parser {std::move(lexer)};
 
     std::unique_ptr<Node> ast;
 
