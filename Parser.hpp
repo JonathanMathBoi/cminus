@@ -20,7 +20,7 @@ class parser_exception;
 
 class parser {
 public:
-    parser(lexer&& lexer);
+    parser(Lexer&& lexer);
 
     std::unique_ptr<Node> parse();
 
@@ -99,7 +99,7 @@ private:
         const std::string_view expected);
 
 private:
-    lexer m_lexer;
+    Lexer m_lexer;
     Token m_current_token;
     std::deque<Token> m_peeked_tokens;
 };

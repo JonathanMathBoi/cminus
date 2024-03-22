@@ -592,7 +592,7 @@ vector<unique_ptr<ExpressionNode>> parser::args_list() {
 
 /***********************************************************************/
 
-parser::parser(lexer&& lexer)
+parser::parser(Lexer&& lexer)
     : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
 unique_ptr<Node> parser::parse() {
@@ -607,7 +607,7 @@ Token const& parser::get_token() {
         m_current_token = m_peeked_tokens.front();
         m_peeked_tokens.pop_front();
     } else {
-        m_current_token = m_lexer.get_token();
+        m_current_token = m_lexer.getToken();
     }
 
     return m_current_token;
@@ -621,7 +621,7 @@ Token const& parser::peek_token(size_t index) {
     index--;
 
     while (index >= m_peeked_tokens.size()) {
-        m_peeked_tokens.push_back(m_lexer.get_token());
+        m_peeked_tokens.push_back(m_lexer.getToken());
     }
 
     return m_peeked_tokens[index];

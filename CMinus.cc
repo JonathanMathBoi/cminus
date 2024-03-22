@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     // ifstream needs a full std::string or raw char const*
     std::ifstream source {input_file.data()};
 
-    lexer lexer {std::move(source)};
+    Lexer lexer {std::move(source)};
 
     parser parser {std::move(lexer)};
 
