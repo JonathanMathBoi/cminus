@@ -422,7 +422,7 @@ unique_ptr<ExpressionNode> parser::relational_expr() {
     case NEQ: {
         rel_op operation {relation_op()};
         auto rhs {add_expr()};
-        return make_unique<relational_expression_node>(
+        return make_unique<RelationalExpressionNode>(
             operation, std::move(lhs), std::move(rhs), loc);
     }
     default:

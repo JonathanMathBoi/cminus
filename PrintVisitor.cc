@@ -261,7 +261,7 @@ void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
     }
 }
 
-void PrintVisitor::visit(relational_expression_node& node) {
+void PrintVisitor::visit(RelationalExpressionNode& node) {
     output << indent()
            << "RelationalExpression: " << rel_symbols.at(node.operation)
            << '\n';

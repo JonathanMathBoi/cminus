@@ -155,7 +155,7 @@ void MultiplicativeExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-relational_expression_node::relational_expression_node(
+RelationalExpressionNode::RelationalExpressionNode(
     rel_op operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
@@ -165,7 +165,7 @@ relational_expression_node::relational_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void relational_expression_node::accept(Visitor& visitor) {
+void RelationalExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

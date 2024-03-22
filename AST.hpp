@@ -38,7 +38,7 @@ struct SubscriptExpressionNode;
 struct CallExpressionNode;
 struct AdditiveExpressionNode;
 struct MultiplicativeExpressionNode;
-struct relational_expression_node;
+struct RelationalExpressionNode;
 struct integer_literal_expression_node;
 
 /***********************************************************************/
@@ -86,7 +86,7 @@ public:
     virtual void visit(CallExpressionNode& node) = 0;
     virtual void visit(AdditiveExpressionNode& node) = 0;
     virtual void visit(MultiplicativeExpressionNode& node) = 0;
-    virtual void visit(relational_expression_node& node) = 0;
+    virtual void visit(RelationalExpressionNode& node) = 0;
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) = 0;
     virtual void visit(integer_literal_expression_node& node) = 0;
@@ -595,20 +595,20 @@ struct MultiplicativeExpressionNode : ExpressionNode {
 /// Relational Expression Node
 ///
 /// Represents a relation expression in the source code.
-struct relational_expression_node : ExpressionNode {
+struct RelationalExpressionNode : ExpressionNode {
     /// Constructs a Relational Expression Node
     ///
     /// \param operation the comparison to be made
     /// \param lhs the left hand side expression of the comparison
     /// \param rhs the right hand side expression of the comparison
     /// \param loc the location of the relational expression in the source code
-    relational_expression_node(
+    RelationalExpressionNode(
         rel_op operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
 
-    virtual ~relational_expression_node() = default;
+    virtual ~RelationalExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 
