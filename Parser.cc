@@ -501,7 +501,7 @@ unique_ptr<ExpressionNode> parser::term() {
     while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
         auto operation {mult_op()};
         auto rhs {factor()};
-        root = make_unique<multiplicative_expression_node>(
+        root = make_unique<MultiplicativeExpressionNode>(
             operation, std::move(root), std::move(rhs), loc);
     }
 

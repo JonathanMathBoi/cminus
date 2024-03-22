@@ -141,7 +141,7 @@ void AdditiveExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-multiplicative_expression_node::multiplicative_expression_node(
+MultiplicativeExpressionNode::MultiplicativeExpressionNode(
     mul_op operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
@@ -151,7 +151,7 @@ multiplicative_expression_node::multiplicative_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void multiplicative_expression_node::accept(Visitor& visitor) {
+void MultiplicativeExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

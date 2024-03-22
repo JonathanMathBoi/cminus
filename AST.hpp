@@ -37,7 +37,7 @@ struct VariableExpressionNode;
 struct SubscriptExpressionNode;
 struct CallExpressionNode;
 struct AdditiveExpressionNode;
-struct multiplicative_expression_node;
+struct MultiplicativeExpressionNode;
 struct relational_expression_node;
 struct integer_literal_expression_node;
 
@@ -85,7 +85,7 @@ public:
     virtual void visit(SubscriptExpressionNode& node) = 0;
     virtual void visit(CallExpressionNode& node) = 0;
     virtual void visit(AdditiveExpressionNode& node) = 0;
-    virtual void visit(multiplicative_expression_node& node) = 0;
+    virtual void visit(MultiplicativeExpressionNode& node) = 0;
     virtual void visit(relational_expression_node& node) = 0;
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) = 0;
@@ -568,19 +568,19 @@ struct AdditiveExpressionNode : ExpressionNode {
 /// Multiplicative Expression Node
 ///
 /// Represents a multiplicative expression in the source code.
-struct multiplicative_expression_node : ExpressionNode {
+struct MultiplicativeExpressionNode : ExpressionNode {
     /// Constructs a Multiplicative Expression Node
     ///
     /// \param operation the multiplicative operation to be applied
     /// \param lhs the left hand side expression of the binary operation
     /// \param rhs the right hand side expression of the binary operation
-    multiplicative_expression_node(
+    MultiplicativeExpressionNode(
         mul_op operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
 
-    virtual ~multiplicative_expression_node() = default;
+    virtual ~MultiplicativeExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

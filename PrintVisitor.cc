@@ -237,7 +237,7 @@ void PrintVisitor::visit(AdditiveExpressionNode& node) {
     }
 }
 
-void PrintVisitor::visit(multiplicative_expression_node& node) {
+void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
     output << indent()
            << "MultiplicativeExpression: " << mul_symbols.at(node.operation)
            << '\n';

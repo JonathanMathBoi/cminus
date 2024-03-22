@@ -40,7 +40,7 @@ public:
     virtual void visit(SubscriptExpressionNode& node) override;
     virtual void visit(CallExpressionNode& node) override;
     virtual void visit(AdditiveExpressionNode& node) override;
-    virtual void visit(multiplicative_expression_node& node) override;
+    virtual void visit(MultiplicativeExpressionNode& node) override;
     virtual void visit(relational_expression_node& node) override;
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) override;
