@@ -27,7 +27,7 @@ void ProgramNode::accept(Visitor& visitor) {
 // Declaration Nodes
 
 DeclarationNode::DeclarationNode(
-    value_type type,
+    ValueType type,
     std::string identifier,
     location loc)
     : Node {loc}, type {type}, identifier {identifier} {}
@@ -37,7 +37,7 @@ void DeclarationNode::accept(Visitor& visitor) {
 }
 
 FunctionDeclarationNode::FunctionDeclarationNode(
-    value_type type,
+    ValueType type,
     std::string identifier,
     vector<shared_ptr<ParameterNode>> params,
     unique_ptr<CompoundStatementNode> body,
@@ -51,7 +51,7 @@ void FunctionDeclarationNode::accept(Visitor& visitor) {
 }
 
 VariableDeclarationNode::VariableDeclarationNode(
-    value_type type,
+    ValueType type,
     std::string identifier,
     location loc)
     : DeclarationNode {type, identifier, loc} {}
@@ -61,7 +61,7 @@ void VariableDeclarationNode::accept(Visitor& visitor) {
 }
 
 ArrayDeclarationNode::ArrayDeclarationNode(
-    value_type type,
+    ValueType type,
     std::string identifier,
     int size,
     location loc)
@@ -72,7 +72,7 @@ void ArrayDeclarationNode::accept(Visitor& visitor) {
 }
 
 ParameterNode::ParameterNode(
-    value_type type,
+    ValueType type,
     std::string identifier,
     location loc)
     : DeclarationNode {type, identifier, loc} {}
@@ -128,7 +128,7 @@ void CallExpressionNode::accept(Visitor& visitor) {
 }
 
 AdditiveExpressionNode::AdditiveExpressionNode(
-    add_op operation,
+    AdditiveOp operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     location loc)
@@ -142,7 +142,7 @@ void AdditiveExpressionNode::accept(Visitor& visitor) {
 }
 
 MultiplicativeExpressionNode::MultiplicativeExpressionNode(
-    mul_op operation,
+    MultiplicativeOp operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     location)
@@ -156,7 +156,7 @@ void MultiplicativeExpressionNode::accept(Visitor& visitor) {
 }
 
 RelationalExpressionNode::RelationalExpressionNode(
-    rel_op operation,
+    RelationalOp operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     location loc)

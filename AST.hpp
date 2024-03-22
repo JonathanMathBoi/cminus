@@ -43,20 +43,20 @@ struct IntegerLiteralExpressionNode;
 
 /***********************************************************************/
 
-enum class basic_type { VOID, INT };
+enum class TypeSpecifier { VOID, INT };
 
-struct value_type {
-    basic_type type;
+struct ValueType {
+    TypeSpecifier type;
     bool is_array;
 };
 
-enum class add_op { PLUS, MINUS };
+enum class AdditiveOp { PLUS, MINUS };
 
-enum class mul_op { TIMES, DIVIDE };
+enum class MultiplicativeOp { TIMES, DIVIDE };
 
-enum class rel_op { LT, LTE, GT, GTE, EQ, NEQ };
+enum class RelationalOp { LT, LTE, GT, GTE, EQ, NEQ };
 
-enum class unary_op { INCREMENT, DECREMENT };
+enum class UnaryOp { INCREMENT, DECREMENT };
 
 /***********************************************************************/
 
@@ -130,14 +130,14 @@ struct DeclarationNode : Node {
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
     /// \param loc the location where the declaration begins
-    DeclarationNode(value_type type, std::string identifier, location loc);
+    DeclarationNode(ValueType type, std::string identifier, location loc);
 
     virtual ~DeclarationNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
 
     /// The type of the declared construct
-    value_type type;
+    ValueType type;
     /// The identifier of the declared construct
     std::string identifier;
 };
@@ -366,7 +366,7 @@ struct FunctionDeclarationNode : DeclarationNode {
     /// \param body the function body
     /// \param loc the location where the function is declared
     FunctionDeclarationNode(
-        value_type type,
+        ValueType type,
         std::string identifier,
         std::vector<std::shared_ptr<ParameterNode>> params,
         std::unique_ptr<CompoundStatementNode> body,
@@ -396,7 +396,7 @@ struct VariableDeclarationNode : DeclarationNode {
     /// \param identifier the identifier for the variable
     /// \param loc the location where the variable is declared
     VariableDeclarationNode(
-        value_type type,
+        ValueType type,
         std::string identifier,
         location loc);
 
@@ -416,7 +416,7 @@ struct ArrayDeclarationNode : VariableDeclarationNode {
     /// \param size the length of the array
     /// \param loc the location where the array is declared
     ArrayDeclarationNode(
-        value_type type,
+        ValueType type,
         std::string identifier,
         int size,
         location loc);
@@ -441,7 +441,7 @@ struct ParameterNode : DeclarationNode {
     /// \param type the type of the parameter
     /// \param identifier the name of the parameter
     /// \param loc the location where the parameter is declared
-    ParameterNode(value_type type, std::string identifier, location loc);
+    ParameterNode(ValueType type, std::string identifier, location loc);
 
     virtual ~ParameterNode() = default;
 
@@ -548,7 +548,7 @@ struct AdditiveExpressionNode : ExpressionNode {
     /// \param lhs the left hand side expression of the binary operation
     /// \param rhs the right hand side expression of the binary operation
     AdditiveExpressionNode(
-        add_op operation,
+        AdditiveOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
@@ -558,7 +558,7 @@ struct AdditiveExpressionNode : ExpressionNode {
     virtual void accept(Visitor& visitor) override;
 
     /// The additive operation to be applied
-    add_op operation;
+    AdditiveOp operation;
     /// The left hand side of the expression
     std::unique_ptr<ExpressionNode> left;
     /// The right hand side of the expression
@@ -575,7 +575,7 @@ struct MultiplicativeExpressionNode : ExpressionNode {
     /// \param lhs the left hand side expression of the binary operation
     /// \param rhs the right hand side expression of the binary operation
     MultiplicativeExpressionNode(
-        mul_op operation,
+        MultiplicativeOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
@@ -585,7 +585,7 @@ struct MultiplicativeExpressionNode : ExpressionNode {
     virtual void accept(Visitor& visitor) override;
 
     /// The multiplicative expression to be applied
-    mul_op operation;
+    MultiplicativeOp operation;
     /// The left hand side of the expression
     std::unique_ptr<ExpressionNode> left;
     /// The right hand side of the expression
@@ -603,7 +603,7 @@ struct RelationalExpressionNode : ExpressionNode {
     /// \param rhs the right hand side expression of the comparison
     /// \param loc the location of the relational expression in the source code
     RelationalExpressionNode(
-        rel_op operation,
+        RelationalOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
@@ -613,7 +613,7 @@ struct RelationalExpressionNode : ExpressionNode {
     virtual void accept(Visitor& visitor) override;
 
     /// The comparison to be made
-    rel_op operation;
+    RelationalOp operation;
     /// The left hand side of the comparison expression
     std::unique_ptr<ExpressionNode> left;
     /// The right hand side of the comparison expression

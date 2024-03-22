@@ -7,21 +7,22 @@
 
 /***********************************************************************/
 
-const std::map<basic_type, const std::string_view> types {
-    {basic_type::INT, "Int"},
-    {basic_type::VOID, "void"}};
+const std::map<TypeSpecifier, const std::string_view> types {
+    {TypeSpecifier::INT, "Int"},
+    {TypeSpecifier::VOID, "void"}};
 
-const std::map<add_op, const std::string_view> add_symbols {
-    {add_op::PLUS, "+"},
-    {add_op::MINUS, "-"}};
+const std::map<AdditiveOp, const std::string_view> add_symbols {
+    {AdditiveOp::PLUS, "+"},
+    {AdditiveOp::MINUS, "-"}};
 
-const std::map<mul_op, const std::string_view> mul_symbols {
-    {mul_op::TIMES, "*"},
-    {mul_op::DIVIDE, "/"}};
+const std::map<MultiplicativeOp, const std::string_view> mul_symbols {
+    {MultiplicativeOp::TIMES, "*"},
+    {MultiplicativeOp::DIVIDE, "/"}};
 
-const std::map<rel_op, const std::string_view> rel_symbols {
-    {rel_op::LT, "<"},   {rel_op::LTE, "<="}, {rel_op::GT, ">"},
-    {rel_op::GTE, ">="}, {rel_op::EQ, "=="},  {rel_op::NEQ, "!="}};
+const std::map<RelationalOp, const std::string_view> rel_symbols {
+    {RelationalOp::LT, "<"},  {RelationalOp::LTE, "<="},
+    {RelationalOp::GT, ">"},  {RelationalOp::GTE, ">="},
+    {RelationalOp::EQ, "=="}, {RelationalOp::NEQ, "!="}};
 
 /***********************************************************************/
 

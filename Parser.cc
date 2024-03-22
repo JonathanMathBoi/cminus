@@ -66,7 +66,7 @@ unique_ptr<DeclarationNode> parser::declaration() {
  */
 unique_ptr<VariableDeclarationNode> parser::var_decl() {
     auto spec {type_spec()};
-    value_type type {spec.first};
+    ValueType type {spec.first};
     location loc {spec.second};
 
     std::string id {match("variable declaration", ID).lexeme};
@@ -93,12 +93,12 @@ unique_ptr<VariableDeclarationNode> parser::var_decl() {
 /**
  * Parses type-specifier -> INT | VOID
  */
-std::pair<basic_type, location> parser::type_spec() {
-    static const std::map<TokenType, basic_type> types {
-        {VOID, basic_type::VOID}, {INT, basic_type::INT}};
+std::pair<TypeSpecifier, location> parser::type_spec() {
+    static const std::map<TokenType, TypeSpecifier> types {
+        {VOID, TypeSpecifier::VOID}, {INT, TypeSpecifier::INT}};
 
     if (types.contains(m_current_token.type)) {
-        std::pair<basic_type, location> ret {
+        std::pair<TypeSpecifier, location> ret {
             types.at(m_current_token.type), m_current_token.loc};
         get_token();
         return ret;
@@ -113,7 +113,7 @@ std::pair<basic_type, location> parser::type_spec() {
  */
 unique_ptr<FunctionDeclarationNode> parser::fun_decl() {
     auto spec {type_spec()};
-    value_type type {spec.first};
+    ValueType type {spec.first};
     location loc {spec.second};
 
     std::string id {match("function declaration", ID).lexeme};
@@ -168,7 +168,7 @@ vector<shared_ptr<ParameterNode>> parser::param_list() {
  */
 unique_ptr<ParameterNode> parser::param() {
     auto spec {type_spec()};
-    value_type type {spec.first};
+    ValueType type {spec.first};
     location loc {spec.second};
 
     std::string id {match("parameter", ID).lexeme};
@@ -420,7 +420,7 @@ unique_ptr<ExpressionNode> parser::relational_expr() {
     case GTE:
     case EQ:
     case NEQ: {
-        rel_op operation {relation_op()};
+        RelationalOp operation {relation_op()};
         auto rhs {add_expr()};
         return make_unique<RelationalExpressionNode>(
             operation, std::move(lhs), std::move(rhs), loc);
@@ -435,13 +435,14 @@ unique_ptr<ExpressionNode> parser::relational_expr() {
 /**
  * Parses relop -> LTE | LT | GT | GTE | EQ | NEQ
  */
-rel_op parser::relation_op() {
-    static const std::map<TokenType, rel_op> rel_ops {
-        {LT, rel_op::LT},   {LTE, rel_op::LTE}, {GT, rel_op::GT},
-        {GTE, rel_op::GTE}, {EQ, rel_op::EQ},   {NEQ, rel_op::NEQ}};
+RelationalOp parser::relation_op() {
+    static const std::map<TokenType, RelationalOp> rel_ops {
+        {LT, RelationalOp::LT}, {LTE, RelationalOp::LTE},
+        {GT, RelationalOp::GT}, {GTE, RelationalOp::GTE},
+        {EQ, RelationalOp::EQ}, {NEQ, RelationalOp::NEQ}};
 
     if (rel_ops.contains(m_current_token.type)) {
-        rel_op operation {rel_ops.at(m_current_token.type)};
+        RelationalOp operation {rel_ops.at(m_current_token.type)};
         get_token();
         return operation;
     }
@@ -449,9 +450,9 @@ rel_op parser::relation_op() {
     throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
 }
 
-const std::map<TokenType, add_op> add_ops {
-    {PLUS, add_op::PLUS},
-    {MINUS, add_op::MINUS}};
+const std::map<TokenType, AdditiveOp> add_ops {
+    {PLUS, AdditiveOp::PLUS},
+    {MINUS, AdditiveOp::MINUS}};
 
 /**
  * Parses additive-expression -> additive-expression addop term | term
@@ -475,9 +476,9 @@ unique_ptr<ExpressionNode> parser::add_expr() {
 /**
  * Parses addop -> PLUS | MINUS
  */
-add_op parser::additive_op() {
+AdditiveOp parser::additive_op() {
     if (add_ops.contains(m_current_token.type)) {
-        add_op operation {add_ops.at(m_current_token.type)};
+        AdditiveOp operation {add_ops.at(m_current_token.type)};
         get_token();
         return operation;
     }
@@ -485,9 +486,9 @@ add_op parser::additive_op() {
     throw error("addition operator", "PLUS or MINUS");
 }
 
-const std::map<TokenType, mul_op> mul_ops {
-    {TIMES, mul_op::TIMES},
-    {DIVIDE, mul_op::DIVIDE}};
+const std::map<TokenType, MultiplicativeOp> mul_ops {
+    {TIMES, MultiplicativeOp::TIMES},
+    {DIVIDE, MultiplicativeOp::DIVIDE}};
 
 /**
  * Parses term -> term mulop factor | factor
@@ -511,9 +512,9 @@ unique_ptr<ExpressionNode> parser::term() {
 /**
  * Parses mulop -> TIMES | DIVIDE
  */
-mul_op parser::mult_op() {
+MultiplicativeOp parser::mult_op() {
     if (mul_ops.contains(m_current_token.type)) {
-        mul_op operation {mul_ops.at(m_current_token.type)};
+        MultiplicativeOp operation {mul_ops.at(m_current_token.type)};
         get_token();
         return operation;
     }

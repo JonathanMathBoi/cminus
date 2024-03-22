@@ -31,7 +31,7 @@ private:
     /// Parses a type specifier
     ///
     /// \returns the type specified and its location in the code
-    std::pair<basic_type, location> type_spec();
+    std::pair<TypeSpecifier, location> type_spec();
     std::unique_ptr<VariableDeclarationNode> var_decl();
     std::unique_ptr<FunctionDeclarationNode> fun_decl();
     std::vector<std::shared_ptr<ParameterNode>> params();
@@ -49,11 +49,11 @@ private:
     std::unique_ptr<AssignmentExpressionNode> assignment_expr();
     std::unique_ptr<VariableExpressionNode> variable();
     std::unique_ptr<ExpressionNode> relational_expr();
-    rel_op relation_op();
+    RelationalOp relation_op();
     std::unique_ptr<ExpressionNode> add_expr();
-    add_op additive_op();
+    AdditiveOp additive_op();
     std::unique_ptr<ExpressionNode> term();
-    mul_op mult_op();
+    MultiplicativeOp mult_op();
     std::unique_ptr<ExpressionNode> factor();
     std::unique_ptr<CallExpressionNode> fun_call();
     std::vector<std::unique_ptr<ExpressionNode>> fun_args();
