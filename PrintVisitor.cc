@@ -74,7 +74,7 @@ void PrintVisitor::visit(FunctionDeclarationNode& node) {
     node.function_body->accept(*this);
 }
 
-void PrintVisitor::visit(variable_declaration_node& node) {
+void PrintVisitor::visit(VariableDeclarationNode& node) {
     output << indent() << "VariableDeclaration: " << node.identifier << ": "
            << types.at(node.type.type) << " type\n";
 }

@@ -21,7 +21,7 @@ public:
 
     virtual void visit(DeclarationNode& node) override;
     virtual void visit(FunctionDeclarationNode& node) override;
-    virtual void visit(variable_declaration_node& node) override;
+    virtual void visit(VariableDeclarationNode& node) override;
     virtual void visit(array_declaration_node& node) override;
     virtual void visit(ParameterNode& node) override;
 

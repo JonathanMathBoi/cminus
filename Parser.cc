@@ -64,14 +64,14 @@ unique_ptr<DeclarationNode> parser::declaration() {
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-unique_ptr<variable_declaration_node> parser::var_decl() {
+unique_ptr<VariableDeclarationNode> parser::var_decl() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
 
     std::string id {match("variable declaration", ID).lexeme};
 
-    unique_ptr<variable_declaration_node> new_node;
+    unique_ptr<VariableDeclarationNode> new_node;
 
     if (m_current_token.type == LBRACK) {
         type.is_array = true;
@@ -82,7 +82,7 @@ unique_ptr<variable_declaration_node> parser::var_decl() {
 
         new_node = make_unique<array_declaration_node>(type, id, size, loc);
     } else {
-        new_node = make_unique<variable_declaration_node>(type, id, loc);
+        new_node = make_unique<VariableDeclarationNode>(type, id, loc);
     }
 
     match("variable declaration", SEMI);
@@ -200,8 +200,8 @@ unique_ptr<compound_statement_node> parser::compound_stmt() {
  *
  * Implemented as local-declarations -> { var-declaration }
  */
-vector<shared_ptr<variable_declaration_node>> parser::local_decls() {
-    vector<shared_ptr<variable_declaration_node>> decls;
+vector<shared_ptr<VariableDeclarationNode>> parser::local_decls() {
+    vector<shared_ptr<VariableDeclarationNode>> decls;
 
     while (m_current_token.type == VOID || m_current_token.type == INT) {
         decls.emplace_back(var_decl());

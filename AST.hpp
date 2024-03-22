@@ -21,7 +21,7 @@ struct ProgramNode;
 struct DeclarationNode;
 struct FunctionDeclarationNode;
 struct ParameterNode;
-struct variable_declaration_node;
+struct VariableDeclarationNode;
 struct array_declaration_node;
 
 struct statement_node;
@@ -66,7 +66,7 @@ public:
 
     virtual void visit(DeclarationNode& node) = 0;
     virtual void visit(FunctionDeclarationNode& node) = 0;
-    virtual void visit(variable_declaration_node& node) = 0;
+    virtual void visit(VariableDeclarationNode& node) = 0;
     virtual void visit(array_declaration_node& node) = 0;
     virtual void visit(ParameterNode& node) = 0;
 
@@ -209,7 +209,7 @@ struct compound_statement_node : statement_node {
     /// \param stmts the list of statments in the block
     /// \param loc the location of the start of the block in the source code
     compound_statement_node(
-        std::vector<std::shared_ptr<variable_declaration_node>> decls,
+        std::vector<std::shared_ptr<VariableDeclarationNode>> decls,
         std::vector<std::unique_ptr<statement_node>> stmts,
         location loc);
 
@@ -222,7 +222,7 @@ struct compound_statement_node : statement_node {
     /// A vector of shared_ptr is used as usage of these variables will
     /// eventually be linked back to their delarations here. As such a
     /// unique_ptr would not be applicable.
-    std::vector<std::shared_ptr<variable_declaration_node>> local_decls;
+    std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls;
     /// The list of statements in the block
     std::vector<std::unique_ptr<statement_node>> statements;
 };
@@ -389,18 +389,18 @@ struct FunctionDeclarationNode : DeclarationNode {
 /// Variable Declaration Node
 ///
 /// This node type represents a variable declaration.
-struct variable_declaration_node : DeclarationNode {
+struct VariableDeclarationNode : DeclarationNode {
     /// Constructs a Variable Declaration Node
     ///
     /// \param type the type of the variable
     /// \param identifier the identifier for the variable
     /// \param loc the location where the variable is declared
-    variable_declaration_node(
+    VariableDeclarationNode(
         value_type type,
         std::string identifier,
         location loc);
 
-    virtual ~variable_declaration_node() = default;
+    virtual ~VariableDeclarationNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 };
@@ -408,7 +408,7 @@ struct variable_declaration_node : DeclarationNode {
 /// Array Declaration Node
 ///
 /// This node type represents the declaration of an array variable.
-struct array_declaration_node : variable_declaration_node {
+struct array_declaration_node : VariableDeclarationNode {
     /// Constructs an Array Declaration Node
     ///
     /// \param type the type of the array

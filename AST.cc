@@ -50,13 +50,13 @@ void FunctionDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-variable_declaration_node::variable_declaration_node(
+VariableDeclarationNode::VariableDeclarationNode(
     value_type type,
     std::string identifier,
     location loc)
     : DeclarationNode {type, identifier, loc} {}
 
-void variable_declaration_node::accept(Visitor& visitor) {
+void VariableDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -65,7 +65,7 @@ array_declaration_node::array_declaration_node(
     std::string identifier,
     int size,
     location loc)
-    : variable_declaration_node {type, identifier, loc}, size {size} {}
+    : VariableDeclarationNode {type, identifier, loc}, size {size} {}
 
 void array_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -182,7 +182,7 @@ void integer_literal_expression_node::accept(Visitor& visitor) {
 // Statement Nodes
 
 compound_statement_node::compound_statement_node(
-    vector<shared_ptr<variable_declaration_node>> decls,
+    vector<shared_ptr<VariableDeclarationNode>> decls,
     vector<unique_ptr<statement_node>> stmts,
     location loc)
     : statement_node {loc}
