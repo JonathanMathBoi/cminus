@@ -24,16 +24,16 @@ int main(int argc, char* argv[]) {
     // ifstream needs a full std::string or raw char const*
     std::ifstream source {input_file.data()};
 
-    lexer lexer {std::move(source)};
+    Lexer lexer {std::move(source)};
 
-    parser parser {std::move(lexer)};
+    Parser parser {std::move(lexer)};
 
-    std::unique_ptr<node> ast;
+    std::unique_ptr<Node> ast;
 
     try {
         ast = parser.parse();
         std::cout << "Valid!" << std::endl;
-    } catch (cminus_exception const& exception) {
+    } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
         return -1;
     }
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     std::ofstream ast_file {new_path, std::ios::trunc};
 
-    print_visitor printer {ast_file};
+    PrintVisitor printer {ast_file};
 
     ast->accept(printer);
 }

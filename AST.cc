@@ -16,236 +16,237 @@ using std::vector;
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-program_node::program_node(vector<shared_ptr<declaration_node>> declarations)
-    : node {location {1, 1}}, declarations {declarations} {}
+ProgramNode::ProgramNode(vector<shared_ptr<DeclarationNode>> declarations)
+    : Node {Location {1, 1}}, declarations {declarations} {}
 
-void program_node::accept(visitor& visitor) {
+void ProgramNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 /***********************************************************************/
 // Declaration Nodes
 
-declaration_node::declaration_node(
-    value_type type,
+DeclarationNode::DeclarationNode(
+    ValueType type,
     std::string identifier,
-    location loc)
-    : node {loc}, type {type}, identifier {identifier} {}
+    Location loc)
+    : Node {loc}, type {type}, identifier {identifier} {}
 
-void declaration_node::accept(visitor& visitor) {
+void DeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-function_declaration_node::function_declaration_node(
-    value_type type,
+FunctionDeclarationNode::FunctionDeclarationNode(
+    ValueType type,
     std::string identifier,
-    vector<shared_ptr<param_node>> params,
-    unique_ptr<compound_statement_node> body,
-    location loc)
-    : declaration_node {type, identifier, loc}
+    vector<shared_ptr<ParameterNode>> params,
+    unique_ptr<CompoundStatementNode> body,
+    Location loc)
+    : DeclarationNode {type, identifier, loc}
     , parameters {params}
     , function_body {std::move(body)} {}
 
-void function_declaration_node::accept(visitor& visitor) {
+void FunctionDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-variable_declaration_node::variable_declaration_node(
-    value_type type,
+VariableDeclarationNode::VariableDeclarationNode(
+    ValueType type,
     std::string identifier,
-    location loc)
-    : declaration_node {type, identifier, loc} {}
+    Location loc)
+    : DeclarationNode {type, identifier, loc} {}
 
-void variable_declaration_node::accept(visitor& visitor) {
+void VariableDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-array_declaration_node::array_declaration_node(
-    value_type type,
+ArrayDeclarationNode::ArrayDeclarationNode(
+    ValueType type,
     std::string identifier,
     int size,
-    location loc)
-    : variable_declaration_node {type, identifier, loc}, size {size} {}
+    Location loc)
+    : VariableDeclarationNode {type, identifier, loc}, size {size} {}
 
-void array_declaration_node::accept(visitor& visitor) {
+void ArrayDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-param_node::param_node(value_type type, std::string identifier, location loc)
-    : declaration_node {type, identifier, loc} {}
+ParameterNode::ParameterNode(
+    ValueType type,
+    std::string identifier,
+    Location loc)
+    : DeclarationNode {type, identifier, loc} {}
 
-void param_node::accept(visitor& visitor) {
+void ParameterNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 /***********************************************************************/
 // Expression Nodes
 
-assignment_expression_node::assignment_expression_node(
-    unique_ptr<variable_expression_node> var,
-    unique_ptr<expression_node> expr,
-    location loc)
-    : expression_node {loc}
+AssignmentExpressionNode::AssignmentExpressionNode(
+    unique_ptr<VariableExpressionNode> var,
+    unique_ptr<ExpressionNode> expr,
+    Location loc)
+    : ExpressionNode {loc}
     , variable {std::move(var)}
     , expression {std::move(expr)} {}
 
-void assignment_expression_node::accept(visitor& visitor) {
+void AssignmentExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-variable_expression_node::variable_expression_node(
+VariableExpressionNode::VariableExpressionNode(
     std::string identifier,
-    location loc)
-    : expression_node {loc}, identifier {identifier} {}
+    Location loc)
+    : ExpressionNode {loc}, identifier {identifier} {}
 
-void variable_expression_node::accept(visitor& visitor) {
+void VariableExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-subscript_expression_node::subscript_expression_node(
+SubscriptExpressionNode::SubscriptExpressionNode(
     std::string identifier,
-    unique_ptr<expression_node> index,
-    location loc)
-    : variable_expression_node {identifier, loc}, index {std::move(index)} {}
+    unique_ptr<ExpressionNode> index,
+    Location loc)
+    : VariableExpressionNode {identifier, loc}, index {std::move(index)} {}
 
-void subscript_expression_node::accept(visitor& visitor) {
+void SubscriptExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-call_expression_node::call_expression_node(
+CallExpressionNode::CallExpressionNode(
     std::string identifier,
-    vector<unique_ptr<expression_node>> args,
-    location loc)
-    : expression_node {loc}
+    vector<unique_ptr<ExpressionNode>> args,
+    Location loc)
+    : ExpressionNode {loc}
     , identifier {identifier}
     , arguments {std::move(args)} {}
 
-void call_expression_node::accept(visitor& visitor) {
+void CallExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-additive_expression_node::additive_expression_node(
-    add_op operation,
-    unique_ptr<expression_node> lhs,
-    unique_ptr<expression_node> rhs,
-    location loc)
-    : expression_node {loc}
+AdditiveExpressionNode::AdditiveExpressionNode(
+    AdditiveOp operation,
+    unique_ptr<ExpressionNode> lhs,
+    unique_ptr<ExpressionNode> rhs,
+    Location loc)
+    : ExpressionNode {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void additive_expression_node::accept(visitor& visitor) {
+void AdditiveExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-multiplicative_expression_node::multiplicative_expression_node(
-    mul_op operation,
-    unique_ptr<expression_node> lhs,
-    unique_ptr<expression_node> rhs,
-    location)
-    : expression_node {loc}
+MultiplicativeExpressionNode::MultiplicativeExpressionNode(
+    MultiplicativeOp operation,
+    unique_ptr<ExpressionNode> lhs,
+    unique_ptr<ExpressionNode> rhs,
+    Location loc)
+    : ExpressionNode {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void multiplicative_expression_node::accept(visitor& visitor) {
+void MultiplicativeExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-relational_expression_node::relational_expression_node(
-    rel_op operation,
-    unique_ptr<expression_node> lhs,
-    unique_ptr<expression_node> rhs,
-    location loc)
-    : expression_node {loc}
+RelationalExpressionNode::RelationalExpressionNode(
+    RelationalOp operation,
+    unique_ptr<ExpressionNode> lhs,
+    unique_ptr<ExpressionNode> rhs,
+    Location loc)
+    : ExpressionNode {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void relational_expression_node::accept(visitor& visitor) {
+void RelationalExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-integer_literal_expression_node::integer_literal_expression_node(
+IntegerLiteralExpressionNode::IntegerLiteralExpressionNode(
     int value,
-    location loc)
-    : expression_node {loc}, value {value} {}
+    Location loc)
+    : ExpressionNode {loc}, value {value} {}
 
-void integer_literal_expression_node::accept(visitor& visitor) {
+void IntegerLiteralExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 /***********************************************************************/
 // Statement Nodes
 
-compound_statement_node::compound_statement_node(
-    vector<shared_ptr<variable_declaration_node>> decls,
-    vector<unique_ptr<statement_node>> stmts,
-    location loc)
-    : statement_node {loc}
-    , local_decls {decls}
-    , statements {std::move(stmts)} {}
+CompoundStatementNode::CompoundStatementNode(
+    vector<shared_ptr<VariableDeclarationNode>> decls,
+    vector<unique_ptr<StatementNode>> stmts,
+    Location loc)
+    : StatementNode {loc}, local_decls {decls}, statements {std::move(stmts)} {}
 
-void compound_statement_node::accept(visitor& visitor) {
+void CompoundStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-if_statement_node::if_statement_node(
-    unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> then_stmt,
-    std::optional<unique_ptr<statement_node>> else_stmt,
-    location loc)
-    : statement_node {loc}
+IfStatementNode::IfStatementNode(
+    unique_ptr<ExpressionNode> condition,
+    unique_ptr<StatementNode> then_stmt,
+    std::optional<unique_ptr<StatementNode>> else_stmt,
+    Location loc)
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::move(else_stmt)} {}
 
-if_statement_node::if_statement_node(
-    unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> then_stmt,
-    location loc)
-    : statement_node {loc}
+IfStatementNode::IfStatementNode(
+    unique_ptr<ExpressionNode> condition,
+    unique_ptr<StatementNode> then_stmt,
+    Location loc)
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::nullopt} {}
 
-void if_statement_node::accept(visitor& visitor) {
+void IfStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-while_statement_node::while_statement_node(
-    unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> stmt,
-    location loc)
-    : statement_node {loc}
+WhileStatementNode::WhileStatementNode(
+    unique_ptr<ExpressionNode> condition,
+    unique_ptr<StatementNode> stmt,
+    Location loc)
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , body {std::move(stmt)} {}
 
-void while_statement_node::accept(visitor& visitor) {
+void WhileStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-return_statement_node::return_statement_node(
-    std::optional<unique_ptr<expression_node>> expr,
-    location loc)
-    : statement_node {loc}, expression {std::move(expr)} {}
+ReturnStatementNode::ReturnStatementNode(
+    std::optional<unique_ptr<ExpressionNode>> expr,
+    Location loc)
+    : StatementNode {loc}, expression {std::move(expr)} {}
 
-return_statement_node::return_statement_node(location loc)
-    : statement_node {loc}, expression {std::nullopt} {}
+ReturnStatementNode::ReturnStatementNode(Location loc)
+    : StatementNode {loc}, expression {std::nullopt} {}
 
-void return_statement_node::accept(visitor& visitor) {
+void ReturnStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-expression_statement_node::expression_statement_node(
-    std::optional<unique_ptr<expression_node>> expr,
-    location loc)
-    : statement_node {loc}, expr {std::move(expr)} {}
+ExpressionStatementNode::ExpressionStatementNode(
+    std::optional<unique_ptr<ExpressionNode>> expr,
+    Location loc)
+    : StatementNode {loc}, expr {std::move(expr)} {}
 
-expression_statement_node::expression_statement_node(location loc)
-    : statement_node {loc}, expr {std::nullopt} {}
+ExpressionStatementNode::ExpressionStatementNode(Location loc)
+    : StatementNode {loc}, expr {std::nullopt} {}
 
-void expression_statement_node::accept(visitor& visitor) {
+void ExpressionStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 /***********************************************************************/

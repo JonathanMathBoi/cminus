@@ -100,13 +100,13 @@ struct Token {
         TokenType pType,
         std::string pLexeme = "",
         int pNumber = 0,
-        location loc = location {-1, -1})
+        Location loc = Location {-1, -1})
         : type {pType}, lexeme {pLexeme}, number {pNumber}, loc {loc} {}
 
     TokenType type;
     std::string lexeme;
     int number;
-    location loc;
+    Location loc;
 };
 
 /***********************************************************************/
@@ -117,26 +117,26 @@ const std::map<std::string, TokenType> keywords {
 
 /***********************************************************************/
 
-class lexer {
+class Lexer {
 public:
-    lexer(std::ifstream&& source_file);
+    Lexer(std::ifstream&& source_file);
 
-    Token get_token();
+    Token getToken();
 
     [[deprecated("Use Token::line_num instead.")]] int get_line_num() const;
 
     [[deprecated("Use Token::col_num instead.")]] int get_column_num() const;
 
 private:
-    char get_char();
+    char getChar();
 
-    char peek_char();
+    char peekChar();
 
     /**
      * Takes a char and places it back at the front of the input stream. Also
      * accounts for adjusting column count back.
      */
-    void unget_char(char c);
+    void ungetChar(char c);
 
     /**
      * Takes the current char and checks if the next char matches a given char.
@@ -151,19 +151,19 @@ private:
      * @returns the matched token
      */
     Token
-    next_or_else(char cur, char look_for, TokenType found, TokenType not_found);
+    nextOrElse(char cur, char look_for, TokenType found, TokenType not_found);
 
-    Token lex_literal();
+    Token lexLiteral();
 
-    Token lex_keyword_id();
+    Token lexKeywordID();
 
-    void eat_comment();
+    void eatComment();
 
     /**
      * Creates a token with the currently lexed token's line number and column
      * number.
      */
-    Token make_token(TokenType type, std::string lexeme = "", int number = 0)
+    Token makeToken(TokenType type, std::string lexeme = "", int number = 0)
         const;
 
     // Additional helper methods
@@ -176,22 +176,22 @@ private:
     // Additional data members if necessary
     // ...
     /* The line where the currently lexed token is. */
-    int m_token_line;
+    int m_tokenLineNum;
     /* The column where the currently lexed token starts. */
-    int m_token_col;
+    int m_tokenColNum;
 };
 
 /***********************************************************************/
 
-class lexer_exception : public cminus_exception {
+class LexerException : public CMinusException {
 public:
-    lexer_exception(Token bad_token);
+    LexerException(Token bad_token);
 
     virtual char const* what() const noexcept;
 
 private:
-    Token m_bad_token;
-    std::string m_error_message;
+    Token m_badToken;
+    std::string m_errorMessage;
 };
 
 /***********************************************************************/

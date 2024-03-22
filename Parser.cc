@@ -21,8 +21,8 @@ using std::vector;
 /**
  * Parses program -> decleration-list
  */
-unique_ptr<program_node> parser::program() {
-    return make_unique<program_node>(decl_list());
+unique_ptr<ProgramNode> Parser::program() {
+    return make_unique<ProgramNode>(declarationList());
 }
 
 /**
@@ -30,12 +30,12 @@ unique_ptr<program_node> parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-vector<shared_ptr<declaration_node>> parser::decl_list() {
-    vector<shared_ptr<declaration_node>> decls;
+vector<shared_ptr<DeclarationNode>> Parser::declarationList() {
+    vector<shared_ptr<DeclarationNode>> decls;
 
     do {
         decls.emplace_back(declaration());
-    } while (m_current_token.type != END_OF_FILE);
+    } while (m_currentToken.type != END_OF_FILE);
 
     return decls;
 }
@@ -43,15 +43,15 @@ vector<shared_ptr<declaration_node>> parser::decl_list() {
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-unique_ptr<declaration_node> parser::declaration() {
-    switch (peek_token(2).type) {
+unique_ptr<DeclarationNode> Parser::declaration() {
+    switch (peekToken(2).type) {
     case SEMI:
     case LBRACK:
-        return var_decl();
+        return variableDeclaration();
     case LPAREN:
-        return fun_decl();
+        return functionDeclaration();
     default:
-        type_spec();
+        typeSpec();
         match("declaration", ID);
         throw error("declaration", "';', '[', or '('");
     }
@@ -64,25 +64,25 @@ unique_ptr<declaration_node> parser::declaration() {
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-unique_ptr<variable_declaration_node> parser::var_decl() {
-    auto spec {type_spec()};
-    value_type type {spec.first};
-    location loc {spec.second};
+unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
+    auto spec {typeSpec()};
+    ValueType type {spec.first};
+    Location loc {spec.second};
 
     std::string id {match("variable declaration", ID).lexeme};
 
-    unique_ptr<variable_declaration_node> new_node;
+    unique_ptr<VariableDeclarationNode> new_node;
 
-    if (m_current_token.type == LBRACK) {
+    if (m_currentToken.type == LBRACK) {
         type.is_array = true;
 
         match("variable declaration", LBRACK);
         int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
 
-        new_node = make_unique<array_declaration_node>(type, id, size, loc);
+        new_node = make_unique<ArrayDeclarationNode>(type, id, size, loc);
     } else {
-        new_node = make_unique<variable_declaration_node>(type, id, loc);
+        new_node = make_unique<VariableDeclarationNode>(type, id, loc);
     }
 
     match("variable declaration", SEMI);
@@ -93,14 +93,14 @@ unique_ptr<variable_declaration_node> parser::var_decl() {
 /**
  * Parses type-specifier -> INT | VOID
  */
-std::pair<basic_type, location> parser::type_spec() {
-    static const std::map<TokenType, basic_type> types {
-        {VOID, basic_type::VOID}, {INT, basic_type::INT}};
+std::pair<TypeSpecifier, Location> Parser::typeSpec() {
+    static const std::map<TokenType, TypeSpecifier> types {
+        {VOID, TypeSpecifier::VOID}, {INT, TypeSpecifier::INT}};
 
-    if (types.contains(m_current_token.type)) {
-        std::pair<basic_type, location> ret {
-            types.at(m_current_token.type), m_current_token.loc};
-        get_token();
+    if (types.contains(m_currentToken.type)) {
+        std::pair<TypeSpecifier, Location> ret {
+            types.at(m_currentToken.type), m_currentToken.loc};
+        getToken();
         return ret;
     }
 
@@ -111,36 +111,36 @@ std::pair<basic_type, location> parser::type_spec() {
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-unique_ptr<function_declaration_node> parser::fun_decl() {
-    auto spec {type_spec()};
-    value_type type {spec.first};
-    location loc {spec.second};
+unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
+    auto spec {typeSpec()};
+    ValueType type {spec.first};
+    Location loc {spec.second};
 
     std::string id {match("function declaration", ID).lexeme};
 
     match("function declaration", LPAREN);
 
-    auto parameters {params()};
+    auto parameters {functionParameters()};
 
     match("function declaration", RPAREN);
 
-    auto body {compound_stmt()};
+    auto body {compoundStatement()};
 
-    return make_unique<function_declaration_node>(
+    return make_unique<FunctionDeclarationNode>(
         type, id, parameters, std::move(body), loc);
 }
 
 /**
  * Parses params -> param-list | VOID
  */
-vector<shared_ptr<param_node>> parser::params() {
-    if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
+vector<shared_ptr<ParameterNode>> Parser::functionParameters() {
+    if (m_currentToken.type == VOID && peekToken(1).type == RPAREN) {
         match("parameters", VOID);
         // returns an empty vector
         return {};
     }
 
-    return param_list();
+    return parameterList();
 }
 
 /**
@@ -148,14 +148,14 @@ vector<shared_ptr<param_node>> parser::params() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-vector<shared_ptr<param_node>> parser::param_list() {
-    vector<shared_ptr<param_node>> params;
+vector<shared_ptr<ParameterNode>> Parser::parameterList() {
+    vector<shared_ptr<ParameterNode>> params;
 
-    params.emplace_back(param());
+    params.emplace_back(parameter());
 
-    while (m_current_token.type == COMMA) {
+    while (m_currentToken.type == COMMA) {
         match("parameter list", COMMA);
-        params.emplace_back(param());
+        params.emplace_back(parameter());
     }
 
     return params;
@@ -166,31 +166,31 @@ vector<shared_ptr<param_node>> parser::param_list() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-unique_ptr<param_node> parser::param() {
-    auto spec {type_spec()};
-    value_type type {spec.first};
-    location loc {spec.second};
+unique_ptr<ParameterNode> Parser::parameter() {
+    auto spec {typeSpec()};
+    ValueType type {spec.first};
+    Location loc {spec.second};
 
     std::string id {match("parameter", ID).lexeme};
 
-    if (m_current_token.type == LBRACK) {
+    if (m_currentToken.type == LBRACK) {
         match("parameter", LBRACK);
         match("parameter", RBRACK);
         type.is_array = true;
     }
 
-    return make_unique<param_node>(type, id, loc);
+    return make_unique<ParameterNode>(type, id, loc);
 }
 
 /**
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
-unique_ptr<compound_statement_node> parser::compound_stmt() {
-    location loc {match("compound statement", LBRACE).loc};
-    auto locals {local_decls()};
-    auto statements {stmt_list()};
+unique_ptr<CompoundStatementNode> Parser::compoundStatement() {
+    Location loc {match("compound statement", LBRACE).loc};
+    auto locals {localDeclarations()};
+    auto statements {statementList()};
     match("compound statement", RBRACE);
-    return make_unique<compound_statement_node>(
+    return make_unique<CompoundStatementNode>(
         locals, std::move(statements), loc);
 }
 
@@ -200,11 +200,11 @@ unique_ptr<compound_statement_node> parser::compound_stmt() {
  *
  * Implemented as local-declarations -> { var-declaration }
  */
-vector<shared_ptr<variable_declaration_node>> parser::local_decls() {
-    vector<shared_ptr<variable_declaration_node>> decls;
+vector<shared_ptr<VariableDeclarationNode>> Parser::localDeclarations() {
+    vector<shared_ptr<VariableDeclarationNode>> decls;
 
-    while (m_current_token.type == VOID || m_current_token.type == INT) {
-        decls.emplace_back(var_decl());
+    while (m_currentToken.type == VOID || m_currentToken.type == INT) {
+        decls.emplace_back(variableDeclaration());
     }
 
     return decls;
@@ -215,10 +215,10 @@ vector<shared_ptr<variable_declaration_node>> parser::local_decls() {
  *
  * Implemented as statement-list -> { statement }
  */
-vector<unique_ptr<statement_node>> parser::stmt_list() {
-    vector<unique_ptr<statement_node>> stmts;
+vector<unique_ptr<StatementNode>> Parser::statementList() {
+    vector<unique_ptr<StatementNode>> stmts;
 
-    while (m_current_token.type != RBRACE) {
+    while (m_currentToken.type != RBRACE) {
         stmts.emplace_back(statement());
     }
 
@@ -232,18 +232,18 @@ vector<unique_ptr<statement_node>> parser::stmt_list() {
  *                   | iteration-stmt
  *                   | return-stmt
  */
-unique_ptr<statement_node> parser::statement() {
-    switch (m_current_token.type) {
+unique_ptr<StatementNode> Parser::statement() {
+    switch (m_currentToken.type) {
     case IF:
-        return if_statement();
+        return ifStatement();
     case WHILE:
-        return while_statement();
+        return whileStatement();
     case RETURN:
-        return return_stmt();
+        return returnStatement();
     case LBRACE:
-        return compound_stmt();
+        return compoundStatement();
     default:
-        return expr_stmt();
+        return expressionStatement();
     }
 }
 
@@ -252,17 +252,17 @@ unique_ptr<statement_node> parser::statement() {
  *
  * Implemented as expression-stmt -> [ expression ] SEMI
  */
-unique_ptr<expression_statement_node> parser::expr_stmt() {
-    if (m_current_token.type == SEMI) {
-        location loc {match("expression statement", SEMI).loc};
-        return make_unique<expression_statement_node>(loc);
+unique_ptr<ExpressionStatementNode> Parser::expressionStatement() {
+    if (m_currentToken.type == SEMI) {
+        Location loc {match("expression statement", SEMI).loc};
+        return make_unique<ExpressionStatementNode>(loc);
     }
 
     auto expr {expression()};
-    location loc {expr->loc};
+    Location loc {expr->loc};
     match("expression statement", SEMI);
 
-    return make_unique<expression_statement_node>(std::move(expr), loc);
+    return make_unique<ExpressionStatementNode>(std::move(expr), loc);
 }
 
 /**
@@ -272,36 +272,36 @@ unique_ptr<expression_statement_node> parser::expr_stmt() {
  * Implemented as selection-stmt
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
-unique_ptr<if_statement_node> parser::if_statement() {
-    location loc {match("if statement", IF).loc};
+unique_ptr<IfStatementNode> Parser::ifStatement() {
+    Location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
     auto condition {expression()};
     match("if statement", RPAREN);
     auto then_stmt {statement()};
 
-    if (m_current_token.type == ELSE) {
+    if (m_currentToken.type == ELSE) {
         match("if statement", ELSE);
         auto else_stmt {statement()};
-        return make_unique<if_statement_node>(
+        return make_unique<IfStatementNode>(
             std::move(condition), std::move(then_stmt), std::move(else_stmt),
             loc);
     }
 
-    return make_unique<if_statement_node>(
+    return make_unique<IfStatementNode>(
         std::move(condition), std::move(then_stmt), loc);
 }
 
 /**
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
-unique_ptr<while_statement_node> parser::while_statement() {
-    location loc {match("while statement", WHILE).loc};
+unique_ptr<WhileStatementNode> Parser::whileStatement() {
+    Location loc {match("while statement", WHILE).loc};
     match("while statement", LPAREN);
     auto condition {expression()};
     match("while statement", RPAREN);
     auto body {statement()};
 
-    return make_unique<while_statement_node>(
+    return make_unique<WhileStatementNode>(
         std::move(condition), std::move(body), loc);
 }
 
@@ -310,18 +310,18 @@ unique_ptr<while_statement_node> parser::while_statement() {
  *
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
-unique_ptr<return_statement_node> parser::return_stmt() {
-    location loc {match("return statement", RETURN).loc};
+unique_ptr<ReturnStatementNode> Parser::returnStatement() {
+    Location loc {match("return statement", RETURN).loc};
 
-    if (m_current_token.type == SEMI) {
+    if (m_currentToken.type == SEMI) {
         match("return statement", SEMI);
-        return make_unique<return_statement_node>(loc);
+        return make_unique<ReturnStatementNode>(loc);
     }
 
     auto expr {expression()};
     match("return expression", SEMI);
 
-    return make_unique<return_statement_node>(std::move(expr), loc);
+    return make_unique<ReturnStatementNode>(std::move(expr), loc);
 }
 
 /**
@@ -332,16 +332,16 @@ unique_ptr<return_statement_node> parser::return_stmt() {
  * Ad-hoc solution used to check for assignment expression with an indexed array
  * as the variable.
  */
-unique_ptr<expression_node> parser::expression() {
-    if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
-        return assignment_expr();
+unique_ptr<ExpressionNode> Parser::expression() {
+    if (m_currentToken.type == ID && peekToken(1).type == ASSIGN) {
+        return assignmentExpression();
     }
 
-    if (m_current_token.type == ID && peek_token(1).type == LBRACK) {
+    if (m_currentToken.type == ID && peekToken(1).type == LBRACK) {
         size_t peek_idx {1};
         unsigned nest_level {0};
         do {
-            switch (peek_token(peek_idx).type) {
+            switch (peekToken(peek_idx).type) {
             case LBRACK:
                 nest_level++;
                 break;
@@ -352,7 +352,7 @@ unique_ptr<expression_node> parser::expression() {
                 // Corner-case: ID LBRACK EOF
                 // If ID LBRACK EOF is hit, call variable which will recognize
                 // the bad variable
-                variable();
+                variableExpression();
                 break;
             default:
                 break;
@@ -360,25 +360,25 @@ unique_ptr<expression_node> parser::expression() {
             peek_idx++;
         } while (nest_level != 0);
 
-        if (peek_token(peek_idx).type == ASSIGN) {
-            return assignment_expr();
+        if (peekToken(peek_idx).type == ASSIGN) {
+            return assignmentExpression();
         }
     }
 
-    return relational_expr();
+    return relationalExpression();
 }
 
 /**
  * Parses assign-expression -> var ASSIGN expression
  */
-unique_ptr<assignment_expression_node> parser::assignment_expr() {
-    auto var {variable()};
+unique_ptr<AssignmentExpressionNode> Parser::assignmentExpression() {
+    auto var {variableExpression()};
     match("assignment expression", ASSIGN);
     auto expr {expression()};
 
-    location loc {var->loc};
+    Location loc {var->loc};
 
-    return make_unique<assignment_expression_node>(
+    return make_unique<AssignmentExpressionNode>(
         std::move(var), std::move(expr), loc);
 }
 
@@ -387,19 +387,19 @@ unique_ptr<assignment_expression_node> parser::assignment_expr() {
  *
  * Implemented as var -> ID [ LBARCK expression RBRACK ]
  */
-unique_ptr<variable_expression_node> parser::variable() {
+unique_ptr<VariableExpressionNode> Parser::variableExpression() {
     auto [_, id, __, loc] {match("variable", ID)};
 
-    if (m_current_token.type == LBRACK) {
+    if (m_currentToken.type == LBRACK) {
         match("variable", LBRACK);
         auto subscript {expression()};
         match("variable", RBRACK);
 
-        return make_unique<subscript_expression_node>(
+        return make_unique<SubscriptExpressionNode>(
             id, std::move(subscript), loc);
     }
 
-    return make_unique<variable_expression_node>(id, loc);
+    return make_unique<VariableExpressionNode>(id, loc);
 }
 
 /**
@@ -409,20 +409,20 @@ unique_ptr<variable_expression_node> parser::variable() {
  * Implemented as simple-expression
  *                  -> additive-expression [ relop additive-expression ]
  */
-unique_ptr<expression_node> parser::relational_expr() {
-    auto lhs {add_expr()};
-    location loc {lhs->loc};
+unique_ptr<ExpressionNode> Parser::relationalExpression() {
+    auto lhs {additiveExpression()};
+    Location loc {lhs->loc};
 
-    switch (m_current_token.type) {
+    switch (m_currentToken.type) {
     case LT:
     case LTE:
     case GT:
     case GTE:
     case EQ:
     case NEQ: {
-        rel_op operation {relation_op()};
-        auto rhs {add_expr()};
-        return make_unique<relational_expression_node>(
+        RelationalOp operation {relationOperation()};
+        auto rhs {additiveExpression()};
+        return make_unique<RelationalExpressionNode>(
             operation, std::move(lhs), std::move(rhs), loc);
     }
     default:
@@ -435,37 +435,38 @@ unique_ptr<expression_node> parser::relational_expr() {
 /**
  * Parses relop -> LTE | LT | GT | GTE | EQ | NEQ
  */
-rel_op parser::relation_op() {
-    static const std::map<TokenType, rel_op> rel_ops {
-        {LT, rel_op::LT},   {LTE, rel_op::LTE}, {GT, rel_op::GT},
-        {GTE, rel_op::GTE}, {EQ, rel_op::EQ},   {NEQ, rel_op::NEQ}};
+RelationalOp Parser::relationOperation() {
+    static const std::map<TokenType, RelationalOp> rel_ops {
+        {LT, RelationalOp::LT}, {LTE, RelationalOp::LTE},
+        {GT, RelationalOp::GT}, {GTE, RelationalOp::GTE},
+        {EQ, RelationalOp::EQ}, {NEQ, RelationalOp::NEQ}};
 
-    if (rel_ops.contains(m_current_token.type)) {
-        rel_op operation {rel_ops.at(m_current_token.type)};
-        get_token();
+    if (rel_ops.contains(m_currentToken.type)) {
+        RelationalOp operation {rel_ops.at(m_currentToken.type)};
+        getToken();
         return operation;
     }
 
     throw error("relational operator", "LT, LTE, GT, GTE, EQ, or NEQ");
 }
 
-const std::map<TokenType, add_op> add_ops {
-    {PLUS, add_op::PLUS},
-    {MINUS, add_op::MINUS}};
+const std::map<TokenType, AdditiveOp> add_ops {
+    {PLUS, AdditiveOp::PLUS},
+    {MINUS, AdditiveOp::MINUS}};
 
 /**
  * Parses additive-expression -> additive-expression addop term | term
  *
  * Implemented as additive-expression -> term { addop term }
  */
-unique_ptr<expression_node> parser::add_expr() {
+unique_ptr<ExpressionNode> Parser::additiveExpression() {
     auto root {term()};
-    location loc {root->loc};
+    Location loc {root->loc};
 
-    while (add_ops.contains(m_current_token.type)) {
-        auto operation {additive_op()};
+    while (add_ops.contains(m_currentToken.type)) {
+        auto operation {additiveOperation()};
         auto rhs {term()};
-        root = make_unique<additive_expression_node>(
+        root = make_unique<AdditiveExpressionNode>(
             operation, std::move(root), std::move(rhs), loc);
     }
 
@@ -475,33 +476,33 @@ unique_ptr<expression_node> parser::add_expr() {
 /**
  * Parses addop -> PLUS | MINUS
  */
-add_op parser::additive_op() {
-    if (add_ops.contains(m_current_token.type)) {
-        add_op operation {add_ops.at(m_current_token.type)};
-        get_token();
+AdditiveOp Parser::additiveOperation() {
+    if (add_ops.contains(m_currentToken.type)) {
+        AdditiveOp operation {add_ops.at(m_currentToken.type)};
+        getToken();
         return operation;
     }
 
     throw error("addition operator", "PLUS or MINUS");
 }
 
-const std::map<TokenType, mul_op> mul_ops {
-    {TIMES, mul_op::TIMES},
-    {DIVIDE, mul_op::DIVIDE}};
+const std::map<TokenType, MultiplicativeOp> mul_ops {
+    {TIMES, MultiplicativeOp::TIMES},
+    {DIVIDE, MultiplicativeOp::DIVIDE}};
 
 /**
  * Parses term -> term mulop factor | factor
  *
  * Implemented as term -> factor { mulop factor }
  */
-unique_ptr<expression_node> parser::term() {
+unique_ptr<ExpressionNode> Parser::term() {
     auto root {factor()};
-    location loc {root->loc};
+    Location loc {root->loc};
 
-    while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
-        auto operation {mult_op()};
+    while (m_currentToken.type == TIMES || m_currentToken.type == DIVIDE) {
+        auto operation {multiplicativeOperation()};
         auto rhs {factor()};
-        root = make_unique<multiplicative_expression_node>(
+        root = make_unique<MultiplicativeExpressionNode>(
             operation, std::move(root), std::move(rhs), loc);
     }
 
@@ -511,10 +512,10 @@ unique_ptr<expression_node> parser::term() {
 /**
  * Parses mulop -> TIMES | DIVIDE
  */
-mul_op parser::mult_op() {
-    if (mul_ops.contains(m_current_token.type)) {
-        mul_op operation {mul_ops.at(m_current_token.type)};
-        get_token();
+MultiplicativeOp Parser::multiplicativeOperation() {
+    if (mul_ops.contains(m_currentToken.type)) {
+        MultiplicativeOp operation {mul_ops.at(m_currentToken.type)};
+        getToken();
         return operation;
     }
 
@@ -524,8 +525,8 @@ mul_op parser::mult_op() {
 /**
  * Parses factor -> LPAREN expression RPAREN | var | call | NUM
  */
-unique_ptr<expression_node> parser::factor() {
-    switch (m_current_token.type) {
+unique_ptr<ExpressionNode> Parser::factor() {
+    switch (m_currentToken.type) {
     case LPAREN: {
         match("factor", LPAREN);
         auto expr {expression()};
@@ -534,14 +535,14 @@ unique_ptr<expression_node> parser::factor() {
     }
     case NUM: {
         auto [_, __, num, loc] {match("factor", NUM)};
-        return make_unique<integer_literal_expression_node>(num, loc);
+        return make_unique<IntegerLiteralExpressionNode>(num, loc);
     }
     case ID:
-        if (peek_token(1).type == LPAREN) {
-            return fun_call();
+        if (peekToken(1).type == LPAREN) {
+            return functionCall();
         }
 
-        return variable();
+        return variableExpression();
     default:
         throw error(
             "factor", "( expression ), variable, function call, or literal");
@@ -551,24 +552,24 @@ unique_ptr<expression_node> parser::factor() {
 /**
  * Parses call -> ID LPAREN args RPAREN
  */
-unique_ptr<call_expression_node> parser::fun_call() {
+unique_ptr<CallExpressionNode> Parser::functionCall() {
     auto [_, id, __, loc] {match("function call", ID)};
     match("function call", LPAREN);
-    auto args {fun_args()};
+    auto args {functionArguments()};
     match("function call", RPAREN);
 
-    return make_unique<call_expression_node>(id, std::move(args), loc);
+    return make_unique<CallExpressionNode>(id, std::move(args), loc);
 }
 
 /**
  * Parses args -> arg-list | empty
  */
-vector<unique_ptr<expression_node>> parser::fun_args() {
-    if (m_current_token.type == RPAREN) {
+vector<unique_ptr<ExpressionNode>> Parser::functionArguments() {
+    if (m_currentToken.type == RPAREN) {
         return {};
     }
 
-    return args_list();
+    return argumentList();
 }
 
 /**
@@ -576,12 +577,12 @@ vector<unique_ptr<expression_node>> parser::fun_args() {
  *
  * Implemented as args-list -> expression { COMMA expression }
  */
-vector<unique_ptr<expression_node>> parser::args_list() {
-    vector<unique_ptr<expression_node>> args;
+vector<unique_ptr<ExpressionNode>> Parser::argumentList() {
+    vector<unique_ptr<ExpressionNode>> args;
 
     args.emplace_back(expression());
 
-    while (m_current_token.type == COMMA) {
+    while (m_currentToken.type == COMMA) {
         match("argument list", COMMA);
         args.emplace_back(expression());
     }
@@ -591,78 +592,78 @@ vector<unique_ptr<expression_node>> parser::args_list() {
 
 /***********************************************************************/
 
-parser::parser(lexer&& lexer)
-    : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
+Parser::Parser(Lexer&& lexer)
+    : m_lexer {std::move(lexer)}, m_currentToken {Token {END_OF_FILE}} {}
 
-unique_ptr<node> parser::parse() {
+unique_ptr<Node> Parser::parse() {
     // Pull first token from lexer to start with good state
-    get_token();
+    getToken();
 
     return program();
 }
 
-Token const& parser::get_token() {
-    if (!m_peeked_tokens.empty()) {
-        m_current_token = m_peeked_tokens.front();
-        m_peeked_tokens.pop_front();
+Token const& Parser::getToken() {
+    if (!m_peekedTokens.empty()) {
+        m_currentToken = m_peekedTokens.front();
+        m_peekedTokens.pop_front();
     } else {
-        m_current_token = m_lexer.get_token();
+        m_currentToken = m_lexer.getToken();
     }
 
-    return m_current_token;
+    return m_currentToken;
 }
 
-Token const& parser::peek_token(size_t index) {
+Token const& Parser::peekToken(size_t index) {
     if (index == 0) {
-        return m_current_token;
+        return m_currentToken;
     }
 
     index--;
 
-    while (index >= m_peeked_tokens.size()) {
-        m_peeked_tokens.push_back(m_lexer.get_token());
+    while (index >= m_peekedTokens.size()) {
+        m_peekedTokens.push_back(m_lexer.getToken());
     }
 
-    return m_peeked_tokens[index];
+    return m_peekedTokens[index];
 }
 
-Token const parser::match(
+Token const Parser::match(
     const std::string_view construct,
     const TokenType expected_token) {
-    if (m_current_token.type == expected_token) {
-        Token matched_tok {m_current_token};
-        get_token();
+    if (m_currentToken.type == expected_token) {
+        Token matched_tok {m_currentToken};
+        getToken();
         return matched_tok;
     } else {
-        throw parser_exception {
-            construct, m_current_token, token_types.at(expected_token)};
+        throw ParserException {
+            construct, m_currentToken, token_types.at(expected_token)};
     }
 }
 
-parser_exception parser::error(
+ParserException Parser::error(
     const std::string_view function,
     const std::string_view expected) {
-    return parser_exception {function, m_current_token, expected};
+    return ParserException {function, m_currentToken, expected};
 }
 
 /***********************************************************************/
 
-parser_exception::parser_exception(
+ParserException::ParserException(
     const std::string_view construct,
     Token received_token,
     const std::string_view expected)
-    : cminus_exception {received_token.loc}, m_received_token {received_token} {
+    : CMinusException {received_token.loc}, m_receivedToken {received_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'
-                   << "  Encountered: " << std::quoted(m_received_token.lexeme)
+                   << "  Encountered: " << std::quoted(m_receivedToken.lexeme)
                    << " (line " << location.line_num << ", column "
                    << location.col_num << ")\n"
                    << "  Expected   : " << expected;
-    m_error_message = message_buffer.str();
+    m_errorMessage = message_buffer.str();
 }
 
-char const* parser_exception::what() const noexcept {
-    return m_error_message.c_str();
+char const* ParserException::what() const noexcept {
+    return m_errorMessage.c_str();
 }
 
 /***********************************************************************/

@@ -14,64 +14,64 @@
 
 /***********************************************************************/
 
-class parser_exception;
+class ParserException;
 
 /***********************************************************************/
 
-class parser {
+class Parser {
 public:
-    parser(lexer&& lexer);
+    Parser(Lexer&& lexer);
 
-    std::unique_ptr<node> parse();
+    std::unique_ptr<Node> parse();
 
 private:
-    std::unique_ptr<program_node> program();
-    std::vector<std::shared_ptr<declaration_node>> decl_list();
-    std::unique_ptr<declaration_node> declaration();
+    std::unique_ptr<ProgramNode> program();
+    std::vector<std::shared_ptr<DeclarationNode>> declarationList();
+    std::unique_ptr<DeclarationNode> declaration();
     /// Parses a type specifier
     ///
     /// \returns the type specified and its location in the code
-    std::pair<basic_type, location> type_spec();
-    std::unique_ptr<variable_declaration_node> var_decl();
-    std::unique_ptr<function_declaration_node> fun_decl();
-    std::vector<std::shared_ptr<param_node>> params();
-    std::vector<std::shared_ptr<param_node>> param_list();
-    std::unique_ptr<param_node> param();
-    std::unique_ptr<compound_statement_node> compound_stmt();
-    std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
-    std::vector<std::unique_ptr<statement_node>> stmt_list();
-    std::unique_ptr<statement_node> statement();
-    std::unique_ptr<expression_statement_node> expr_stmt();
-    std::unique_ptr<if_statement_node> if_statement();
-    std::unique_ptr<while_statement_node> while_statement();
-    std::unique_ptr<return_statement_node> return_stmt();
-    std::unique_ptr<expression_node> expression();
-    std::unique_ptr<assignment_expression_node> assignment_expr();
-    std::unique_ptr<variable_expression_node> variable();
-    std::unique_ptr<expression_node> relational_expr();
-    rel_op relation_op();
-    std::unique_ptr<expression_node> add_expr();
-    add_op additive_op();
-    std::unique_ptr<expression_node> term();
-    mul_op mult_op();
-    std::unique_ptr<expression_node> factor();
-    std::unique_ptr<call_expression_node> fun_call();
-    std::vector<std::unique_ptr<expression_node>> fun_args();
-    std::vector<std::unique_ptr<expression_node>> args_list();
+    std::pair<TypeSpecifier, Location> typeSpec();
+    std::unique_ptr<VariableDeclarationNode> variableDeclaration();
+    std::unique_ptr<FunctionDeclarationNode> functionDeclaration();
+    std::vector<std::shared_ptr<ParameterNode>> functionParameters();
+    std::vector<std::shared_ptr<ParameterNode>> parameterList();
+    std::unique_ptr<ParameterNode> parameter();
+    std::unique_ptr<CompoundStatementNode> compoundStatement();
+    std::vector<std::shared_ptr<VariableDeclarationNode>> localDeclarations();
+    std::vector<std::unique_ptr<StatementNode>> statementList();
+    std::unique_ptr<StatementNode> statement();
+    std::unique_ptr<ExpressionStatementNode> expressionStatement();
+    std::unique_ptr<IfStatementNode> ifStatement();
+    std::unique_ptr<WhileStatementNode> whileStatement();
+    std::unique_ptr<ReturnStatementNode> returnStatement();
+    std::unique_ptr<ExpressionNode> expression();
+    std::unique_ptr<AssignmentExpressionNode> assignmentExpression();
+    std::unique_ptr<VariableExpressionNode> variableExpression();
+    std::unique_ptr<ExpressionNode> relationalExpression();
+    RelationalOp relationOperation();
+    std::unique_ptr<ExpressionNode> additiveExpression();
+    AdditiveOp additiveOperation();
+    std::unique_ptr<ExpressionNode> term();
+    MultiplicativeOp multiplicativeOperation();
+    std::unique_ptr<ExpressionNode> factor();
+    std::unique_ptr<CallExpressionNode> functionCall();
+    std::vector<std::unique_ptr<ExpressionNode>> functionArguments();
+    std::vector<std::unique_ptr<ExpressionNode>> argumentList();
 
 private:
     /**
      * Move the current token one forward and returns a reference to the new
      * current token.
      */
-    Token const& get_token();
+    Token const& getToken();
 
     /**
      * Peeks the token `index` after the current token.
      *
      * Note: peek_token(0) returns the current token.
      */
-    Token const& peek_token(size_t index);
+    Token const& peekToken(size_t index);
 
     /// Matches on a TokenType
     ///
@@ -94,21 +94,21 @@ private:
      * Throws an error indicating the function which encountered an error and
      * what token it had expected.
      */
-    parser_exception error(
+    ParserException error(
         const std::string_view function,
         const std::string_view expected);
 
 private:
-    lexer m_lexer;
-    Token m_current_token;
-    std::deque<Token> m_peeked_tokens;
+    Lexer m_lexer;
+    Token m_currentToken;
+    std::deque<Token> m_peekedTokens;
 };
 
 /***********************************************************************/
 
-class parser_exception : public cminus_exception {
+class ParserException : public CMinusException {
 public:
-    parser_exception(
+    ParserException(
         const std::string_view construct,
         Token received_token,
         const std::string_view expected);
@@ -116,8 +116,8 @@ public:
     virtual char const* what() const noexcept;
 
 private:
-    Token m_received_token;
-    std::string m_error_message;
+    Token m_receivedToken;
+    std::string m_errorMessage;
 };
 
 /***********************************************************************/
