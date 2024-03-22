@@ -18,7 +18,7 @@ struct Node;
 
 struct ProgramNode;
 
-struct declaration_node;
+struct DeclarationNode;
 struct function_declaration_node;
 struct param_node;
 struct variable_declaration_node;
@@ -64,7 +64,7 @@ class Visitor {
 public:
     virtual void visit(ProgramNode& node) = 0;
 
-    virtual void visit(declaration_node& node) = 0;
+    virtual void visit(DeclarationNode& node) = 0;
     virtual void visit(function_declaration_node& node) = 0;
     virtual void visit(variable_declaration_node& node) = 0;
     virtual void visit(array_declaration_node& node) = 0;
@@ -124,15 +124,15 @@ struct Node {
 /// When a smart pointer is needed to a declaration node, a `shared_ptr` is
 /// likely the best choice, as these nodes eventually need to be pointed to at
 /// both their parent and by all their references.
-struct declaration_node : Node {
+struct DeclarationNode : Node {
     /// Constructs a Declaration Node
     ///
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
     /// \param loc the location where the declaration begins
-    declaration_node(value_type type, std::string identifier, location loc);
+    DeclarationNode(value_type type, std::string identifier, location loc);
 
-    virtual ~declaration_node() = default;
+    virtual ~DeclarationNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
 
@@ -183,7 +183,7 @@ struct ProgramNode : Node {
     ///
     /// \param declarations a vector of all the top level declarations in the
     ///                     program
-    ProgramNode(std::vector<std::shared_ptr<declaration_node>> declarations);
+    ProgramNode(std::vector<std::shared_ptr<DeclarationNode>> declarations);
 
     virtual ~ProgramNode() = default;
 
@@ -194,7 +194,7 @@ struct ProgramNode : Node {
     /// A vector of shared_ptr is used as usage of these identifers will
     /// eventually be linked back to their delarations. As such a unique_ptr
     /// would not be applicable.
-    std::vector<std::shared_ptr<declaration_node>> declarations;
+    std::vector<std::shared_ptr<DeclarationNode>> declarations;
 };
 
 /***********************************************************************/
@@ -357,7 +357,7 @@ struct expression_statement_node : statement_node {
 /// Function Declaration Node
 ///
 /// This node type represents a function declaration.
-struct function_declaration_node : declaration_node {
+struct function_declaration_node : DeclarationNode {
     /// Constructs a Function Declaration Node
     ///
     /// \param type the function return type
@@ -389,7 +389,7 @@ struct function_declaration_node : declaration_node {
 /// Variable Declaration Node
 ///
 /// This node type represents a variable declaration.
-struct variable_declaration_node : declaration_node {
+struct variable_declaration_node : DeclarationNode {
     /// Constructs a Variable Declaration Node
     ///
     /// \param type the type of the variable
@@ -435,7 +435,7 @@ struct array_declaration_node : variable_declaration_node {
 /// Parameter Declaration Node
 ///
 /// This node type represents a parameter in a function declaration.
-struct param_node : declaration_node {
+struct param_node : DeclarationNode {
     /// Constructs a Parameter Declaration Node
     ///
     /// \param type the type of the parameter

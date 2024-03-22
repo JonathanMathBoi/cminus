@@ -57,7 +57,7 @@ void PrintVisitor::visit(ProgramNode& node) {
     output.flush();
 }
 
-void PrintVisitor::visit(declaration_node& node) {
+void PrintVisitor::visit(DeclarationNode& node) {
     node.accept(*this);
 }
 

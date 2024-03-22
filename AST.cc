@@ -16,7 +16,7 @@ using std::vector;
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-ProgramNode::ProgramNode(vector<shared_ptr<declaration_node>> declarations)
+ProgramNode::ProgramNode(vector<shared_ptr<DeclarationNode>> declarations)
     : Node {location {1, 1}}, declarations {declarations} {}
 
 void ProgramNode::accept(Visitor& visitor) {
@@ -26,13 +26,13 @@ void ProgramNode::accept(Visitor& visitor) {
 /***********************************************************************/
 // Declaration Nodes
 
-declaration_node::declaration_node(
+DeclarationNode::DeclarationNode(
     value_type type,
     std::string identifier,
     location loc)
     : Node {loc}, type {type}, identifier {identifier} {}
 
-void declaration_node::accept(Visitor& visitor) {
+void DeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -42,7 +42,7 @@ function_declaration_node::function_declaration_node(
     vector<shared_ptr<param_node>> params,
     unique_ptr<compound_statement_node> body,
     location loc)
-    : declaration_node {type, identifier, loc}
+    : DeclarationNode {type, identifier, loc}
     , parameters {params}
     , function_body {std::move(body)} {}
 
@@ -54,7 +54,7 @@ variable_declaration_node::variable_declaration_node(
     value_type type,
     std::string identifier,
     location loc)
-    : declaration_node {type, identifier, loc} {}
+    : DeclarationNode {type, identifier, loc} {}
 
 void variable_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -72,7 +72,7 @@ void array_declaration_node::accept(Visitor& visitor) {
 }
 
 param_node::param_node(value_type type, std::string identifier, location loc)
-    : declaration_node {type, identifier, loc} {}
+    : DeclarationNode {type, identifier, loc} {}
 
 void param_node::accept(Visitor& visitor) {
     visitor.visit(*this);

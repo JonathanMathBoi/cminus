@@ -30,8 +30,8 @@ unique_ptr<ProgramNode> parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-vector<shared_ptr<declaration_node>> parser::decl_list() {
-    vector<shared_ptr<declaration_node>> decls;
+vector<shared_ptr<DeclarationNode>> parser::decl_list() {
+    vector<shared_ptr<DeclarationNode>> decls;
 
     do {
         decls.emplace_back(declaration());
@@ -43,7 +43,7 @@ vector<shared_ptr<declaration_node>> parser::decl_list() {
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-unique_ptr<declaration_node> parser::declaration() {
+unique_ptr<DeclarationNode> parser::declaration() {
     switch (peek_token(2).type) {
     case SEMI:
     case LBRACK:
