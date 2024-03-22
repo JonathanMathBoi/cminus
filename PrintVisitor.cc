@@ -79,7 +79,7 @@ void PrintVisitor::visit(VariableDeclarationNode& node) {
            << types.at(node.type.type) << " type\n";
 }
 
-void PrintVisitor::visit(array_declaration_node& node) {
+void PrintVisitor::visit(ArrayDeclarationNode& node) {
     output << indent() << "VariableDeclaration: " << node.identifier << "["
            << node.size << "]: " << types.at(node.type.type) << " type\n";
 }

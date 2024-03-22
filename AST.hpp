@@ -22,7 +22,7 @@ struct DeclarationNode;
 struct FunctionDeclarationNode;
 struct ParameterNode;
 struct VariableDeclarationNode;
-struct array_declaration_node;
+struct ArrayDeclarationNode;
 
 struct statement_node;
 struct compound_statement_node;
@@ -67,7 +67,7 @@ public:
     virtual void visit(DeclarationNode& node) = 0;
     virtual void visit(FunctionDeclarationNode& node) = 0;
     virtual void visit(VariableDeclarationNode& node) = 0;
-    virtual void visit(array_declaration_node& node) = 0;
+    virtual void visit(ArrayDeclarationNode& node) = 0;
     virtual void visit(ParameterNode& node) = 0;
 
     virtual void visit(statement_node& node) = 0;
@@ -408,20 +408,20 @@ struct VariableDeclarationNode : DeclarationNode {
 /// Array Declaration Node
 ///
 /// This node type represents the declaration of an array variable.
-struct array_declaration_node : VariableDeclarationNode {
+struct ArrayDeclarationNode : VariableDeclarationNode {
     /// Constructs an Array Declaration Node
     ///
     /// \param type the type of the array
     /// \param identifier the identifier for the array
     /// \param size the length of the array
     /// \param loc the location where the array is declared
-    array_declaration_node(
+    ArrayDeclarationNode(
         value_type type,
         std::string identifier,
         int size,
         location loc);
 
-    virtual ~array_declaration_node() = default;
+    virtual ~ArrayDeclarationNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

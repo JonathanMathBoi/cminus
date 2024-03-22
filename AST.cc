@@ -60,14 +60,14 @@ void VariableDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-array_declaration_node::array_declaration_node(
+ArrayDeclarationNode::ArrayDeclarationNode(
     value_type type,
     std::string identifier,
     int size,
     location loc)
     : VariableDeclarationNode {type, identifier, loc}, size {size} {}
 
-void array_declaration_node::accept(Visitor& visitor) {
+void ArrayDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

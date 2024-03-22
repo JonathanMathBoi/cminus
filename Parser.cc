@@ -80,7 +80,7 @@ unique_ptr<VariableDeclarationNode> parser::var_decl() {
         int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
 
-        new_node = make_unique<array_declaration_node>(type, id, size, loc);
+        new_node = make_unique<ArrayDeclarationNode>(type, id, size, loc);
     } else {
         new_node = make_unique<VariableDeclarationNode>(type, id, loc);
     }
