@@ -42,7 +42,7 @@ struct nest_guard {
 
 /***********************************************************************/
 
-void PrintVisitor::visit(program_node& node) {
+void PrintVisitor::visit(ProgramNode& node) {
     output << "ProgramNode:\n";
 
     {

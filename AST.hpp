@@ -16,7 +16,7 @@ class Visitor;
 
 struct Node;
 
-struct program_node;
+struct ProgramNode;
 
 struct declaration_node;
 struct function_declaration_node;
@@ -62,7 +62,7 @@ enum class unary_op { INCREMENT, DECREMENT };
 
 class Visitor {
 public:
-    virtual void visit(program_node& node) = 0;
+    virtual void visit(ProgramNode& node) = 0;
 
     virtual void visit(declaration_node& node) = 0;
     virtual void visit(function_declaration_node& node) = 0;
@@ -178,14 +178,14 @@ struct statement_node : Node {
 ///
 /// This node type serves as the root of the AST. It contains only a list of all
 /// the top level declarations.
-struct program_node : Node {
+struct ProgramNode : Node {
     /// Constructs a Program Node
     ///
     /// \param declarations a vector of all the top level declarations in the
     ///                     program
-    program_node(std::vector<std::shared_ptr<declaration_node>> declarations);
+    ProgramNode(std::vector<std::shared_ptr<declaration_node>> declarations);
 
-    virtual ~program_node() = default;
+    virtual ~ProgramNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

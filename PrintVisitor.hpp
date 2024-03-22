@@ -17,7 +17,7 @@ public:
     /// \param out_stream the ostream to print the tree to
     PrintVisitor(std::ostream& out_stream);
 
-    virtual void visit(program_node& node) override;
+    virtual void visit(ProgramNode& node) override;
 
     virtual void visit(declaration_node& node) override;
     virtual void visit(function_declaration_node& node) override;

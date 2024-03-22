@@ -16,10 +16,10 @@ using std::vector;
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-program_node::program_node(vector<shared_ptr<declaration_node>> declarations)
+ProgramNode::ProgramNode(vector<shared_ptr<declaration_node>> declarations)
     : Node {location {1, 1}}, declarations {declarations} {}
 
-void program_node::accept(Visitor& visitor) {
+void ProgramNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

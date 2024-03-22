@@ -21,8 +21,8 @@ using std::vector;
 /**
  * Parses program -> decleration-list
  */
-unique_ptr<program_node> parser::program() {
-    return make_unique<program_node>(decl_list());
+unique_ptr<ProgramNode> parser::program() {
+    return make_unique<ProgramNode>(decl_list());
 }
 
 /**

@@ -25,7 +25,7 @@ public:
     std::unique_ptr<Node> parse();
 
 private:
-    std::unique_ptr<program_node> program();
+    std::unique_ptr<ProgramNode> program();
     std::vector<std::shared_ptr<declaration_node>> decl_list();
     std::unique_ptr<declaration_node> declaration();
     /// Parses a type specifier
