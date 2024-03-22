@@ -103,7 +103,7 @@ struct Node {
     ///
     /// \param location the location in the source code where the construct
     ///                 begins
-    Node(location loc) : loc {loc} {}
+    Node(Location loc) : loc {loc} {}
 
     virtual ~Node() = default;
 
@@ -114,7 +114,7 @@ struct Node {
     virtual void accept(Visitor& visitor) = 0;
 
     /// The location of the construct in the source code
-    location loc;
+    Location loc;
 };
 
 /// Abstract Declaration Node
@@ -130,7 +130,7 @@ struct DeclarationNode : Node {
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
     /// \param loc the location where the declaration begins
-    DeclarationNode(ValueType type, std::string identifier, location loc);
+    DeclarationNode(ValueType type, std::string identifier, Location loc);
 
     virtual ~DeclarationNode() = default;
 
@@ -150,7 +150,7 @@ struct ExpressionNode : Node {
     /// Constructs an Expression Node
     ///
     /// \param loc the location of the expression in the source code
-    ExpressionNode(location loc) : Node {loc} {}
+    ExpressionNode(Location loc) : Node {loc} {}
 
     virtual ~ExpressionNode() = default;
 
@@ -165,7 +165,7 @@ struct StatementNode : Node {
     /// Constructs a Statement Node
     ///
     /// \param loc the location of the statement in the source code
-    StatementNode(location loc) : Node {loc} {}
+    StatementNode(Location loc) : Node {loc} {}
 
     virtual ~StatementNode() = default;
 
@@ -211,7 +211,7 @@ struct CompoundStatementNode : StatementNode {
     CompoundStatementNode(
         std::vector<std::shared_ptr<VariableDeclarationNode>> decls,
         std::vector<std::unique_ptr<StatementNode>> stmts,
-        location loc);
+        Location loc);
 
     virtual ~CompoundStatementNode() = default;
 
@@ -242,7 +242,7 @@ struct IfStatementNode : StatementNode {
         std::unique_ptr<ExpressionNode> condition,
         std::unique_ptr<StatementNode> then_stmt,
         std::optional<std::unique_ptr<StatementNode>> else_stmt,
-        location loc);
+        Location loc);
 
     /// Constructs an If Statement Node
     ///
@@ -255,7 +255,7 @@ struct IfStatementNode : StatementNode {
     IfStatementNode(
         std::unique_ptr<ExpressionNode> condition,
         std::unique_ptr<StatementNode> then_stmt,
-        location loc);
+        Location loc);
 
     virtual ~IfStatementNode() = default;
 
@@ -282,7 +282,7 @@ struct WhileStatementNode : StatementNode {
     WhileStatementNode(
         std::unique_ptr<ExpressionNode> condition,
         std::unique_ptr<StatementNode> stmt,
-        location loc);
+        Location loc);
 
     virtual ~WhileStatementNode() = default;
 
@@ -306,7 +306,7 @@ struct ReturnStatementNode : StatementNode {
     /// \param loc the location of the return statement in the source code
     ReturnStatementNode(
         std::optional<std::unique_ptr<ExpressionNode>> expr,
-        location loc);
+        Location loc);
 
     /// Constructs a Return Statement Node
     ///
@@ -314,7 +314,7 @@ struct ReturnStatementNode : StatementNode {
     /// expression.
     ///
     /// \param loc the location of the return statement in the source code
-    ReturnStatementNode(location loc);
+    ReturnStatementNode(Location loc);
 
     virtual ~ReturnStatementNode() = default;
 
@@ -334,7 +334,7 @@ struct ExpressionStatementNode : StatementNode {
     /// \param loc the location of the expression in the source code.
     ExpressionStatementNode(
         std::optional<std::unique_ptr<ExpressionNode>> expr,
-        location loc);
+        Location loc);
 
     /// Constructs an Expression Statement
     ///
@@ -342,7 +342,7 @@ struct ExpressionStatementNode : StatementNode {
     /// the statement `;`.)
     ///
     /// \param loc the location of the expression in the source code.
-    ExpressionStatementNode(location loc);
+    ExpressionStatementNode(Location loc);
 
     virtual ~ExpressionStatementNode() = default;
 
@@ -370,7 +370,7 @@ struct FunctionDeclarationNode : DeclarationNode {
         std::string identifier,
         std::vector<std::shared_ptr<ParameterNode>> params,
         std::unique_ptr<CompoundStatementNode> body,
-        location loc);
+        Location loc);
 
     virtual ~FunctionDeclarationNode() = default;
 
@@ -398,7 +398,7 @@ struct VariableDeclarationNode : DeclarationNode {
     VariableDeclarationNode(
         ValueType type,
         std::string identifier,
-        location loc);
+        Location loc);
 
     virtual ~VariableDeclarationNode() = default;
 
@@ -419,7 +419,7 @@ struct ArrayDeclarationNode : VariableDeclarationNode {
         ValueType type,
         std::string identifier,
         int size,
-        location loc);
+        Location loc);
 
     virtual ~ArrayDeclarationNode() = default;
 
@@ -441,7 +441,7 @@ struct ParameterNode : DeclarationNode {
     /// \param type the type of the parameter
     /// \param identifier the name of the parameter
     /// \param loc the location where the parameter is declared
-    ParameterNode(ValueType type, std::string identifier, location loc);
+    ParameterNode(ValueType type, std::string identifier, Location loc);
 
     virtual ~ParameterNode() = default;
 
@@ -458,7 +458,7 @@ struct VariableExpressionNode : ExpressionNode {
     ///
     /// \param identifier the name of the variable referenced
     /// \param loc the location of the reference in the source code
-    VariableExpressionNode(std::string identifier, location loc);
+    VariableExpressionNode(std::string identifier, Location loc);
 
     virtual ~VariableExpressionNode() = default;
 
@@ -480,7 +480,7 @@ struct AssignmentExpressionNode : ExpressionNode {
     AssignmentExpressionNode(
         std::unique_ptr<VariableExpressionNode> var,
         std::unique_ptr<ExpressionNode> expr,
-        location loc);
+        Location loc);
 
     virtual ~AssignmentExpressionNode() = default;
 
@@ -504,7 +504,7 @@ struct SubscriptExpressionNode : VariableExpressionNode {
     SubscriptExpressionNode(
         std::string identifier,
         std::unique_ptr<ExpressionNode> index,
-        location loc);
+        Location loc);
 
     virtual ~SubscriptExpressionNode() = default;
 
@@ -526,7 +526,7 @@ struct CallExpressionNode : ExpressionNode {
     CallExpressionNode(
         std::string identifier,
         std::vector<std::unique_ptr<ExpressionNode>> args,
-        location loc);
+        Location loc);
 
     virtual ~CallExpressionNode() = default;
 
@@ -551,7 +551,7 @@ struct AdditiveExpressionNode : ExpressionNode {
         AdditiveOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
-        location loc);
+        Location loc);
 
     virtual ~AdditiveExpressionNode() = default;
 
@@ -578,7 +578,7 @@ struct MultiplicativeExpressionNode : ExpressionNode {
         MultiplicativeOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
-        location loc);
+        Location loc);
 
     virtual ~MultiplicativeExpressionNode() = default;
 
@@ -606,7 +606,7 @@ struct RelationalExpressionNode : ExpressionNode {
         RelationalOp operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
-        location loc);
+        Location loc);
 
     virtual ~RelationalExpressionNode() = default;
 
@@ -630,7 +630,7 @@ struct IntegerLiteralExpressionNode : ExpressionNode {
     ///
     /// \param value the value of the literal
     /// \param loc the location of the literal in the source code
-    IntegerLiteralExpressionNode(int value, location loc);
+    IntegerLiteralExpressionNode(int value, Location loc);
 
     virtual ~IntegerLiteralExpressionNode() = default;
 

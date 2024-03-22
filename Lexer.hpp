@@ -100,13 +100,13 @@ struct Token {
         TokenType pType,
         std::string pLexeme = "",
         int pNumber = 0,
-        location loc = location {-1, -1})
+        Location loc = Location {-1, -1})
         : type {pType}, lexeme {pLexeme}, number {pNumber}, loc {loc} {}
 
     TokenType type;
     std::string lexeme;
     int number;
-    location loc;
+    Location loc;
 };
 
 /***********************************************************************/

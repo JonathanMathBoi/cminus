@@ -20,7 +20,7 @@ int lexer::get_column_num() const {
 }
 
 Token lexer::make_token(TokenType type, std::string lexeme, int number) const {
-    return Token {type, lexeme, number, location {m_token_line, m_token_col}};
+    return Token {type, lexeme, number, Location {m_token_line, m_token_col}};
 }
 
 Token lexer::get_token() {

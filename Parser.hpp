@@ -31,7 +31,7 @@ private:
     /// Parses a type specifier
     ///
     /// \returns the type specified and its location in the code
-    std::pair<TypeSpecifier, location> type_spec();
+    std::pair<TypeSpecifier, Location> type_spec();
     std::unique_ptr<VariableDeclarationNode> var_decl();
     std::unique_ptr<FunctionDeclarationNode> fun_decl();
     std::vector<std::shared_ptr<ParameterNode>> params();

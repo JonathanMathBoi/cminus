@@ -67,7 +67,7 @@ unique_ptr<DeclarationNode> parser::declaration() {
 unique_ptr<VariableDeclarationNode> parser::var_decl() {
     auto spec {type_spec()};
     ValueType type {spec.first};
-    location loc {spec.second};
+    Location loc {spec.second};
 
     std::string id {match("variable declaration", ID).lexeme};
 
@@ -93,12 +93,12 @@ unique_ptr<VariableDeclarationNode> parser::var_decl() {
 /**
  * Parses type-specifier -> INT | VOID
  */
-std::pair<TypeSpecifier, location> parser::type_spec() {
+std::pair<TypeSpecifier, Location> parser::type_spec() {
     static const std::map<TokenType, TypeSpecifier> types {
         {VOID, TypeSpecifier::VOID}, {INT, TypeSpecifier::INT}};
 
     if (types.contains(m_current_token.type)) {
-        std::pair<TypeSpecifier, location> ret {
+        std::pair<TypeSpecifier, Location> ret {
             types.at(m_current_token.type), m_current_token.loc};
         get_token();
         return ret;
@@ -114,7 +114,7 @@ std::pair<TypeSpecifier, location> parser::type_spec() {
 unique_ptr<FunctionDeclarationNode> parser::fun_decl() {
     auto spec {type_spec()};
     ValueType type {spec.first};
-    location loc {spec.second};
+    Location loc {spec.second};
 
     std::string id {match("function declaration", ID).lexeme};
 
@@ -169,7 +169,7 @@ vector<shared_ptr<ParameterNode>> parser::param_list() {
 unique_ptr<ParameterNode> parser::param() {
     auto spec {type_spec()};
     ValueType type {spec.first};
-    location loc {spec.second};
+    Location loc {spec.second};
 
     std::string id {match("parameter", ID).lexeme};
 
@@ -186,7 +186,7 @@ unique_ptr<ParameterNode> parser::param() {
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
 unique_ptr<CompoundStatementNode> parser::compound_stmt() {
-    location loc {match("compound statement", LBRACE).loc};
+    Location loc {match("compound statement", LBRACE).loc};
     auto locals {local_decls()};
     auto statements {stmt_list()};
     match("compound statement", RBRACE);
@@ -254,12 +254,12 @@ unique_ptr<StatementNode> parser::statement() {
  */
 unique_ptr<ExpressionStatementNode> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
-        location loc {match("expression statement", SEMI).loc};
+        Location loc {match("expression statement", SEMI).loc};
         return make_unique<ExpressionStatementNode>(loc);
     }
 
     auto expr {expression()};
-    location loc {expr->loc};
+    Location loc {expr->loc};
     match("expression statement", SEMI);
 
     return make_unique<ExpressionStatementNode>(std::move(expr), loc);
@@ -273,7 +273,7 @@ unique_ptr<ExpressionStatementNode> parser::expr_stmt() {
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
 unique_ptr<IfStatementNode> parser::if_statement() {
-    location loc {match("if statement", IF).loc};
+    Location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
     auto condition {expression()};
     match("if statement", RPAREN);
@@ -295,7 +295,7 @@ unique_ptr<IfStatementNode> parser::if_statement() {
  * Parses iteration-stmt -> WHILE LPAREN expression RPAREN statement
  */
 unique_ptr<WhileStatementNode> parser::while_statement() {
-    location loc {match("while statement", WHILE).loc};
+    Location loc {match("while statement", WHILE).loc};
     match("while statement", LPAREN);
     auto condition {expression()};
     match("while statement", RPAREN);
@@ -311,7 +311,7 @@ unique_ptr<WhileStatementNode> parser::while_statement() {
  * Implemented as return-stmt -> RETURN [ expression ] SEMI
  */
 unique_ptr<ReturnStatementNode> parser::return_stmt() {
-    location loc {match("return statement", RETURN).loc};
+    Location loc {match("return statement", RETURN).loc};
 
     if (m_current_token.type == SEMI) {
         match("return statement", SEMI);
@@ -376,7 +376,7 @@ unique_ptr<AssignmentExpressionNode> parser::assignment_expr() {
     match("assignment expression", ASSIGN);
     auto expr {expression()};
 
-    location loc {var->loc};
+    Location loc {var->loc};
 
     return make_unique<AssignmentExpressionNode>(
         std::move(var), std::move(expr), loc);
@@ -411,7 +411,7 @@ unique_ptr<VariableExpressionNode> parser::variable() {
  */
 unique_ptr<ExpressionNode> parser::relational_expr() {
     auto lhs {add_expr()};
-    location loc {lhs->loc};
+    Location loc {lhs->loc};
 
     switch (m_current_token.type) {
     case LT:
@@ -461,7 +461,7 @@ const std::map<TokenType, AdditiveOp> add_ops {
  */
 unique_ptr<ExpressionNode> parser::add_expr() {
     auto root {term()};
-    location loc {root->loc};
+    Location loc {root->loc};
 
     while (add_ops.contains(m_current_token.type)) {
         auto operation {additive_op()};
@@ -497,7 +497,7 @@ const std::map<TokenType, MultiplicativeOp> mul_ops {
  */
 unique_ptr<ExpressionNode> parser::term() {
     auto root {factor()};
-    location loc {root->loc};
+    Location loc {root->loc};
 
     while (m_current_token.type == TIMES || m_current_token.type == DIVIDE) {
         auto operation {mult_op()};
