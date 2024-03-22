@@ -85,7 +85,7 @@ void ParameterNode::accept(Visitor& visitor) {
 // Expression Nodes
 
 AssignmentExpressionNode::AssignmentExpressionNode(
-    unique_ptr<variable_expression_node> var,
+    unique_ptr<VariableExpressionNode> var,
     unique_ptr<ExpressionNode> expr,
     location loc)
     : ExpressionNode {loc}
@@ -96,12 +96,12 @@ void AssignmentExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-variable_expression_node::variable_expression_node(
+VariableExpressionNode::VariableExpressionNode(
     std::string identifier,
     location loc)
     : ExpressionNode {loc}, identifier {identifier} {}
 
-void variable_expression_node::accept(Visitor& visitor) {
+void VariableExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -109,7 +109,7 @@ subscript_expression_node::subscript_expression_node(
     std::string identifier,
     unique_ptr<ExpressionNode> index,
     location loc)
-    : variable_expression_node {identifier, loc}, index {std::move(index)} {}
+    : VariableExpressionNode {identifier, loc}, index {std::move(index)} {}
 
 void subscript_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);

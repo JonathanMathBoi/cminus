@@ -387,7 +387,7 @@ unique_ptr<AssignmentExpressionNode> parser::assignment_expr() {
  *
  * Implemented as var -> ID [ LBARCK expression RBRACK ]
  */
-unique_ptr<variable_expression_node> parser::variable() {
+unique_ptr<VariableExpressionNode> parser::variable() {
     auto [_, id, __, loc] {match("variable", ID)};
 
     if (m_current_token.type == LBRACK) {
@@ -399,7 +399,7 @@ unique_ptr<variable_expression_node> parser::variable() {
             id, std::move(subscript), loc);
     }
 
-    return make_unique<variable_expression_node>(id, loc);
+    return make_unique<VariableExpressionNode>(id, loc);
 }
 
 /**

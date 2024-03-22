@@ -47,7 +47,7 @@ private:
     std::unique_ptr<ReturnStatementNode> return_stmt();
     std::unique_ptr<ExpressionNode> expression();
     std::unique_ptr<AssignmentExpressionNode> assignment_expr();
-    std::unique_ptr<variable_expression_node> variable();
+    std::unique_ptr<VariableExpressionNode> variable();
     std::unique_ptr<ExpressionNode> relational_expr();
     rel_op relation_op();
     std::unique_ptr<ExpressionNode> add_expr();

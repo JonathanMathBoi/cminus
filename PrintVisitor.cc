@@ -178,7 +178,7 @@ void PrintVisitor::visit(AssignmentExpressionNode& node) {
     node.expression->accept(*this);
 }
 
-void PrintVisitor::visit(variable_expression_node& node) {
+void PrintVisitor::visit(VariableExpressionNode& node) {
     output << indent() << "Variable: " << node.identifier << '\n';
 }
 

@@ -33,7 +33,7 @@ struct ExpressionStatementNode;
 
 struct ExpressionNode;
 struct AssignmentExpressionNode;
-struct variable_expression_node;
+struct VariableExpressionNode;
 struct subscript_expression_node;
 struct call_expression_node;
 struct additive_expression_node;
@@ -81,7 +81,7 @@ public:
 
     virtual void visit(ExpressionNode& node) = 0;
     virtual void visit(AssignmentExpressionNode& node) = 0;
-    virtual void visit(variable_expression_node& node) = 0;
+    virtual void visit(VariableExpressionNode& node) = 0;
     virtual void visit(subscript_expression_node& node) = 0;
     virtual void visit(call_expression_node& node) = 0;
     virtual void visit(additive_expression_node& node) = 0;
@@ -453,14 +453,14 @@ struct ParameterNode : DeclarationNode {
 /// Variable Expression Node
 ///
 /// The node represents a variable used in an expression
-struct variable_expression_node : ExpressionNode {
+struct VariableExpressionNode : ExpressionNode {
     /// Constructs a Variable Expression Node
     ///
     /// \param identifier the name of the variable referenced
     /// \param loc the location of the reference in the source code
-    variable_expression_node(std::string identifier, location loc);
+    VariableExpressionNode(std::string identifier, location loc);
 
-    virtual ~variable_expression_node() = default;
+    virtual ~VariableExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 
@@ -478,7 +478,7 @@ struct AssignmentExpressionNode : ExpressionNode {
     /// \param expr the expression to be assigned to the variable
     /// \param loc the location of the assignment in the source code
     AssignmentExpressionNode(
-        std::unique_ptr<variable_expression_node> var,
+        std::unique_ptr<VariableExpressionNode> var,
         std::unique_ptr<ExpressionNode> expr,
         location loc);
 
@@ -487,7 +487,7 @@ struct AssignmentExpressionNode : ExpressionNode {
     virtual void accept(Visitor& visitor) override;
 
     /// The variable being assigned to
-    std::unique_ptr<variable_expression_node> variable;
+    std::unique_ptr<VariableExpressionNode> variable;
     /// The expression which will be assigned to the variable
     std::unique_ptr<ExpressionNode> expression;
 };
@@ -495,7 +495,7 @@ struct AssignmentExpressionNode : ExpressionNode {
 /// Subscript Expression Node
 ///
 /// A node representing a subscripted variable
-struct subscript_expression_node : variable_expression_node {
+struct subscript_expression_node : VariableExpressionNode {
     /// Constructs a Subscript Expression Node
     ///
     /// \param identifier the identifier of the variable being subscripted

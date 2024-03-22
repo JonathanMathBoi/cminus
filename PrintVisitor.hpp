@@ -36,7 +36,7 @@ public:
 
     virtual void visit(ExpressionNode& node) override;
     virtual void visit(AssignmentExpressionNode& node) override;
-    virtual void visit(variable_expression_node& node) override;
+    virtual void visit(VariableExpressionNode& node) override;
     virtual void visit(subscript_expression_node& node) override;
     virtual void visit(call_expression_node& node) override;
     virtual void visit(additive_expression_node& node) override;
