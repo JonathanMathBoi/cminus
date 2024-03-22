@@ -127,7 +127,7 @@ void CallExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-additive_expression_node::additive_expression_node(
+AdditiveExpressionNode::AdditiveExpressionNode(
     add_op operation,
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
@@ -137,7 +137,7 @@ additive_expression_node::additive_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void additive_expression_node::accept(Visitor& visitor) {
+void AdditiveExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

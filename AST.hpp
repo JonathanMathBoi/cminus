@@ -36,7 +36,7 @@ struct AssignmentExpressionNode;
 struct VariableExpressionNode;
 struct SubscriptExpressionNode;
 struct CallExpressionNode;
-struct additive_expression_node;
+struct AdditiveExpressionNode;
 struct multiplicative_expression_node;
 struct relational_expression_node;
 struct integer_literal_expression_node;
@@ -84,7 +84,7 @@ public:
     virtual void visit(VariableExpressionNode& node) = 0;
     virtual void visit(SubscriptExpressionNode& node) = 0;
     virtual void visit(CallExpressionNode& node) = 0;
-    virtual void visit(additive_expression_node& node) = 0;
+    virtual void visit(AdditiveExpressionNode& node) = 0;
     virtual void visit(multiplicative_expression_node& node) = 0;
     virtual void visit(relational_expression_node& node) = 0;
     // Not parsing increment and decrement yet
@@ -541,19 +541,19 @@ struct CallExpressionNode : ExpressionNode {
 /// Additive Expression Node
 ///
 /// Represents an additive expression in the source code.
-struct additive_expression_node : ExpressionNode {
+struct AdditiveExpressionNode : ExpressionNode {
     /// Constructs an Additive Expression Node
     ///
     /// \param operation the additive operation to be applied
     /// \param lhs the left hand side expression of the binary operation
     /// \param rhs the right hand side expression of the binary operation
-    additive_expression_node(
+    AdditiveExpressionNode(
         add_op operation,
         std::unique_ptr<ExpressionNode> lhs,
         std::unique_ptr<ExpressionNode> rhs,
         location loc);
 
-    virtual ~additive_expression_node() = default;
+    virtual ~AdditiveExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

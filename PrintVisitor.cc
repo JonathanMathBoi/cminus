@@ -214,7 +214,7 @@ void PrintVisitor::visit(CallExpressionNode& node) {
     }
 }
 
-void PrintVisitor::visit(additive_expression_node& node) {
+void PrintVisitor::visit(AdditiveExpressionNode& node) {
     output << indent()
            << "AdditiveExpression: " << add_symbols.at(node.operation) << '\n';
 

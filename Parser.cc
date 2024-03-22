@@ -465,7 +465,7 @@ unique_ptr<ExpressionNode> parser::add_expr() {
     while (add_ops.contains(m_current_token.type)) {
         auto operation {additive_op()};
         auto rhs {term()};
-        root = make_unique<additive_expression_node>(
+        root = make_unique<AdditiveExpressionNode>(
             operation, std::move(root), std::move(rhs), loc);
     }
 
