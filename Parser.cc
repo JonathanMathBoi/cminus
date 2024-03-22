@@ -551,13 +551,13 @@ unique_ptr<ExpressionNode> parser::factor() {
 /**
  * Parses call -> ID LPAREN args RPAREN
  */
-unique_ptr<call_expression_node> parser::fun_call() {
+unique_ptr<CallExpressionNode> parser::fun_call() {
     auto [_, id, __, loc] {match("function call", ID)};
     match("function call", LPAREN);
     auto args {fun_args()};
     match("function call", RPAREN);
 
-    return make_unique<call_expression_node>(id, std::move(args), loc);
+    return make_unique<CallExpressionNode>(id, std::move(args), loc);
 }
 
 /**

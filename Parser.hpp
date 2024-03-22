@@ -55,7 +55,7 @@ private:
     std::unique_ptr<ExpressionNode> term();
     mul_op mult_op();
     std::unique_ptr<ExpressionNode> factor();
-    std::unique_ptr<call_expression_node> fun_call();
+    std::unique_ptr<CallExpressionNode> fun_call();
     std::vector<std::unique_ptr<ExpressionNode>> fun_args();
     std::vector<std::unique_ptr<ExpressionNode>> args_list();
 

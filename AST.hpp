@@ -35,7 +35,7 @@ struct ExpressionNode;
 struct AssignmentExpressionNode;
 struct VariableExpressionNode;
 struct SubscriptExpressionNode;
-struct call_expression_node;
+struct CallExpressionNode;
 struct additive_expression_node;
 struct multiplicative_expression_node;
 struct relational_expression_node;
@@ -83,7 +83,7 @@ public:
     virtual void visit(AssignmentExpressionNode& node) = 0;
     virtual void visit(VariableExpressionNode& node) = 0;
     virtual void visit(SubscriptExpressionNode& node) = 0;
-    virtual void visit(call_expression_node& node) = 0;
+    virtual void visit(CallExpressionNode& node) = 0;
     virtual void visit(additive_expression_node& node) = 0;
     virtual void visit(multiplicative_expression_node& node) = 0;
     virtual void visit(relational_expression_node& node) = 0;
@@ -517,18 +517,18 @@ struct SubscriptExpressionNode : VariableExpressionNode {
 /// Function Call Expression Node
 ///
 /// A node representing a function call expression
-struct call_expression_node : ExpressionNode {
+struct CallExpressionNode : ExpressionNode {
     /// Constructs a Function Call Expression Node
     ///
     /// \param identifier the name of the function being called
     /// \param args the arguments to the function call
     /// \param loc the location of the function call in the source code
-    call_expression_node(
+    CallExpressionNode(
         std::string identifier,
         std::vector<std::unique_ptr<ExpressionNode>> args,
         location loc);
 
-    virtual ~call_expression_node() = default;
+    virtual ~CallExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

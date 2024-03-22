@@ -196,7 +196,7 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
     }
 }
 
-void PrintVisitor::visit(call_expression_node& node) {
+void PrintVisitor::visit(CallExpressionNode& node) {
     output << indent() << "FunctionCall: " << node.identifier << '\n';
 
     if (!node.arguments.empty()) {

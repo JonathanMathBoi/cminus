@@ -115,7 +115,7 @@ void SubscriptExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-call_expression_node::call_expression_node(
+CallExpressionNode::CallExpressionNode(
     std::string identifier,
     vector<unique_ptr<ExpressionNode>> args,
     location loc)
@@ -123,7 +123,7 @@ call_expression_node::call_expression_node(
     , identifier {identifier}
     , arguments {std::move(args)} {}
 
-void call_expression_node::accept(Visitor& visitor) {
+void CallExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
