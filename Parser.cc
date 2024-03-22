@@ -332,7 +332,7 @@ unique_ptr<ReturnStatementNode> parser::return_stmt() {
  * Ad-hoc solution used to check for assignment expression with an indexed array
  * as the variable.
  */
-unique_ptr<expression_node> parser::expression() {
+unique_ptr<ExpressionNode> parser::expression() {
     if (m_current_token.type == ID && peek_token(1).type == ASSIGN) {
         return assignment_expr();
     }
@@ -409,7 +409,7 @@ unique_ptr<variable_expression_node> parser::variable() {
  * Implemented as simple-expression
  *                  -> additive-expression [ relop additive-expression ]
  */
-unique_ptr<expression_node> parser::relational_expr() {
+unique_ptr<ExpressionNode> parser::relational_expr() {
     auto lhs {add_expr()};
     location loc {lhs->loc};
 
@@ -458,7 +458,7 @@ const std::map<TokenType, add_op> add_ops {
  *
  * Implemented as additive-expression -> term { addop term }
  */
-unique_ptr<expression_node> parser::add_expr() {
+unique_ptr<ExpressionNode> parser::add_expr() {
     auto root {term()};
     location loc {root->loc};
 
@@ -494,7 +494,7 @@ const std::map<TokenType, mul_op> mul_ops {
  *
  * Implemented as term -> factor { mulop factor }
  */
-unique_ptr<expression_node> parser::term() {
+unique_ptr<ExpressionNode> parser::term() {
     auto root {factor()};
     location loc {root->loc};
 
@@ -524,7 +524,7 @@ mul_op parser::mult_op() {
 /**
  * Parses factor -> LPAREN expression RPAREN | var | call | NUM
  */
-unique_ptr<expression_node> parser::factor() {
+unique_ptr<ExpressionNode> parser::factor() {
     switch (m_current_token.type) {
     case LPAREN: {
         match("factor", LPAREN);
@@ -563,7 +563,7 @@ unique_ptr<call_expression_node> parser::fun_call() {
 /**
  * Parses args -> arg-list | empty
  */
-vector<unique_ptr<expression_node>> parser::fun_args() {
+vector<unique_ptr<ExpressionNode>> parser::fun_args() {
     if (m_current_token.type == RPAREN) {
         return {};
     }
@@ -576,8 +576,8 @@ vector<unique_ptr<expression_node>> parser::fun_args() {
  *
  * Implemented as args-list -> expression { COMMA expression }
  */
-vector<unique_ptr<expression_node>> parser::args_list() {
-    vector<unique_ptr<expression_node>> args;
+vector<unique_ptr<ExpressionNode>> parser::args_list() {
+    vector<unique_ptr<ExpressionNode>> args;
 
     args.emplace_back(expression());
 

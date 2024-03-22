@@ -164,7 +164,7 @@ void PrintVisitor::visit(ExpressionStatementNode& node) {
     }
 }
 
-void PrintVisitor::visit(expression_node& node) {
+void PrintVisitor::visit(ExpressionNode& node) {
     node.accept(*this);
 }
 

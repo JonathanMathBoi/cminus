@@ -45,19 +45,19 @@ private:
     std::unique_ptr<IfStatementNode> if_statement();
     std::unique_ptr<WhileStatementNode> while_statement();
     std::unique_ptr<ReturnStatementNode> return_stmt();
-    std::unique_ptr<expression_node> expression();
+    std::unique_ptr<ExpressionNode> expression();
     std::unique_ptr<assignment_expression_node> assignment_expr();
     std::unique_ptr<variable_expression_node> variable();
-    std::unique_ptr<expression_node> relational_expr();
+    std::unique_ptr<ExpressionNode> relational_expr();
     rel_op relation_op();
-    std::unique_ptr<expression_node> add_expr();
+    std::unique_ptr<ExpressionNode> add_expr();
     add_op additive_op();
-    std::unique_ptr<expression_node> term();
+    std::unique_ptr<ExpressionNode> term();
     mul_op mult_op();
-    std::unique_ptr<expression_node> factor();
+    std::unique_ptr<ExpressionNode> factor();
     std::unique_ptr<call_expression_node> fun_call();
-    std::vector<std::unique_ptr<expression_node>> fun_args();
-    std::vector<std::unique_ptr<expression_node>> args_list();
+    std::vector<std::unique_ptr<ExpressionNode>> fun_args();
+    std::vector<std::unique_ptr<ExpressionNode>> args_list();
 
 private:
     /**
