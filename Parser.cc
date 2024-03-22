@@ -652,7 +652,7 @@ parser_exception::parser_exception(
     const std::string_view construct,
     Token received_token,
     const std::string_view expected)
-    : cminus_exception {received_token.loc}, m_received_token {received_token} {
+    : CMinusException {received_token.loc}, m_received_token {received_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while parsing " << std::quoted(construct) << '\n'
                    << "  Encountered: " << std::quoted(m_received_token.lexeme)

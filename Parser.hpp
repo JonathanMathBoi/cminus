@@ -106,7 +106,7 @@ private:
 
 /***********************************************************************/
 
-class parser_exception : public cminus_exception {
+class parser_exception : public CMinusException {
 public:
     parser_exception(
         const std::string_view construct,

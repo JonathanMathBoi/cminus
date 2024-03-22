@@ -17,9 +17,9 @@ struct Location {
 
 /***********************************************************************/
 
-class cminus_exception : public std::exception {
+class CMinusException : public std::exception {
 public:
-    cminus_exception(Location location) : location {location} {}
+    CMinusException(Location location) : location {location} {}
 
 protected:
     Location location;

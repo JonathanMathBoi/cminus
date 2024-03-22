@@ -203,7 +203,7 @@ bool is_digit(char c) {
 }
 
 lexer_exception::lexer_exception(Token bad_token)
-    : cminus_exception {bad_token.loc}, m_bad_token {bad_token} {
+    : CMinusException {bad_token.loc}, m_bad_token {bad_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
                    << "  Encountered: " << std::quoted(m_bad_token.lexeme)

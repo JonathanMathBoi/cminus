@@ -183,7 +183,7 @@ private:
 
 /***********************************************************************/
 
-class lexer_exception : public cminus_exception {
+class lexer_exception : public CMinusException {
 public:
     lexer_exception(Token bad_token);
 

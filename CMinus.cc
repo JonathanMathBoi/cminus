@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     try {
         ast = parser.parse();
         std::cout << "Valid!" << std::endl;
-    } catch (cminus_exception const& exception) {
+    } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
         return -1;
     }
