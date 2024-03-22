@@ -24,7 +24,7 @@ struct ParameterNode;
 struct VariableDeclarationNode;
 struct ArrayDeclarationNode;
 
-struct statement_node;
+struct StatementNode;
 struct compound_statement_node;
 struct if_statement_node;
 struct while_statement_node;
@@ -70,7 +70,7 @@ public:
     virtual void visit(ArrayDeclarationNode& node) = 0;
     virtual void visit(ParameterNode& node) = 0;
 
-    virtual void visit(statement_node& node) = 0;
+    virtual void visit(StatementNode& node) = 0;
     virtual void visit(compound_statement_node& node) = 0;
     virtual void visit(if_statement_node& node) = 0;
     virtual void visit(while_statement_node& node) = 0;
@@ -161,13 +161,13 @@ struct expression_node : Node {
 ///
 /// This node type serves as the base for all types of statement nodes to derive
 /// from.
-struct statement_node : Node {
+struct StatementNode : Node {
     /// Constructs a Statement Node
     ///
     /// \param loc the location of the statement in the source code
-    statement_node(location loc) : Node {loc} {}
+    StatementNode(location loc) : Node {loc} {}
 
-    virtual ~statement_node() = default;
+    virtual ~StatementNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
 };
@@ -202,7 +202,7 @@ struct ProgramNode : Node {
 /// Compound Statement Node
 ///
 /// The node for a braced block of statements.
-struct compound_statement_node : statement_node {
+struct compound_statement_node : StatementNode {
     /// Constructs a Compound Statement Node
     ///
     /// \param decls the list of variable declarations at the start of the block
@@ -210,7 +210,7 @@ struct compound_statement_node : statement_node {
     /// \param loc the location of the start of the block in the source code
     compound_statement_node(
         std::vector<std::shared_ptr<VariableDeclarationNode>> decls,
-        std::vector<std::unique_ptr<statement_node>> stmts,
+        std::vector<std::unique_ptr<StatementNode>> stmts,
         location loc);
 
     virtual ~compound_statement_node() = default;
@@ -224,13 +224,13 @@ struct compound_statement_node : statement_node {
     /// unique_ptr would not be applicable.
     std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls;
     /// The list of statements in the block
-    std::vector<std::unique_ptr<statement_node>> statements;
+    std::vector<std::unique_ptr<StatementNode>> statements;
 };
 
 /// If Statement Node
 ///
 /// The node for an if statement.
-struct if_statement_node : statement_node {
+struct if_statement_node : StatementNode {
     /// Constructs an If Statement Node
     ///
     /// \param condition the conditional expression in the if
@@ -240,8 +240,8 @@ struct if_statement_node : statement_node {
     ///            code
     if_statement_node(
         std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> then_stmt,
-        std::optional<std::unique_ptr<statement_node>> else_stmt,
+        std::unique_ptr<StatementNode> then_stmt,
+        std::optional<std::unique_ptr<StatementNode>> else_stmt,
         location loc);
 
     /// Constructs an If Statement Node
@@ -254,7 +254,7 @@ struct if_statement_node : statement_node {
     ///            code
     if_statement_node(
         std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> then_stmt,
+        std::unique_ptr<StatementNode> then_stmt,
         location loc);
 
     virtual ~if_statement_node() = default;
@@ -264,15 +264,15 @@ struct if_statement_node : statement_node {
     /// The conditional expression for the if statement
     std::unique_ptr<expression_node> condition;
     /// The then statement for the if statement
-    std::unique_ptr<statement_node> then_stmt;
+    std::unique_ptr<StatementNode> then_stmt;
     /// An optional else statement attached to the if statement
-    std::optional<std::unique_ptr<statement_node>> else_stmt;
+    std::optional<std::unique_ptr<StatementNode>> else_stmt;
 };
 
 /// While Statement Node
 ///
 /// The node for a while loop statement.
-struct while_statement_node : statement_node {
+struct while_statement_node : StatementNode {
     /// Constructs a While Statement Node
     ///
     /// \param condition the condition for the while loop to continue
@@ -281,7 +281,7 @@ struct while_statement_node : statement_node {
     ///            source code
     while_statement_node(
         std::unique_ptr<expression_node> condition,
-        std::unique_ptr<statement_node> stmt,
+        std::unique_ptr<StatementNode> stmt,
         location loc);
 
     virtual ~while_statement_node() = default;
@@ -291,7 +291,7 @@ struct while_statement_node : statement_node {
     /// The condition for execution of the while loop
     std::unique_ptr<expression_node> condition;
     /// The body of the while loop
-    std::unique_ptr<statement_node> body;
+    std::unique_ptr<StatementNode> body;
 };
 
 // Future Work: for_statement_node
@@ -299,7 +299,7 @@ struct while_statement_node : statement_node {
 /// Return Statement Node
 ///
 /// The node for a return statement.
-struct return_statement_node : statement_node {
+struct return_statement_node : StatementNode {
     /// Constructs a Return Statement Node
     ///
     /// \param expr the expression to be returned
@@ -327,7 +327,7 @@ struct return_statement_node : statement_node {
 /// Expression Statement Node
 ///
 /// The node for any semicolon delimited expression statement.
-struct expression_statement_node : statement_node {
+struct expression_statement_node : StatementNode {
     /// Constructs an Expression Statement
     ///
     /// \param expr the expression to be evaluated

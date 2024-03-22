@@ -215,8 +215,8 @@ vector<shared_ptr<VariableDeclarationNode>> parser::local_decls() {
  *
  * Implemented as statement-list -> { statement }
  */
-vector<unique_ptr<statement_node>> parser::stmt_list() {
-    vector<unique_ptr<statement_node>> stmts;
+vector<unique_ptr<StatementNode>> parser::stmt_list() {
+    vector<unique_ptr<StatementNode>> stmts;
 
     while (m_current_token.type != RBRACE) {
         stmts.emplace_back(statement());
@@ -232,7 +232,7 @@ vector<unique_ptr<statement_node>> parser::stmt_list() {
  *                   | iteration-stmt
  *                   | return-stmt
  */
-unique_ptr<statement_node> parser::statement() {
+unique_ptr<StatementNode> parser::statement() {
     switch (m_current_token.type) {
     case IF:
         return if_statement();

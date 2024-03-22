@@ -183,11 +183,9 @@ void integer_literal_expression_node::accept(Visitor& visitor) {
 
 compound_statement_node::compound_statement_node(
     vector<shared_ptr<VariableDeclarationNode>> decls,
-    vector<unique_ptr<statement_node>> stmts,
+    vector<unique_ptr<StatementNode>> stmts,
     location loc)
-    : statement_node {loc}
-    , local_decls {decls}
-    , statements {std::move(stmts)} {}
+    : StatementNode {loc}, local_decls {decls}, statements {std::move(stmts)} {}
 
 void compound_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -195,19 +193,19 @@ void compound_statement_node::accept(Visitor& visitor) {
 
 if_statement_node::if_statement_node(
     unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> then_stmt,
-    std::optional<unique_ptr<statement_node>> else_stmt,
+    unique_ptr<StatementNode> then_stmt,
+    std::optional<unique_ptr<StatementNode>> else_stmt,
     location loc)
-    : statement_node {loc}
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::move(else_stmt)} {}
 
 if_statement_node::if_statement_node(
     unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> then_stmt,
+    unique_ptr<StatementNode> then_stmt,
     location loc)
-    : statement_node {loc}
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::nullopt} {}
@@ -218,9 +216,9 @@ void if_statement_node::accept(Visitor& visitor) {
 
 while_statement_node::while_statement_node(
     unique_ptr<expression_node> condition,
-    unique_ptr<statement_node> stmt,
+    unique_ptr<StatementNode> stmt,
     location loc)
-    : statement_node {loc}
+    : StatementNode {loc}
     , condition {std::move(condition)}
     , body {std::move(stmt)} {}
 
@@ -231,10 +229,10 @@ void while_statement_node::accept(Visitor& visitor) {
 return_statement_node::return_statement_node(
     std::optional<unique_ptr<expression_node>> expr,
     location loc)
-    : statement_node {loc}, expression {std::move(expr)} {}
+    : StatementNode {loc}, expression {std::move(expr)} {}
 
 return_statement_node::return_statement_node(location loc)
-    : statement_node {loc}, expression {std::nullopt} {}
+    : StatementNode {loc}, expression {std::nullopt} {}
 
 void return_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -243,10 +241,10 @@ void return_statement_node::accept(Visitor& visitor) {
 expression_statement_node::expression_statement_node(
     std::optional<unique_ptr<expression_node>> expr,
     location loc)
-    : statement_node {loc}, expr {std::move(expr)} {}
+    : StatementNode {loc}, expr {std::move(expr)} {}
 
 expression_statement_node::expression_statement_node(location loc)
-    : statement_node {loc}, expr {std::nullopt} {}
+    : StatementNode {loc}, expr {std::nullopt} {}
 
 void expression_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);

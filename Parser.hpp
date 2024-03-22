@@ -39,8 +39,8 @@ private:
     std::unique_ptr<ParameterNode> param();
     std::unique_ptr<compound_statement_node> compound_stmt();
     std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls();
-    std::vector<std::unique_ptr<statement_node>> stmt_list();
-    std::unique_ptr<statement_node> statement();
+    std::vector<std::unique_ptr<StatementNode>> stmt_list();
+    std::unique_ptr<StatementNode> statement();
     std::unique_ptr<expression_statement_node> expr_stmt();
     std::unique_ptr<if_statement_node> if_statement();
     std::unique_ptr<while_statement_node> while_statement();

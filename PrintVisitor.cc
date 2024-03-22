@@ -100,7 +100,7 @@ void PrintVisitor::visit(ParameterNode& node) {
     output << "type\n";
 }
 
-void PrintVisitor::visit(statement_node& node) {
+void PrintVisitor::visit(StatementNode& node) {
     node.accept(*this);
 }
 
