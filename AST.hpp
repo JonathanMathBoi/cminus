@@ -20,7 +20,7 @@ struct ProgramNode;
 
 struct DeclarationNode;
 struct FunctionDeclarationNode;
-struct param_node;
+struct ParameterNode;
 struct variable_declaration_node;
 struct array_declaration_node;
 
@@ -68,7 +68,7 @@ public:
     virtual void visit(FunctionDeclarationNode& node) = 0;
     virtual void visit(variable_declaration_node& node) = 0;
     virtual void visit(array_declaration_node& node) = 0;
-    virtual void visit(param_node& node) = 0;
+    virtual void visit(ParameterNode& node) = 0;
 
     virtual void visit(statement_node& node) = 0;
     virtual void visit(compound_statement_node& node) = 0;
@@ -368,7 +368,7 @@ struct FunctionDeclarationNode : DeclarationNode {
     FunctionDeclarationNode(
         value_type type,
         std::string identifier,
-        std::vector<std::shared_ptr<param_node>> params,
+        std::vector<std::shared_ptr<ParameterNode>> params,
         std::unique_ptr<compound_statement_node> body,
         location loc);
 
@@ -381,7 +381,7 @@ struct FunctionDeclarationNode : DeclarationNode {
     /// A vector of shared_ptr is used as usage of these parameters will
     /// eventually be linked back to their delarations here. As such a
     /// unique_ptr would not be applicable.
-    std::vector<std::shared_ptr<param_node>> parameters;
+    std::vector<std::shared_ptr<ParameterNode>> parameters;
     /// The statement block serving as the body of the function
     std::unique_ptr<compound_statement_node> function_body;
 };
@@ -435,15 +435,15 @@ struct array_declaration_node : variable_declaration_node {
 /// Parameter Declaration Node
 ///
 /// This node type represents a parameter in a function declaration.
-struct param_node : DeclarationNode {
+struct ParameterNode : DeclarationNode {
     /// Constructs a Parameter Declaration Node
     ///
     /// \param type the type of the parameter
     /// \param identifier the name of the parameter
     /// \param loc the location where the parameter is declared
-    param_node(value_type type, std::string identifier, location loc);
+    ParameterNode(value_type type, std::string identifier, location loc);
 
-    virtual ~param_node() = default;
+    virtual ~ParameterNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 };

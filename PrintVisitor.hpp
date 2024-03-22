@@ -23,7 +23,7 @@ public:
     virtual void visit(FunctionDeclarationNode& node) override;
     virtual void visit(variable_declaration_node& node) override;
     virtual void visit(array_declaration_node& node) override;
-    virtual void visit(param_node& node) override;
+    virtual void visit(ParameterNode& node) override;
 
     virtual void visit(statement_node& node) override;
     virtual void visit(compound_statement_node& node) override;

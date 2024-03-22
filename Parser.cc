@@ -133,7 +133,7 @@ unique_ptr<FunctionDeclarationNode> parser::fun_decl() {
 /**
  * Parses params -> param-list | VOID
  */
-vector<shared_ptr<param_node>> parser::params() {
+vector<shared_ptr<ParameterNode>> parser::params() {
     if (m_current_token.type == VOID && peek_token(1).type == RPAREN) {
         match("parameters", VOID);
         // returns an empty vector
@@ -148,8 +148,8 @@ vector<shared_ptr<param_node>> parser::params() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-vector<shared_ptr<param_node>> parser::param_list() {
-    vector<shared_ptr<param_node>> params;
+vector<shared_ptr<ParameterNode>> parser::param_list() {
+    vector<shared_ptr<ParameterNode>> params;
 
     params.emplace_back(param());
 
@@ -166,7 +166,7 @@ vector<shared_ptr<param_node>> parser::param_list() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-unique_ptr<param_node> parser::param() {
+unique_ptr<ParameterNode> parser::param() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
@@ -179,7 +179,7 @@ unique_ptr<param_node> parser::param() {
         type.is_array = true;
     }
 
-    return make_unique<param_node>(type, id, loc);
+    return make_unique<ParameterNode>(type, id, loc);
 }
 
 /**

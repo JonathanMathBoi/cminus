@@ -34,9 +34,9 @@ private:
     std::pair<basic_type, location> type_spec();
     std::unique_ptr<variable_declaration_node> var_decl();
     std::unique_ptr<FunctionDeclarationNode> fun_decl();
-    std::vector<std::shared_ptr<param_node>> params();
-    std::vector<std::shared_ptr<param_node>> param_list();
-    std::unique_ptr<param_node> param();
+    std::vector<std::shared_ptr<ParameterNode>> params();
+    std::vector<std::shared_ptr<ParameterNode>> param_list();
+    std::unique_ptr<ParameterNode> param();
     std::unique_ptr<compound_statement_node> compound_stmt();
     std::vector<std::shared_ptr<variable_declaration_node>> local_decls();
     std::vector<std::unique_ptr<statement_node>> stmt_list();

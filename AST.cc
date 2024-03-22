@@ -39,7 +39,7 @@ void DeclarationNode::accept(Visitor& visitor) {
 FunctionDeclarationNode::FunctionDeclarationNode(
     value_type type,
     std::string identifier,
-    vector<shared_ptr<param_node>> params,
+    vector<shared_ptr<ParameterNode>> params,
     unique_ptr<compound_statement_node> body,
     location loc)
     : DeclarationNode {type, identifier, loc}
@@ -71,10 +71,13 @@ void array_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-param_node::param_node(value_type type, std::string identifier, location loc)
+ParameterNode::ParameterNode(
+    value_type type,
+    std::string identifier,
+    location loc)
     : DeclarationNode {type, identifier, loc} {}
 
-void param_node::accept(Visitor& visitor) {
+void ParameterNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

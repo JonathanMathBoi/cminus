@@ -84,7 +84,7 @@ void PrintVisitor::visit(array_declaration_node& node) {
            << node.size << "]: " << types.at(node.type.type) << " type\n";
 }
 
-void PrintVisitor::visit(param_node& node) {
+void PrintVisitor::visit(ParameterNode& node) {
     output << indent() << "Parameter: " << node.identifier;
 
     if (node.type.is_array) {
