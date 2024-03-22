@@ -40,7 +40,7 @@ FunctionDeclarationNode::FunctionDeclarationNode(
     value_type type,
     std::string identifier,
     vector<shared_ptr<ParameterNode>> params,
-    unique_ptr<compound_statement_node> body,
+    unique_ptr<CompoundStatementNode> body,
     location loc)
     : DeclarationNode {type, identifier, loc}
     , parameters {params}
@@ -181,13 +181,13 @@ void integer_literal_expression_node::accept(Visitor& visitor) {
 /***********************************************************************/
 // Statement Nodes
 
-compound_statement_node::compound_statement_node(
+CompoundStatementNode::CompoundStatementNode(
     vector<shared_ptr<VariableDeclarationNode>> decls,
     vector<unique_ptr<StatementNode>> stmts,
     location loc)
     : StatementNode {loc}, local_decls {decls}, statements {std::move(stmts)} {}
 
-void compound_statement_node::accept(Visitor& visitor) {
+void CompoundStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

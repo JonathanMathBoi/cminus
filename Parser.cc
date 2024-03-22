@@ -185,12 +185,12 @@ unique_ptr<ParameterNode> parser::param() {
 /**
  * Parses compound-stmt -> LBRACE local-delarations statement-list RBRACE
  */
-unique_ptr<compound_statement_node> parser::compound_stmt() {
+unique_ptr<CompoundStatementNode> parser::compound_stmt() {
     location loc {match("compound statement", LBRACE).loc};
     auto locals {local_decls()};
     auto statements {stmt_list()};
     match("compound statement", RBRACE);
-    return make_unique<compound_statement_node>(
+    return make_unique<CompoundStatementNode>(
         locals, std::move(statements), loc);
 }
 

@@ -104,7 +104,7 @@ void PrintVisitor::visit(StatementNode& node) {
     node.accept(*this);
 }
 
-void PrintVisitor::visit(compound_statement_node& node) {
+void PrintVisitor::visit(CompoundStatementNode& node) {
     output << indent() << "CompoundStatement:\n";
 
     nest_guard guard {*this};

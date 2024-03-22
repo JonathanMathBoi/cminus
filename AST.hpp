@@ -25,7 +25,7 @@ struct VariableDeclarationNode;
 struct ArrayDeclarationNode;
 
 struct StatementNode;
-struct compound_statement_node;
+struct CompoundStatementNode;
 struct if_statement_node;
 struct while_statement_node;
 struct return_statement_node;
@@ -71,7 +71,7 @@ public:
     virtual void visit(ParameterNode& node) = 0;
 
     virtual void visit(StatementNode& node) = 0;
-    virtual void visit(compound_statement_node& node) = 0;
+    virtual void visit(CompoundStatementNode& node) = 0;
     virtual void visit(if_statement_node& node) = 0;
     virtual void visit(while_statement_node& node) = 0;
     // Not parsing for statement yet
@@ -202,18 +202,18 @@ struct ProgramNode : Node {
 /// Compound Statement Node
 ///
 /// The node for a braced block of statements.
-struct compound_statement_node : StatementNode {
+struct CompoundStatementNode : StatementNode {
     /// Constructs a Compound Statement Node
     ///
     /// \param decls the list of variable declarations at the start of the block
     /// \param stmts the list of statments in the block
     /// \param loc the location of the start of the block in the source code
-    compound_statement_node(
+    CompoundStatementNode(
         std::vector<std::shared_ptr<VariableDeclarationNode>> decls,
         std::vector<std::unique_ptr<StatementNode>> stmts,
         location loc);
 
-    virtual ~compound_statement_node() = default;
+    virtual ~CompoundStatementNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 
@@ -369,7 +369,7 @@ struct FunctionDeclarationNode : DeclarationNode {
         value_type type,
         std::string identifier,
         std::vector<std::shared_ptr<ParameterNode>> params,
-        std::unique_ptr<compound_statement_node> body,
+        std::unique_ptr<CompoundStatementNode> body,
         location loc);
 
     virtual ~FunctionDeclarationNode() = default;
@@ -383,7 +383,7 @@ struct FunctionDeclarationNode : DeclarationNode {
     /// unique_ptr would not be applicable.
     std::vector<std::shared_ptr<ParameterNode>> parameters;
     /// The statement block serving as the body of the function
-    std::unique_ptr<compound_statement_node> function_body;
+    std::unique_ptr<CompoundStatementNode> function_body;
 };
 
 /// Variable Declaration Node
