@@ -118,7 +118,7 @@ void PrintVisitor::visit(CompoundStatementNode& node) {
     }
 }
 
-void PrintVisitor::visit(if_statement_node& node) {
+void PrintVisitor::visit(IfStatementNode& node) {
     output << indent() << "If\n";
 
     nest_guard guard {*this};

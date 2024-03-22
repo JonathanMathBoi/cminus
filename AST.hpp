@@ -26,7 +26,7 @@ struct ArrayDeclarationNode;
 
 struct StatementNode;
 struct CompoundStatementNode;
-struct if_statement_node;
+struct IfStatementNode;
 struct while_statement_node;
 struct return_statement_node;
 struct expression_statement_node;
@@ -72,7 +72,7 @@ public:
 
     virtual void visit(StatementNode& node) = 0;
     virtual void visit(CompoundStatementNode& node) = 0;
-    virtual void visit(if_statement_node& node) = 0;
+    virtual void visit(IfStatementNode& node) = 0;
     virtual void visit(while_statement_node& node) = 0;
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) = 0;
@@ -230,7 +230,7 @@ struct CompoundStatementNode : StatementNode {
 /// If Statement Node
 ///
 /// The node for an if statement.
-struct if_statement_node : StatementNode {
+struct IfStatementNode : StatementNode {
     /// Constructs an If Statement Node
     ///
     /// \param condition the conditional expression in the if
@@ -238,7 +238,7 @@ struct if_statement_node : StatementNode {
     /// \param else_stmt the else statement attached to the if statment
     /// \param loc the location of the start of the if statement in the source
     ///            code
-    if_statement_node(
+    IfStatementNode(
         std::unique_ptr<expression_node> condition,
         std::unique_ptr<StatementNode> then_stmt,
         std::optional<std::unique_ptr<StatementNode>> else_stmt,
@@ -252,12 +252,12 @@ struct if_statement_node : StatementNode {
     /// \param then_stmt the then statement of the if statement
     /// \param loc the location of the start of the if statement in the source
     ///            code
-    if_statement_node(
+    IfStatementNode(
         std::unique_ptr<expression_node> condition,
         std::unique_ptr<StatementNode> then_stmt,
         location loc);
 
-    virtual ~if_statement_node() = default;
+    virtual ~IfStatementNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

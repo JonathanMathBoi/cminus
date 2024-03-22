@@ -191,7 +191,7 @@ void CompoundStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-if_statement_node::if_statement_node(
+IfStatementNode::IfStatementNode(
     unique_ptr<expression_node> condition,
     unique_ptr<StatementNode> then_stmt,
     std::optional<unique_ptr<StatementNode>> else_stmt,
@@ -201,7 +201,7 @@ if_statement_node::if_statement_node(
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::move(else_stmt)} {}
 
-if_statement_node::if_statement_node(
+IfStatementNode::IfStatementNode(
     unique_ptr<expression_node> condition,
     unique_ptr<StatementNode> then_stmt,
     location loc)
@@ -210,7 +210,7 @@ if_statement_node::if_statement_node(
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::nullopt} {}
 
-void if_statement_node::accept(Visitor& visitor) {
+void IfStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

@@ -27,7 +27,7 @@ public:
 
     virtual void visit(StatementNode& node) override;
     virtual void visit(CompoundStatementNode& node) override;
-    virtual void visit(if_statement_node& node) override;
+    virtual void visit(IfStatementNode& node) override;
     virtual void visit(while_statement_node& node) override;
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) override;

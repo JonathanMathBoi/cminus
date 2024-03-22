@@ -272,7 +272,7 @@ unique_ptr<expression_statement_node> parser::expr_stmt() {
  * Implemented as selection-stmt
  *                  -> IF LPAREN expression RPAREN [ ELSE statement]
  */
-unique_ptr<if_statement_node> parser::if_statement() {
+unique_ptr<IfStatementNode> parser::if_statement() {
     location loc {match("if statement", IF).loc};
     match("if statement", LPAREN);
     auto condition {expression()};
@@ -282,12 +282,12 @@ unique_ptr<if_statement_node> parser::if_statement() {
     if (m_current_token.type == ELSE) {
         match("if statement", ELSE);
         auto else_stmt {statement()};
-        return make_unique<if_statement_node>(
+        return make_unique<IfStatementNode>(
             std::move(condition), std::move(then_stmt), std::move(else_stmt),
             loc);
     }
 
-    return make_unique<if_statement_node>(
+    return make_unique<IfStatementNode>(
         std::move(condition), std::move(then_stmt), loc);
 }
 

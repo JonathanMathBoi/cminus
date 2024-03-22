@@ -42,7 +42,7 @@ private:
     std::vector<std::unique_ptr<StatementNode>> stmt_list();
     std::unique_ptr<StatementNode> statement();
     std::unique_ptr<expression_statement_node> expr_stmt();
-    std::unique_ptr<if_statement_node> if_statement();
+    std::unique_ptr<IfStatementNode> if_statement();
     std::unique_ptr<while_statement_node> while_statement();
     std::unique_ptr<return_statement_node> return_stmt();
     std::unique_ptr<expression_node> expression();
