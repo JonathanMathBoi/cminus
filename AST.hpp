@@ -14,7 +14,7 @@
 
 class Visitor;
 
-struct node;
+struct Node;
 
 struct program_node;
 
@@ -95,7 +95,7 @@ public:
 /// Abstract AST Node
 ///
 /// Serves as the abstract base of the ATS node inheritance tree.
-struct node {
+struct Node {
     /// Constructs a node
     ///
     /// Because node is abstract, this constructor is only useful for extending
@@ -103,9 +103,9 @@ struct node {
     ///
     /// \param location the location in the source code where the construct
     ///                 begins
-    node(location loc) : loc {loc} {}
+    Node(location loc) : loc {loc} {}
 
-    virtual ~node() = default;
+    virtual ~Node() = default;
 
     /// Accepts a visitor to visit this node
     ///
@@ -124,7 +124,7 @@ struct node {
 /// When a smart pointer is needed to a declaration node, a `shared_ptr` is
 /// likely the best choice, as these nodes eventually need to be pointed to at
 /// both their parent and by all their references.
-struct declaration_node : node {
+struct declaration_node : Node {
     /// Constructs a Declaration Node
     ///
     /// \param type the type for the declared construct
@@ -146,11 +146,11 @@ struct declaration_node : node {
 ///
 /// This node type serves as the base for all types of expression nodes to
 /// derive from.
-struct expression_node : node {
+struct expression_node : Node {
     /// Constructs an Expression Node
     ///
     /// \param loc the location of the expression in the source code
-    expression_node(location loc) : node {loc} {}
+    expression_node(location loc) : Node {loc} {}
 
     virtual ~expression_node() = default;
 
@@ -161,11 +161,11 @@ struct expression_node : node {
 ///
 /// This node type serves as the base for all types of statement nodes to derive
 /// from.
-struct statement_node : node {
+struct statement_node : Node {
     /// Constructs a Statement Node
     ///
     /// \param loc the location of the statement in the source code
-    statement_node(location loc) : node {loc} {}
+    statement_node(location loc) : Node {loc} {}
 
     virtual ~statement_node() = default;
 
@@ -178,7 +178,7 @@ struct statement_node : node {
 ///
 /// This node type serves as the root of the AST. It contains only a list of all
 /// the top level declarations.
-struct program_node : node {
+struct program_node : Node {
     /// Constructs a Program Node
     ///
     /// \param declarations a vector of all the top level declarations in the

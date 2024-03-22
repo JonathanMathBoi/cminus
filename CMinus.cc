@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     parser parser {std::move(lexer)};
 
-    std::unique_ptr<node> ast;
+    std::unique_ptr<Node> ast;
 
     try {
         ast = parser.parse();

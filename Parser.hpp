@@ -22,7 +22,7 @@ class parser {
 public:
     parser(lexer&& lexer);
 
-    std::unique_ptr<node> parse();
+    std::unique_ptr<Node> parse();
 
 private:
     std::unique_ptr<program_node> program();

@@ -17,7 +17,7 @@ using std::vector;
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
 program_node::program_node(vector<shared_ptr<declaration_node>> declarations)
-    : node {location {1, 1}}, declarations {declarations} {}
+    : Node {location {1, 1}}, declarations {declarations} {}
 
 void program_node::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -30,7 +30,7 @@ declaration_node::declaration_node(
     value_type type,
     std::string identifier,
     location loc)
-    : node {loc}, type {type}, identifier {identifier} {}
+    : Node {loc}, type {type}, identifier {identifier} {}
 
 void declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);

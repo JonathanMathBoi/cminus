@@ -594,7 +594,7 @@ vector<unique_ptr<expression_node>> parser::args_list() {
 parser::parser(lexer&& lexer)
     : m_lexer {std::move(lexer)}, m_current_token {Token {END_OF_FILE}} {}
 
-unique_ptr<node> parser::parse() {
+unique_ptr<Node> parser::parse() {
     // Pull first token from lexer to start with good state
     get_token();
 
