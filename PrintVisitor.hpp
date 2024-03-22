@@ -48,14 +48,14 @@ public:
 
 private:
     /// Prints the indent in front of the next to be printed element
-    std::string indent() const;
-    friend struct nest_guard;
+    std::string getIndent() const;
+    friend struct NestGuard;
 
 private:
     /// The output stream to be printed to
-    std::ostream& output;
+    std::ostream& m_output;
     /// The current nest depth of the tree
-    unsigned current_depth;
+    unsigned m_currentDepth;
 };
 
 /***********************************************************************/

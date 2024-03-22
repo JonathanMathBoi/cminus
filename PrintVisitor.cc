@@ -27,16 +27,16 @@ const std::map<RelationalOp, const std::string_view> rel_symbols {
 /***********************************************************************/
 
 PrintVisitor::PrintVisitor(std::ostream& out_stream)
-    : output {out_stream}, current_depth {0} {}
+    : m_output {out_stream}, m_currentDepth {0} {}
 
-std::string PrintVisitor::indent() const {
-    return std::string(2 * current_depth, ' ');
+std::string PrintVisitor::getIndent() const {
+    return std::string(2 * m_currentDepth, ' ');
 }
 
-struct nest_guard {
-    nest_guard(PrintVisitor& pv) : pv {pv} { pv.current_depth++; }
+struct NestGuard {
+    NestGuard(PrintVisitor& pv) : pv {pv} { pv.m_currentDepth++; }
 
-    ~nest_guard() { pv.current_depth--; }
+    ~NestGuard() { pv.m_currentDepth--; }
 
     PrintVisitor& pv;
 };
@@ -44,18 +44,18 @@ struct nest_guard {
 /***********************************************************************/
 
 void PrintVisitor::visit(ProgramNode& node) {
-    output << "ProgramNode:\n";
+    m_output << "ProgramNode:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         for (auto& decl : node.declarations) {
-            output << '\n';
+            m_output << '\n';
             decl->accept(*this);
         }
     }
 
-    output.flush();
+    m_output.flush();
 }
 
 void PrintVisitor::visit(DeclarationNode& node) {
@@ -63,10 +63,10 @@ void PrintVisitor::visit(DeclarationNode& node) {
 }
 
 void PrintVisitor::visit(FunctionDeclarationNode& node) {
-    output << indent() << "Function: " << node.identifier << ": "
-           << types.at(node.type.type) << " type\n";
+    m_output << getIndent() << "Function: " << node.identifier << ": "
+             << types.at(node.type.type) << " type\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     for (auto& param : node.parameters) {
         param->accept(*this);
@@ -76,29 +76,29 @@ void PrintVisitor::visit(FunctionDeclarationNode& node) {
 }
 
 void PrintVisitor::visit(VariableDeclarationNode& node) {
-    output << indent() << "VariableDeclaration: " << node.identifier << ": "
-           << types.at(node.type.type) << " type\n";
+    m_output << getIndent() << "VariableDeclaration: " << node.identifier
+             << ": " << types.at(node.type.type) << " type\n";
 }
 
 void PrintVisitor::visit(ArrayDeclarationNode& node) {
-    output << indent() << "VariableDeclaration: " << node.identifier << "["
-           << node.size << "]: " << types.at(node.type.type) << " type\n";
+    m_output << getIndent() << "VariableDeclaration: " << node.identifier << "["
+             << node.size << "]: " << types.at(node.type.type) << " type\n";
 }
 
 void PrintVisitor::visit(ParameterNode& node) {
-    output << indent() << "Parameter: " << node.identifier;
+    m_output << getIndent() << "Parameter: " << node.identifier;
 
     if (node.type.is_array) {
-        output << "[]";
+        m_output << "[]";
     }
 
-    output << ": " << types.at(node.type.type) << " ";
+    m_output << ": " << types.at(node.type.type) << " ";
 
     if (node.type.is_array) {
-        output << "array ";
+        m_output << "array ";
     }
 
-    output << "type\n";
+    m_output << "type\n";
 }
 
 void PrintVisitor::visit(StatementNode& node) {
@@ -106,9 +106,9 @@ void PrintVisitor::visit(StatementNode& node) {
 }
 
 void PrintVisitor::visit(CompoundStatementNode& node) {
-    output << indent() << "CompoundStatement:\n";
+    m_output << getIndent() << "CompoundStatement:\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     for (auto& decl : node.local_decls) {
         decl->accept(*this);
@@ -120,9 +120,9 @@ void PrintVisitor::visit(CompoundStatementNode& node) {
 }
 
 void PrintVisitor::visit(IfStatementNode& node) {
-    output << indent() << "If\n";
+    m_output << getIndent() << "If\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     node.condition->accept(*this);
 
@@ -134,9 +134,9 @@ void PrintVisitor::visit(IfStatementNode& node) {
 }
 
 void PrintVisitor::visit(WhileStatementNode& node) {
-    output << indent() << "While\n";
+    m_output << getIndent() << "While\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     node.condition->accept(*this);
 
@@ -144,22 +144,22 @@ void PrintVisitor::visit(WhileStatementNode& node) {
 }
 
 void PrintVisitor::visit(ReturnStatementNode& node) {
-    output << indent() << "Return\n";
+    m_output << getIndent() << "Return\n";
 
     if (node.expression) {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         (*node.expression)->accept(*this);
     }
 }
 
 void PrintVisitor::visit(ExpressionStatementNode& node) {
-    output << indent() << "ExpressionStatement:\n";
+    m_output << getIndent() << "ExpressionStatement:\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     if (!node.expr) {
-        output << indent() << "Semicolon\n";
+        m_output << getIndent() << "Semicolon\n";
     } else {
         (*node.expr)->accept(*this);
     }
@@ -170,9 +170,9 @@ void PrintVisitor::visit(ExpressionNode& node) {
 }
 
 void PrintVisitor::visit(AssignmentExpressionNode& node) {
-    output << indent() << "Assignment:\n";
+    m_output << getIndent() << "Assignment:\n";
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
     node.variable->accept(*this);
 
@@ -180,33 +180,33 @@ void PrintVisitor::visit(AssignmentExpressionNode& node) {
 }
 
 void PrintVisitor::visit(VariableExpressionNode& node) {
-    output << indent() << "Variable: " << node.identifier << '\n';
+    m_output << getIndent() << "Variable: " << node.identifier << '\n';
 }
 
 void PrintVisitor::visit(SubscriptExpressionNode& node) {
-    output << indent() << "Subscript: " << node.identifier << '\n';
+    m_output << getIndent() << "Subscript: " << node.identifier << '\n';
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
-    output << indent() << "Index:\n";
+    m_output << getIndent() << "Index:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.index->accept(*this);
     }
 }
 
 void PrintVisitor::visit(CallExpressionNode& node) {
-    output << indent() << "FunctionCall: " << node.identifier << '\n';
+    m_output << getIndent() << "FunctionCall: " << node.identifier << '\n';
 
     if (!node.arguments.empty()) {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
-        output << indent() << "Arguments:\n";
+        m_output << getIndent() << "Arguments:\n";
 
         {
-            nest_guard guard {*this};
+            NestGuard guard {*this};
 
             for (auto& arg : node.arguments) {
                 arg->accept(*this);
@@ -216,78 +216,79 @@ void PrintVisitor::visit(CallExpressionNode& node) {
 }
 
 void PrintVisitor::visit(AdditiveExpressionNode& node) {
-    output << indent()
-           << "AdditiveExpression: " << add_symbols.at(node.operation) << '\n';
+    m_output << getIndent()
+             << "AdditiveExpression: " << add_symbols.at(node.operation)
+             << '\n';
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
-    output << indent() << "Left:\n";
+    m_output << getIndent() << "Left:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.left->accept(*this);
     }
 
-    output << indent() << "Right:\n";
+    m_output << getIndent() << "Right:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.right->accept(*this);
     }
 }
 
 void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
-    output << indent()
-           << "MultiplicativeExpression: " << mul_symbols.at(node.operation)
-           << '\n';
+    m_output << getIndent()
+             << "MultiplicativeExpression: " << mul_symbols.at(node.operation)
+             << '\n';
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
-    output << indent() << "Left:\n";
+    m_output << getIndent() << "Left:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.left->accept(*this);
     }
 
-    output << indent() << "Right:\n";
+    m_output << getIndent() << "Right:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.right->accept(*this);
     }
 }
 
 void PrintVisitor::visit(RelationalExpressionNode& node) {
-    output << indent()
-           << "RelationalExpression: " << rel_symbols.at(node.operation)
-           << '\n';
+    m_output << getIndent()
+             << "RelationalExpression: " << rel_symbols.at(node.operation)
+             << '\n';
 
-    nest_guard guard {*this};
+    NestGuard guard {*this};
 
-    output << indent() << "Left:\n";
+    m_output << getIndent() << "Left:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.left->accept(*this);
     }
 
-    output << indent() << "Right:\n";
+    m_output << getIndent() << "Right:\n";
 
     {
-        nest_guard guard {*this};
+        NestGuard guard {*this};
 
         node.right->accept(*this);
     }
 }
 
 void PrintVisitor::visit(IntegerLiteralExpressionNode& node) {
-    output << indent() << "Integer: " << node.value << '\n';
+    m_output << getIndent() << "Integer: " << node.value << '\n';
 }
 
 /***********************************************************************/
