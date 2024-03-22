@@ -27,7 +27,7 @@ struct ArrayDeclarationNode;
 struct StatementNode;
 struct CompoundStatementNode;
 struct IfStatementNode;
-struct while_statement_node;
+struct WhileStatementNode;
 struct return_statement_node;
 struct expression_statement_node;
 
@@ -73,7 +73,7 @@ public:
     virtual void visit(StatementNode& node) = 0;
     virtual void visit(CompoundStatementNode& node) = 0;
     virtual void visit(IfStatementNode& node) = 0;
-    virtual void visit(while_statement_node& node) = 0;
+    virtual void visit(WhileStatementNode& node) = 0;
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) = 0;
     virtual void visit(return_statement_node& node) = 0;
@@ -272,19 +272,19 @@ struct IfStatementNode : StatementNode {
 /// While Statement Node
 ///
 /// The node for a while loop statement.
-struct while_statement_node : StatementNode {
+struct WhileStatementNode : StatementNode {
     /// Constructs a While Statement Node
     ///
     /// \param condition the condition for the while loop to continue
     /// \param stmt the statement to be executed in the loop
     /// \param loc the location of the start of the while statement in the
     ///            source code
-    while_statement_node(
+    WhileStatementNode(
         std::unique_ptr<expression_node> condition,
         std::unique_ptr<StatementNode> stmt,
         location loc);
 
-    virtual ~while_statement_node() = default;
+    virtual ~WhileStatementNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

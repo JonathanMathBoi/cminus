@@ -132,7 +132,7 @@ void PrintVisitor::visit(IfStatementNode& node) {
     }
 }
 
-void PrintVisitor::visit(while_statement_node& node) {
+void PrintVisitor::visit(WhileStatementNode& node) {
     output << indent() << "While\n";
 
     nest_guard guard {*this};

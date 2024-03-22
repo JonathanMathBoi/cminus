@@ -214,7 +214,7 @@ void IfStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-while_statement_node::while_statement_node(
+WhileStatementNode::WhileStatementNode(
     unique_ptr<expression_node> condition,
     unique_ptr<StatementNode> stmt,
     location loc)
@@ -222,7 +222,7 @@ while_statement_node::while_statement_node(
     , condition {std::move(condition)}
     , body {std::move(stmt)} {}
 
-void while_statement_node::accept(Visitor& visitor) {
+void WhileStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
