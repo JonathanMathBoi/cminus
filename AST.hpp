@@ -34,7 +34,7 @@ struct ExpressionStatementNode;
 struct ExpressionNode;
 struct AssignmentExpressionNode;
 struct VariableExpressionNode;
-struct subscript_expression_node;
+struct SubscriptExpressionNode;
 struct call_expression_node;
 struct additive_expression_node;
 struct multiplicative_expression_node;
@@ -82,7 +82,7 @@ public:
     virtual void visit(ExpressionNode& node) = 0;
     virtual void visit(AssignmentExpressionNode& node) = 0;
     virtual void visit(VariableExpressionNode& node) = 0;
-    virtual void visit(subscript_expression_node& node) = 0;
+    virtual void visit(SubscriptExpressionNode& node) = 0;
     virtual void visit(call_expression_node& node) = 0;
     virtual void visit(additive_expression_node& node) = 0;
     virtual void visit(multiplicative_expression_node& node) = 0;
@@ -495,18 +495,18 @@ struct AssignmentExpressionNode : ExpressionNode {
 /// Subscript Expression Node
 ///
 /// A node representing a subscripted variable
-struct subscript_expression_node : VariableExpressionNode {
+struct SubscriptExpressionNode : VariableExpressionNode {
     /// Constructs a Subscript Expression Node
     ///
     /// \param identifier the identifier of the variable being subscripted
     /// \param index the expression indexing the variable
     /// \param loc the location of the subscript expression in the source code
-    subscript_expression_node(
+    SubscriptExpressionNode(
         std::string identifier,
         std::unique_ptr<ExpressionNode> index,
         location loc);
 
-    virtual ~subscript_expression_node() = default;
+    virtual ~SubscriptExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

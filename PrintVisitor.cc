@@ -182,7 +182,7 @@ void PrintVisitor::visit(VariableExpressionNode& node) {
     output << indent() << "Variable: " << node.identifier << '\n';
 }
 
-void PrintVisitor::visit(subscript_expression_node& node) {
+void PrintVisitor::visit(SubscriptExpressionNode& node) {
     output << indent() << "Subscript: " << node.identifier << '\n';
 
     nest_guard guard {*this};

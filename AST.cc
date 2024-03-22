@@ -105,13 +105,13 @@ void VariableExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-subscript_expression_node::subscript_expression_node(
+SubscriptExpressionNode::SubscriptExpressionNode(
     std::string identifier,
     unique_ptr<ExpressionNode> index,
     location loc)
     : VariableExpressionNode {identifier, loc}, index {std::move(index)} {}
 
-void subscript_expression_node::accept(Visitor& visitor) {
+void SubscriptExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

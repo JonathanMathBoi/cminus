@@ -395,7 +395,7 @@ unique_ptr<VariableExpressionNode> parser::variable() {
         auto subscript {expression()};
         match("variable", RBRACK);
 
-        return make_unique<subscript_expression_node>(
+        return make_unique<SubscriptExpressionNode>(
             id, std::move(subscript), loc);
     }
 
