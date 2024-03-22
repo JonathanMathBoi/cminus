@@ -534,7 +534,7 @@ unique_ptr<ExpressionNode> parser::factor() {
     }
     case NUM: {
         auto [_, __, num, loc] {match("factor", NUM)};
-        return make_unique<integer_literal_expression_node>(num, loc);
+        return make_unique<IntegerLiteralExpressionNode>(num, loc);
     }
     case ID:
         if (peek_token(1).type == LPAREN) {

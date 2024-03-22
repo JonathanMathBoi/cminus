@@ -285,7 +285,7 @@ void PrintVisitor::visit(RelationalExpressionNode& node) {
     }
 }
 
-void PrintVisitor::visit(integer_literal_expression_node& node) {
+void PrintVisitor::visit(IntegerLiteralExpressionNode& node) {
     output << indent() << "Integer: " << node.value << '\n';
 }
 

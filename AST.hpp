@@ -39,7 +39,7 @@ struct CallExpressionNode;
 struct AdditiveExpressionNode;
 struct MultiplicativeExpressionNode;
 struct RelationalExpressionNode;
-struct integer_literal_expression_node;
+struct IntegerLiteralExpressionNode;
 
 /***********************************************************************/
 
@@ -89,7 +89,7 @@ public:
     virtual void visit(RelationalExpressionNode& node) = 0;
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) = 0;
-    virtual void visit(integer_literal_expression_node& node) = 0;
+    virtual void visit(IntegerLiteralExpressionNode& node) = 0;
 };
 
 /// Abstract AST Node
@@ -625,14 +625,14 @@ struct RelationalExpressionNode : ExpressionNode {
 /// Integer Literal Expression Node
 ///
 /// Represents an integer literal in an expression
-struct integer_literal_expression_node : ExpressionNode {
+struct IntegerLiteralExpressionNode : ExpressionNode {
     /// Constructs an Integer Literal Expression Node
     ///
     /// \param value the value of the literal
     /// \param loc the location of the literal in the source code
-    integer_literal_expression_node(int value, location loc);
+    IntegerLiteralExpressionNode(int value, location loc);
 
-    virtual ~integer_literal_expression_node() = default;
+    virtual ~IntegerLiteralExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

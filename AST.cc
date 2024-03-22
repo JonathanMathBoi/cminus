@@ -169,12 +169,12 @@ void RelationalExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-integer_literal_expression_node::integer_literal_expression_node(
+IntegerLiteralExpressionNode::IntegerLiteralExpressionNode(
     int value,
     location loc)
     : ExpressionNode {loc}, value {value} {}
 
-void integer_literal_expression_node::accept(Visitor& visitor) {
+void IntegerLiteralExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
