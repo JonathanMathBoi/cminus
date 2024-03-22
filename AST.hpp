@@ -28,7 +28,7 @@ struct StatementNode;
 struct CompoundStatementNode;
 struct IfStatementNode;
 struct WhileStatementNode;
-struct return_statement_node;
+struct ReturnStatementNode;
 struct expression_statement_node;
 
 struct expression_node;
@@ -76,7 +76,7 @@ public:
     virtual void visit(WhileStatementNode& node) = 0;
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) = 0;
-    virtual void visit(return_statement_node& node) = 0;
+    virtual void visit(ReturnStatementNode& node) = 0;
     virtual void visit(expression_statement_node& node) = 0;
 
     virtual void visit(expression_node& node) = 0;
@@ -299,12 +299,12 @@ struct WhileStatementNode : StatementNode {
 /// Return Statement Node
 ///
 /// The node for a return statement.
-struct return_statement_node : StatementNode {
+struct ReturnStatementNode : StatementNode {
     /// Constructs a Return Statement Node
     ///
     /// \param expr the expression to be returned
     /// \param loc the location of the return statement in the source code
-    return_statement_node(
+    ReturnStatementNode(
         std::optional<std::unique_ptr<expression_node>> expr,
         location loc);
 
@@ -314,9 +314,9 @@ struct return_statement_node : StatementNode {
     /// expression.
     ///
     /// \param loc the location of the return statement in the source code
-    return_statement_node(location loc);
+    ReturnStatementNode(location loc);
 
-    virtual ~return_statement_node() = default;
+    virtual ~ReturnStatementNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

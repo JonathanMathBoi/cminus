@@ -142,7 +142,7 @@ void PrintVisitor::visit(WhileStatementNode& node) {
     node.body->accept(*this);
 }
 
-void PrintVisitor::visit(return_statement_node& node) {
+void PrintVisitor::visit(ReturnStatementNode& node) {
     output << indent() << "Return\n";
 
     if (node.expression) {

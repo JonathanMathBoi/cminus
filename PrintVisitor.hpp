@@ -31,7 +31,7 @@ public:
     virtual void visit(WhileStatementNode& node) override;
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) override;
-    virtual void visit(return_statement_node& node) override;
+    virtual void visit(ReturnStatementNode& node) override;
     virtual void visit(expression_statement_node& node) override;
 
     virtual void visit(expression_node& node) override;

@@ -226,15 +226,15 @@ void WhileStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-return_statement_node::return_statement_node(
+ReturnStatementNode::ReturnStatementNode(
     std::optional<unique_ptr<expression_node>> expr,
     location loc)
     : StatementNode {loc}, expression {std::move(expr)} {}
 
-return_statement_node::return_statement_node(location loc)
+ReturnStatementNode::ReturnStatementNode(location loc)
     : StatementNode {loc}, expression {std::nullopt} {}
 
-void return_statement_node::accept(Visitor& visitor) {
+void ReturnStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

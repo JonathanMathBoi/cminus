@@ -44,7 +44,7 @@ private:
     std::unique_ptr<expression_statement_node> expr_stmt();
     std::unique_ptr<IfStatementNode> if_statement();
     std::unique_ptr<WhileStatementNode> while_statement();
-    std::unique_ptr<return_statement_node> return_stmt();
+    std::unique_ptr<ReturnStatementNode> return_stmt();
     std::unique_ptr<expression_node> expression();
     std::unique_ptr<assignment_expression_node> assignment_expr();
     std::unique_ptr<variable_expression_node> variable();
