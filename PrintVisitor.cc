@@ -152,7 +152,7 @@ void PrintVisitor::visit(ReturnStatementNode& node) {
     }
 }
 
-void PrintVisitor::visit(expression_statement_node& node) {
+void PrintVisitor::visit(ExpressionStatementNode& node) {
     output << indent() << "ExpressionStatement:\n";
 
     nest_guard guard {*this};

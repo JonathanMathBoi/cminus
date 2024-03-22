@@ -29,7 +29,7 @@ struct CompoundStatementNode;
 struct IfStatementNode;
 struct WhileStatementNode;
 struct ReturnStatementNode;
-struct expression_statement_node;
+struct ExpressionStatementNode;
 
 struct expression_node;
 struct assignment_expression_node;
@@ -77,7 +77,7 @@ public:
     // Not parsing for statement yet
     // virtual void visit(for_statement_node& node) = 0;
     virtual void visit(ReturnStatementNode& node) = 0;
-    virtual void visit(expression_statement_node& node) = 0;
+    virtual void visit(ExpressionStatementNode& node) = 0;
 
     virtual void visit(expression_node& node) = 0;
     virtual void visit(assignment_expression_node& node) = 0;
@@ -327,12 +327,12 @@ struct ReturnStatementNode : StatementNode {
 /// Expression Statement Node
 ///
 /// The node for any semicolon delimited expression statement.
-struct expression_statement_node : StatementNode {
+struct ExpressionStatementNode : StatementNode {
     /// Constructs an Expression Statement
     ///
     /// \param expr the expression to be evaluated
     /// \param loc the location of the expression in the source code.
-    expression_statement_node(
+    ExpressionStatementNode(
         std::optional<std::unique_ptr<expression_node>> expr,
         location loc);
 
@@ -342,9 +342,9 @@ struct expression_statement_node : StatementNode {
     /// the statement `;`.)
     ///
     /// \param loc the location of the expression in the source code.
-    expression_statement_node(location loc);
+    ExpressionStatementNode(location loc);
 
-    virtual ~expression_statement_node() = default;
+    virtual ~ExpressionStatementNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 

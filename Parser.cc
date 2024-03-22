@@ -252,17 +252,17 @@ unique_ptr<StatementNode> parser::statement() {
  *
  * Implemented as expression-stmt -> [ expression ] SEMI
  */
-unique_ptr<expression_statement_node> parser::expr_stmt() {
+unique_ptr<ExpressionStatementNode> parser::expr_stmt() {
     if (m_current_token.type == SEMI) {
         location loc {match("expression statement", SEMI).loc};
-        return make_unique<expression_statement_node>(loc);
+        return make_unique<ExpressionStatementNode>(loc);
     }
 
     auto expr {expression()};
     location loc {expr->loc};
     match("expression statement", SEMI);
 
-    return make_unique<expression_statement_node>(std::move(expr), loc);
+    return make_unique<ExpressionStatementNode>(std::move(expr), loc);
 }
 
 /**

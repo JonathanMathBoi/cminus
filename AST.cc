@@ -238,15 +238,15 @@ void ReturnStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-expression_statement_node::expression_statement_node(
+ExpressionStatementNode::ExpressionStatementNode(
     std::optional<unique_ptr<expression_node>> expr,
     location loc)
     : StatementNode {loc}, expr {std::move(expr)} {}
 
-expression_statement_node::expression_statement_node(location loc)
+ExpressionStatementNode::ExpressionStatementNode(location loc)
     : StatementNode {loc}, expr {std::nullopt} {}
 
-void expression_statement_node::accept(Visitor& visitor) {
+void ExpressionStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 /***********************************************************************/

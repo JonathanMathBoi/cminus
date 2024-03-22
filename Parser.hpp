@@ -41,7 +41,7 @@ private:
     std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls();
     std::vector<std::unique_ptr<StatementNode>> stmt_list();
     std::unique_ptr<StatementNode> statement();
-    std::unique_ptr<expression_statement_node> expr_stmt();
+    std::unique_ptr<ExpressionStatementNode> expr_stmt();
     std::unique_ptr<IfStatementNode> if_statement();
     std::unique_ptr<WhileStatementNode> while_statement();
     std::unique_ptr<ReturnStatementNode> return_stmt();
