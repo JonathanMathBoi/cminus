@@ -25,24 +25,24 @@ const std::map<rel_op, const std::string_view> rel_symbols {
 
 /***********************************************************************/
 
-print_visitor::print_visitor(std::ostream& out_stream)
+PrintVisitor::PrintVisitor(std::ostream& out_stream)
     : output {out_stream}, current_depth {0} {}
 
-std::string print_visitor::indent() const {
+std::string PrintVisitor::indent() const {
     return std::string(2 * current_depth, ' ');
 }
 
 struct nest_guard {
-    nest_guard(print_visitor& pv) : pv {pv} { pv.current_depth++; }
+    nest_guard(PrintVisitor& pv) : pv {pv} { pv.current_depth++; }
 
     ~nest_guard() { pv.current_depth--; }
 
-    print_visitor& pv;
+    PrintVisitor& pv;
 };
 
 /***********************************************************************/
 
-void print_visitor::visit(program_node& node) {
+void PrintVisitor::visit(program_node& node) {
     output << "ProgramNode:\n";
 
     {
@@ -57,11 +57,11 @@ void print_visitor::visit(program_node& node) {
     output.flush();
 }
 
-void print_visitor::visit(declaration_node& node) {
+void PrintVisitor::visit(declaration_node& node) {
     node.accept(*this);
 }
 
-void print_visitor::visit(function_declaration_node& node) {
+void PrintVisitor::visit(function_declaration_node& node) {
     output << indent() << "Function: " << node.identifier << ": "
            << types.at(node.type.type) << " type\n";
 
@@ -74,17 +74,17 @@ void print_visitor::visit(function_declaration_node& node) {
     node.function_body->accept(*this);
 }
 
-void print_visitor::visit(variable_declaration_node& node) {
+void PrintVisitor::visit(variable_declaration_node& node) {
     output << indent() << "VariableDeclaration: " << node.identifier << ": "
            << types.at(node.type.type) << " type\n";
 }
 
-void print_visitor::visit(array_declaration_node& node) {
+void PrintVisitor::visit(array_declaration_node& node) {
     output << indent() << "VariableDeclaration: " << node.identifier << "["
            << node.size << "]: " << types.at(node.type.type) << " type\n";
 }
 
-void print_visitor::visit(param_node& node) {
+void PrintVisitor::visit(param_node& node) {
     output << indent() << "Parameter: " << node.identifier;
 
     if (node.type.is_array) {
@@ -100,11 +100,11 @@ void print_visitor::visit(param_node& node) {
     output << "type\n";
 }
 
-void print_visitor::visit(statement_node& node) {
+void PrintVisitor::visit(statement_node& node) {
     node.accept(*this);
 }
 
-void print_visitor::visit(compound_statement_node& node) {
+void PrintVisitor::visit(compound_statement_node& node) {
     output << indent() << "CompoundStatement:\n";
 
     nest_guard guard {*this};
@@ -118,7 +118,7 @@ void print_visitor::visit(compound_statement_node& node) {
     }
 }
 
-void print_visitor::visit(if_statement_node& node) {
+void PrintVisitor::visit(if_statement_node& node) {
     output << indent() << "If\n";
 
     nest_guard guard {*this};
@@ -132,7 +132,7 @@ void print_visitor::visit(if_statement_node& node) {
     }
 }
 
-void print_visitor::visit(while_statement_node& node) {
+void PrintVisitor::visit(while_statement_node& node) {
     output << indent() << "While\n";
 
     nest_guard guard {*this};
@@ -142,7 +142,7 @@ void print_visitor::visit(while_statement_node& node) {
     node.body->accept(*this);
 }
 
-void print_visitor::visit(return_statement_node& node) {
+void PrintVisitor::visit(return_statement_node& node) {
     output << indent() << "Return\n";
 
     if (node.expression) {
@@ -152,7 +152,7 @@ void print_visitor::visit(return_statement_node& node) {
     }
 }
 
-void print_visitor::visit(expression_statement_node& node) {
+void PrintVisitor::visit(expression_statement_node& node) {
     output << indent() << "ExpressionStatement:\n";
 
     nest_guard guard {*this};
@@ -164,11 +164,11 @@ void print_visitor::visit(expression_statement_node& node) {
     }
 }
 
-void print_visitor::visit(expression_node& node) {
+void PrintVisitor::visit(expression_node& node) {
     node.accept(*this);
 }
 
-void print_visitor::visit(assignment_expression_node& node) {
+void PrintVisitor::visit(assignment_expression_node& node) {
     output << indent() << "Assignment:\n";
 
     nest_guard guard {*this};
@@ -178,11 +178,11 @@ void print_visitor::visit(assignment_expression_node& node) {
     node.expression->accept(*this);
 }
 
-void print_visitor::visit(variable_expression_node& node) {
+void PrintVisitor::visit(variable_expression_node& node) {
     output << indent() << "Variable: " << node.identifier << '\n';
 }
 
-void print_visitor::visit(subscript_expression_node& node) {
+void PrintVisitor::visit(subscript_expression_node& node) {
     output << indent() << "Subscript: " << node.identifier << '\n';
 
     nest_guard guard {*this};
@@ -196,7 +196,7 @@ void print_visitor::visit(subscript_expression_node& node) {
     }
 }
 
-void print_visitor::visit(call_expression_node& node) {
+void PrintVisitor::visit(call_expression_node& node) {
     output << indent() << "FunctionCall: " << node.identifier << '\n';
 
     if (!node.arguments.empty()) {
@@ -214,7 +214,7 @@ void print_visitor::visit(call_expression_node& node) {
     }
 }
 
-void print_visitor::visit(additive_expression_node& node) {
+void PrintVisitor::visit(additive_expression_node& node) {
     output << indent()
            << "AdditiveExpression: " << add_symbols.at(node.operation) << '\n';
 
@@ -237,7 +237,7 @@ void print_visitor::visit(additive_expression_node& node) {
     }
 }
 
-void print_visitor::visit(multiplicative_expression_node& node) {
+void PrintVisitor::visit(multiplicative_expression_node& node) {
     output << indent()
            << "MultiplicativeExpression: " << mul_symbols.at(node.operation)
            << '\n';
@@ -261,7 +261,7 @@ void print_visitor::visit(multiplicative_expression_node& node) {
     }
 }
 
-void print_visitor::visit(relational_expression_node& node) {
+void PrintVisitor::visit(relational_expression_node& node) {
     output << indent()
            << "RelationalExpression: " << rel_symbols.at(node.operation)
            << '\n';
@@ -285,7 +285,7 @@ void print_visitor::visit(relational_expression_node& node) {
     }
 }
 
-void print_visitor::visit(integer_literal_expression_node& node) {
+void PrintVisitor::visit(integer_literal_expression_node& node) {
     output << indent() << "Integer: " << node.value << '\n';
 }
 

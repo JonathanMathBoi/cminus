@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     std::ofstream ast_file {new_path, std::ios::trunc};
 
-    print_visitor printer {ast_file};
+    PrintVisitor printer {ast_file};
 
     ast->accept(printer);
 }

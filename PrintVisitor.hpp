@@ -10,12 +10,12 @@
 /***********************************************************************/
 
 /// AST Visitor for printing AST
-class print_visitor : public visitor {
+class PrintVisitor : public Visitor {
 public:
     /// Constructs a print visitor
     ///
     /// \param out_stream the ostream to print the tree to
-    print_visitor(std::ostream& out_stream);
+    PrintVisitor(std::ostream& out_stream);
 
     virtual void visit(program_node& node) override;
 

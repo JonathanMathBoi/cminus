@@ -19,7 +19,7 @@ using std::vector;
 program_node::program_node(vector<shared_ptr<declaration_node>> declarations)
     : node {location {1, 1}}, declarations {declarations} {}
 
-void program_node::accept(visitor& visitor) {
+void program_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -32,7 +32,7 @@ declaration_node::declaration_node(
     location loc)
     : node {loc}, type {type}, identifier {identifier} {}
 
-void declaration_node::accept(visitor& visitor) {
+void declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -46,7 +46,7 @@ function_declaration_node::function_declaration_node(
     , parameters {params}
     , function_body {std::move(body)} {}
 
-void function_declaration_node::accept(visitor& visitor) {
+void function_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -56,7 +56,7 @@ variable_declaration_node::variable_declaration_node(
     location loc)
     : declaration_node {type, identifier, loc} {}
 
-void variable_declaration_node::accept(visitor& visitor) {
+void variable_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -67,14 +67,14 @@ array_declaration_node::array_declaration_node(
     location loc)
     : variable_declaration_node {type, identifier, loc}, size {size} {}
 
-void array_declaration_node::accept(visitor& visitor) {
+void array_declaration_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 param_node::param_node(value_type type, std::string identifier, location loc)
     : declaration_node {type, identifier, loc} {}
 
-void param_node::accept(visitor& visitor) {
+void param_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -89,7 +89,7 @@ assignment_expression_node::assignment_expression_node(
     , variable {std::move(var)}
     , expression {std::move(expr)} {}
 
-void assignment_expression_node::accept(visitor& visitor) {
+void assignment_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -98,7 +98,7 @@ variable_expression_node::variable_expression_node(
     location loc)
     : expression_node {loc}, identifier {identifier} {}
 
-void variable_expression_node::accept(visitor& visitor) {
+void variable_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -108,7 +108,7 @@ subscript_expression_node::subscript_expression_node(
     location loc)
     : variable_expression_node {identifier, loc}, index {std::move(index)} {}
 
-void subscript_expression_node::accept(visitor& visitor) {
+void subscript_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -120,7 +120,7 @@ call_expression_node::call_expression_node(
     , identifier {identifier}
     , arguments {std::move(args)} {}
 
-void call_expression_node::accept(visitor& visitor) {
+void call_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -134,7 +134,7 @@ additive_expression_node::additive_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void additive_expression_node::accept(visitor& visitor) {
+void additive_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -148,7 +148,7 @@ multiplicative_expression_node::multiplicative_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void multiplicative_expression_node::accept(visitor& visitor) {
+void multiplicative_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -162,7 +162,7 @@ relational_expression_node::relational_expression_node(
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
 
-void relational_expression_node::accept(visitor& visitor) {
+void relational_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -171,7 +171,7 @@ integer_literal_expression_node::integer_literal_expression_node(
     location loc)
     : expression_node {loc}, value {value} {}
 
-void integer_literal_expression_node::accept(visitor& visitor) {
+void integer_literal_expression_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -186,7 +186,7 @@ compound_statement_node::compound_statement_node(
     , local_decls {decls}
     , statements {std::move(stmts)} {}
 
-void compound_statement_node::accept(visitor& visitor) {
+void compound_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -209,7 +209,7 @@ if_statement_node::if_statement_node(
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::nullopt} {}
 
-void if_statement_node::accept(visitor& visitor) {
+void if_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -221,7 +221,7 @@ while_statement_node::while_statement_node(
     , condition {std::move(condition)}
     , body {std::move(stmt)} {}
 
-void while_statement_node::accept(visitor& visitor) {
+void while_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -233,7 +233,7 @@ return_statement_node::return_statement_node(
 return_statement_node::return_statement_node(location loc)
     : statement_node {loc}, expression {std::nullopt} {}
 
-void return_statement_node::accept(visitor& visitor) {
+void return_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -245,7 +245,7 @@ expression_statement_node::expression_statement_node(
 expression_statement_node::expression_statement_node(location loc)
     : statement_node {loc}, expr {std::nullopt} {}
 
-void expression_statement_node::accept(visitor& visitor) {
+void expression_statement_node::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 /***********************************************************************/
