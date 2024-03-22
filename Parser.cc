@@ -111,7 +111,7 @@ std::pair<basic_type, location> parser::type_spec() {
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-unique_ptr<function_declaration_node> parser::fun_decl() {
+unique_ptr<FunctionDeclarationNode> parser::fun_decl() {
     auto spec {type_spec()};
     value_type type {spec.first};
     location loc {spec.second};
@@ -126,7 +126,7 @@ unique_ptr<function_declaration_node> parser::fun_decl() {
 
     auto body {compound_stmt()};
 
-    return make_unique<function_declaration_node>(
+    return make_unique<FunctionDeclarationNode>(
         type, id, parameters, std::move(body), loc);
 }
 

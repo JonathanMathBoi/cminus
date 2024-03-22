@@ -20,7 +20,7 @@ public:
     virtual void visit(ProgramNode& node) override;
 
     virtual void visit(DeclarationNode& node) override;
-    virtual void visit(function_declaration_node& node) override;
+    virtual void visit(FunctionDeclarationNode& node) override;
     virtual void visit(variable_declaration_node& node) override;
     virtual void visit(array_declaration_node& node) override;
     virtual void visit(param_node& node) override;

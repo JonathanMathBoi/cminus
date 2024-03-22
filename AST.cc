@@ -36,7 +36,7 @@ void DeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-function_declaration_node::function_declaration_node(
+FunctionDeclarationNode::FunctionDeclarationNode(
     value_type type,
     std::string identifier,
     vector<shared_ptr<param_node>> params,
@@ -46,7 +46,7 @@ function_declaration_node::function_declaration_node(
     , parameters {params}
     , function_body {std::move(body)} {}
 
-void function_declaration_node::accept(Visitor& visitor) {
+void FunctionDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

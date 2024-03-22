@@ -19,7 +19,7 @@ struct Node;
 struct ProgramNode;
 
 struct DeclarationNode;
-struct function_declaration_node;
+struct FunctionDeclarationNode;
 struct param_node;
 struct variable_declaration_node;
 struct array_declaration_node;
@@ -65,7 +65,7 @@ public:
     virtual void visit(ProgramNode& node) = 0;
 
     virtual void visit(DeclarationNode& node) = 0;
-    virtual void visit(function_declaration_node& node) = 0;
+    virtual void visit(FunctionDeclarationNode& node) = 0;
     virtual void visit(variable_declaration_node& node) = 0;
     virtual void visit(array_declaration_node& node) = 0;
     virtual void visit(param_node& node) = 0;
@@ -357,7 +357,7 @@ struct expression_statement_node : statement_node {
 /// Function Declaration Node
 ///
 /// This node type represents a function declaration.
-struct function_declaration_node : DeclarationNode {
+struct FunctionDeclarationNode : DeclarationNode {
     /// Constructs a Function Declaration Node
     ///
     /// \param type the function return type
@@ -365,14 +365,14 @@ struct function_declaration_node : DeclarationNode {
     /// \param params the list of parameters of the function
     /// \param body the function body
     /// \param loc the location where the function is declared
-    function_declaration_node(
+    FunctionDeclarationNode(
         value_type type,
         std::string identifier,
         std::vector<std::shared_ptr<param_node>> params,
         std::unique_ptr<compound_statement_node> body,
         location loc);
 
-    virtual ~function_declaration_node() = default;
+    virtual ~FunctionDeclarationNode() = default;
 
     virtual void accept(Visitor& visitor) override;
 
