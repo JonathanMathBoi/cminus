@@ -6,3 +6,8 @@ void SymbolTable::enterScope() {
     m_nestLevel++;
     m_table.emplace_back();
 }
+
+void SymbolTable::exitScope() {
+    m_table.pop_back();
+    m_nestLevel--;
+}

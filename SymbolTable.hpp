@@ -24,6 +24,7 @@ public:
     SymbolTable();
 
     void enterScope();
+    void exitScope();
     bool insert(std::shared_ptr<DeclarationNode> node);
     std::optional<std::shared_ptr<DeclarationNode>> lookup(
         const std::string_view name) const;
