@@ -4,6 +4,7 @@
 /***********************************************************************/
 
 #include "AST.hpp"
+#include "MiscUtils.hpp"
 
 #include <memory>
 #include <optional>
@@ -19,13 +20,22 @@ using ScopeTable =
 
 /***********************************************************************/
 
+class SymbolException : CMinusException {
+public:
+    SymbolException(Location loc) : CMinusException {loc} {}
+};
+
+class MultipleDeclaredSymbolException;
+
+/***********************************************************************/
+
 class SymbolTable {
 public:
     SymbolTable();
 
     void enterScope();
     void exitScope();
-    bool insert(std::shared_ptr<DeclarationNode> node);
+    void insert(std::shared_ptr<DeclarationNode> node);
     std::optional<std::shared_ptr<DeclarationNode>> lookup(
         const std::string_view name) const;
     unsigned getNestLevel() const;
@@ -33,6 +43,22 @@ public:
 private:
     unsigned m_nestLevel;
     std::vector<ScopeTable> m_table;
+};
+
+/***********************************************************************/
+
+class MultipleDeclaredSymbolException : SymbolException {
+public:
+    MultipleDeclaredSymbolException(
+        std::shared_ptr<DeclarationNode> firstDeclaration,
+        std::shared_ptr<DeclarationNode> badDeclaration);
+
+    virtual char const* what() const noexcept;
+
+private:
+    std::string m_errorMessage;
+    std::shared_ptr<DeclarationNode> m_firstDecl;
+    std::shared_ptr<DeclarationNode> m_badDecl;
 };
 
 /***********************************************************************/
