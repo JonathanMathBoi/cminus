@@ -26,23 +26,14 @@ void ProgramNode::accept(Visitor& visitor) {
 /***********************************************************************/
 // Declaration Nodes
 
-DeclarationNode::DeclarationNode(
-    ValueType type,
-    std::string identifier,
-    Location loc)
-    : Node {loc}, type {type}, identifier {identifier} {}
-
-void DeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
 FunctionDeclarationNode::FunctionDeclarationNode(
     ValueType type,
     std::string identifier,
     vector<shared_ptr<ParameterNode>> params,
     unique_ptr<CompoundStatementNode> body,
     Location loc)
-    : DeclarationNode {type, identifier, loc}
+    : Node {loc}
+    , DeclarationNode {type, identifier}
     , parameters {params}
     , function_body {std::move(body)} {}
 
@@ -54,7 +45,7 @@ VariableDeclarationNode::VariableDeclarationNode(
     ValueType type,
     std::string identifier,
     Location loc)
-    : DeclarationNode {type, identifier, loc} {}
+    : Node {loc}, DeclarationNode {type, identifier} {}
 
 void VariableDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -65,7 +56,9 @@ ArrayDeclarationNode::ArrayDeclarationNode(
     std::string identifier,
     int size,
     Location loc)
-    : VariableDeclarationNode {type, identifier, loc}, size {size} {}
+    : Node {loc}
+    , VariableDeclarationNode {type, identifier, loc}
+    , size {size} {}
 
 void ArrayDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -75,7 +68,7 @@ ParameterNode::ParameterNode(
     ValueType type,
     std::string identifier,
     Location loc)
-    : DeclarationNode {type, identifier, loc} {}
+    : Node {loc}, DeclarationNode {type, identifier} {}
 
 void ParameterNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -88,9 +81,7 @@ AssignmentExpressionNode::AssignmentExpressionNode(
     unique_ptr<VariableExpressionNode> var,
     unique_ptr<ExpressionNode> expr,
     Location loc)
-    : ExpressionNode {loc}
-    , variable {std::move(var)}
-    , expression {std::move(expr)} {}
+    : Node {loc}, variable {std::move(var)}, expression {std::move(expr)} {}
 
 void AssignmentExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -99,7 +90,7 @@ void AssignmentExpressionNode::accept(Visitor& visitor) {
 VariableExpressionNode::VariableExpressionNode(
     std::string identifier,
     Location loc)
-    : ExpressionNode {loc}, identifier {identifier} {}
+    : Node {loc}, SymbolUseNode {identifier} {}
 
 void VariableExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -109,7 +100,9 @@ SubscriptExpressionNode::SubscriptExpressionNode(
     std::string identifier,
     unique_ptr<ExpressionNode> index,
     Location loc)
-    : VariableExpressionNode {identifier, loc}, index {std::move(index)} {}
+    : Node {loc}
+    , VariableExpressionNode {identifier, loc}
+    , index {std::move(index)} {}
 
 void SubscriptExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -119,9 +112,7 @@ CallExpressionNode::CallExpressionNode(
     std::string identifier,
     vector<unique_ptr<ExpressionNode>> args,
     Location loc)
-    : ExpressionNode {loc}
-    , identifier {identifier}
-    , arguments {std::move(args)} {}
+    : Node {loc}, SymbolUseNode {identifier}, arguments {std::move(args)} {}
 
 void CallExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -132,7 +123,7 @@ AdditiveExpressionNode::AdditiveExpressionNode(
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     Location loc)
-    : ExpressionNode {loc}
+    : Node {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
@@ -146,7 +137,7 @@ MultiplicativeExpressionNode::MultiplicativeExpressionNode(
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     Location loc)
-    : ExpressionNode {loc}
+    : Node {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
@@ -160,7 +151,7 @@ RelationalExpressionNode::RelationalExpressionNode(
     unique_ptr<ExpressionNode> lhs,
     unique_ptr<ExpressionNode> rhs,
     Location loc)
-    : ExpressionNode {loc}
+    : Node {loc}
     , operation {operation}
     , left {std::move(lhs)}
     , right {std::move(rhs)} {}
@@ -172,7 +163,7 @@ void RelationalExpressionNode::accept(Visitor& visitor) {
 IntegerLiteralExpressionNode::IntegerLiteralExpressionNode(
     int value,
     Location loc)
-    : ExpressionNode {loc}, value {value} {}
+    : Node {loc}, value {value} {}
 
 void IntegerLiteralExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -185,7 +176,7 @@ CompoundStatementNode::CompoundStatementNode(
     vector<shared_ptr<VariableDeclarationNode>> decls,
     vector<unique_ptr<StatementNode>> stmts,
     Location loc)
-    : StatementNode {loc}, local_decls {decls}, statements {std::move(stmts)} {}
+    : Node {loc}, local_decls {decls}, statements {std::move(stmts)} {}
 
 void CompoundStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -196,7 +187,7 @@ IfStatementNode::IfStatementNode(
     unique_ptr<StatementNode> then_stmt,
     std::optional<unique_ptr<StatementNode>> else_stmt,
     Location loc)
-    : StatementNode {loc}
+    : Node {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::move(else_stmt)} {}
@@ -205,7 +196,7 @@ IfStatementNode::IfStatementNode(
     unique_ptr<ExpressionNode> condition,
     unique_ptr<StatementNode> then_stmt,
     Location loc)
-    : StatementNode {loc}
+    : Node {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
     , else_stmt {std::nullopt} {}
@@ -218,9 +209,7 @@ WhileStatementNode::WhileStatementNode(
     unique_ptr<ExpressionNode> condition,
     unique_ptr<StatementNode> stmt,
     Location loc)
-    : StatementNode {loc}
-    , condition {std::move(condition)}
-    , body {std::move(stmt)} {}
+    : Node {loc}, condition {std::move(condition)}, body {std::move(stmt)} {}
 
 void WhileStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -229,10 +218,10 @@ void WhileStatementNode::accept(Visitor& visitor) {
 ReturnStatementNode::ReturnStatementNode(
     std::optional<unique_ptr<ExpressionNode>> expr,
     Location loc)
-    : StatementNode {loc}, expression {std::move(expr)} {}
+    : Node {loc}, expression {std::move(expr)} {}
 
 ReturnStatementNode::ReturnStatementNode(Location loc)
-    : StatementNode {loc}, expression {std::nullopt} {}
+    : Node {loc}, expression {std::nullopt} {}
 
 void ReturnStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -241,12 +230,13 @@ void ReturnStatementNode::accept(Visitor& visitor) {
 ExpressionStatementNode::ExpressionStatementNode(
     std::optional<unique_ptr<ExpressionNode>> expr,
     Location loc)
-    : StatementNode {loc}, expr {std::move(expr)} {}
+    : Node {loc}, expr {std::move(expr)} {}
 
 ExpressionStatementNode::ExpressionStatementNode(Location loc)
-    : StatementNode {loc}, expr {std::nullopt} {}
+    : Node {loc}, expr {std::nullopt} {}
 
 void ExpressionStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
+
 /***********************************************************************/

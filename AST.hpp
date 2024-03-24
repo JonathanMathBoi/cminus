@@ -41,6 +41,8 @@ struct MultiplicativeExpressionNode;
 struct RelationalExpressionNode;
 struct IntegerLiteralExpressionNode;
 
+struct SymbolUseNode;
+
 /***********************************************************************/
 
 enum class TypeSpecifier { VOID, INT };
@@ -124,13 +126,14 @@ struct Node {
 /// When a smart pointer is needed to a declaration node, a `shared_ptr` is
 /// likely the best choice, as these nodes eventually need to be pointed to at
 /// both their parent and by all their references.
-struct DeclarationNode : Node {
+struct DeclarationNode : virtual Node {
     /// Constructs a Declaration Node
     ///
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
     /// \param loc the location where the declaration begins
-    DeclarationNode(ValueType type, std::string identifier, Location loc);
+    DeclarationNode(ValueType type, std::string identifier)
+        : type {type}, identifier {identifier} {}
 
     virtual ~DeclarationNode() = default;
 
@@ -142,15 +145,34 @@ struct DeclarationNode : Node {
     std::string identifier;
 };
 
+/// Abstract Symbol Use Node
+///
+/// This node is an abstract node to represent constructs that refer back to a
+/// previous declaration.
+struct SymbolUseNode : virtual Node {
+    /// Construct a Symbol Use Node
+    ///
+    /// \param identifier the name of the construct referenced
+    /// \param loc the location where the reference begins
+    SymbolUseNode(std::string identifier) : identifier {identifier} {}
+
+    virtual ~SymbolUseNode() = default;
+
+    virtual void accept(Visitor& visitor) = 0;
+
+    /// The name being refered to
+    std::string identifier;
+};
+
 /// Abstract Expression Node
 ///
 /// This node type serves as the base for all types of expression nodes to
 /// derive from.
-struct ExpressionNode : Node {
+struct ExpressionNode : virtual Node {
     /// Constructs an Expression Node
     ///
     /// \param loc the location of the expression in the source code
-    ExpressionNode(Location loc) : Node {loc} {}
+    ExpressionNode() {}
 
     virtual ~ExpressionNode() = default;
 
@@ -161,11 +183,11 @@ struct ExpressionNode : Node {
 ///
 /// This node type serves as the base for all types of statement nodes to derive
 /// from.
-struct StatementNode : Node {
+struct StatementNode : virtual Node {
     /// Constructs a Statement Node
     ///
     /// \param loc the location of the statement in the source code
-    StatementNode(Location loc) : Node {loc} {}
+    StatementNode() {}
 
     virtual ~StatementNode() = default;
 
@@ -453,7 +475,9 @@ struct ParameterNode : DeclarationNode {
 /// Variable Expression Node
 ///
 /// The node represents a variable used in an expression
-struct VariableExpressionNode : ExpressionNode {
+struct VariableExpressionNode
+    : ExpressionNode
+    , SymbolUseNode {
     /// Constructs a Variable Expression Node
     ///
     /// \param identifier the name of the variable referenced
@@ -464,8 +488,10 @@ struct VariableExpressionNode : ExpressionNode {
 
     virtual void accept(Visitor& visitor) override;
 
-    /// The identifier of the variable being referenced
-    std::string identifier;
+    /// A link back to the declaration of the variable
+    ///
+    /// An optional is used as it is not set until the SymbolVisitor pass
+    std::optional<std::shared_ptr<VariableDeclarationNode>> declaration;
 };
 
 /// Assignment Expression Node
@@ -517,7 +543,9 @@ struct SubscriptExpressionNode : VariableExpressionNode {
 /// Function Call Expression Node
 ///
 /// A node representing a function call expression
-struct CallExpressionNode : ExpressionNode {
+struct CallExpressionNode
+    : ExpressionNode
+    , SymbolUseNode {
     /// Constructs a Function Call Expression Node
     ///
     /// \param identifier the name of the function being called
@@ -532,10 +560,12 @@ struct CallExpressionNode : ExpressionNode {
 
     virtual void accept(Visitor& visitor) override;
 
-    /// The name of the function being called
-    std::string identifier;
     /// The list of arguments being passed to the function
     std::vector<std::unique_ptr<ExpressionNode>> arguments;
+    /// A link back to the function declaration
+    ///
+    /// An optional is used as it is not set until the SymbolVisitor pass
+    std::optional<std::shared_ptr<FunctionDeclarationNode>> declaration;
 };
 
 /// Additive Expression Node
