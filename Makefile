@@ -12,7 +12,7 @@ AST.o : AST.cc AST.hpp
 
 PrintVisitor.o : PrintVisitor.cc PrintVisitor.hpp
 
-SymbolTable.o : SymbolTable.cc SymbolTable.hpp
+SymbolTable.o : SymbolTable.cc SymbolTable.hpp AST.hpp
 
 .PHONY: clean
 
