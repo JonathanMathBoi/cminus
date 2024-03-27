@@ -143,6 +143,10 @@ struct DeclarationNode : virtual Node {
     ValueType type;
     /// The identifier of the declared construct
     std::string identifier;
+    /// The nest level of the declaration
+    ///
+    /// An optional is used as this isn't set until the symbol visitor pass
+    std::optional<unsigned> nest_level;
 };
 
 /// Abstract Symbol Use Node
@@ -162,6 +166,10 @@ struct SymbolUseNode : virtual Node {
 
     /// The name being refered to
     std::string identifier;
+    /// The referent of this identifier
+    ///
+    /// An optional is used as this isn't set until the symbol visitor pass
+    std::optional<std::shared_ptr<DeclarationNode>> referent;
 };
 
 /// Abstract Expression Node
@@ -487,11 +495,6 @@ struct VariableExpressionNode
     virtual ~VariableExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) override;
-
-    /// A link back to the declaration of the variable
-    ///
-    /// An optional is used as it is not set until the SymbolVisitor pass
-    std::optional<std::shared_ptr<VariableDeclarationNode>> declaration;
 };
 
 /// Assignment Expression Node
@@ -562,10 +565,6 @@ struct CallExpressionNode
 
     /// The list of arguments being passed to the function
     std::vector<std::unique_ptr<ExpressionNode>> arguments;
-    /// A link back to the function declaration
-    ///
-    /// An optional is used as it is not set until the SymbolVisitor pass
-    std::optional<std::shared_ptr<FunctionDeclarationNode>> declaration;
 };
 
 /// Additive Expression Node
