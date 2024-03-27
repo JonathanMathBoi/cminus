@@ -255,6 +255,10 @@ struct CompoundStatementNode : StatementNode {
     std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls;
     /// The list of statements in the block
     std::vector<std::unique_ptr<StatementNode>> statements;
+    /// Whether or not this is the body of a function
+    ///
+    /// Defaults to false, should be set true by function parser call
+    bool is_function_body {false};
 };
 
 /// If Statement Node

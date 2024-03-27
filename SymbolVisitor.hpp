@@ -3,8 +3,14 @@
 
 /***********************************************************************/
 
+#include <string_view>
 #include "AST.hpp"
+#include "MiscUtils.hpp"
 #include "SymbolTable.hpp"
+
+/***********************************************************************/
+
+class UndeclaredSymbolException;
 
 /***********************************************************************/
 
@@ -39,6 +45,19 @@ public:
 
 private:
     SymbolTable m_table;
+};
+
+/***********************************************************************/
+
+class UndeclaredSymbolException : SymbolException {
+public:
+    UndeclaredSymbolException(const std::string_view name, Location loc);
+
+    virtual char const* what() const noexcept;
+
+private:
+    const std::string_view m_badName;
+    std::string m_errorMessage;
 };
 
 /***********************************************************************/
