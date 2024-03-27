@@ -46,4 +46,53 @@ void SymbolVisitor::visit(ParameterNode& node) {
     // Should be handled and added by it's enclosing scope
 }
 
+void SymbolVisitor::visit(StatementNode& node) {
+    node.accept(*this);
+}
+
+void SymbolVisitor::visit(CompoundStatementNode& node) {
+    if (!node.is_function_body) {
+        m_table.enterScope();
+    }
+
+    for (auto& decl : node.local_decls) {
+        m_table.insert(decl);
+        decl->nest_level = m_table.getNestLevel();
+        decl->accept(*this);
+    }
+
+    for (auto& stmt : node.statements) {
+        stmt->accept(*this);
+    }
+
+    if (!node.is_function_body) {
+        m_table.exitScope();
+    }
+}
+
+void SymbolVisitor::visit(IfStatementNode& node) {
+    node.condition->accept(*this);
+    node.then_stmt->accept(*this);
+    if (node.else_stmt) {
+        (*node.else_stmt)->accept(*this);
+    }
+}
+
+void SymbolVisitor::visit(WhileStatementNode& node) {
+    node.condition->accept(*this);
+    node.body->accept(*this);
+}
+
+void SymbolVisitor::visit(ReturnStatementNode& node) {
+    if (node.expression) {
+        (*node.expression)->accept(*this);
+    }
+}
+
+void SymbolVisitor::visit(ExpressionStatementNode& node) {
+    if (node.expr) {
+        (*node.expr)->accept(*this);
+    }
+}
+
 /***********************************************************************/
