@@ -13,10 +13,6 @@ void SymbolVisitor::visit(ProgramNode& node) {
     }
 }
 
-void SymbolVisitor::visit(DeclarationNode& node) {
-    node.accept(*this);
-}
-
 void SymbolVisitor::visit(FunctionDeclarationNode& node) {
     m_table.enterScope();
 
@@ -44,10 +40,6 @@ void SymbolVisitor::visit(ArrayDeclarationNode& node) {
 void SymbolVisitor::visit(ParameterNode& node) {
     // Don't do anything
     // Should be handled and added by it's enclosing scope
-}
-
-void SymbolVisitor::visit(StatementNode& node) {
-    node.accept(*this);
 }
 
 void SymbolVisitor::visit(CompoundStatementNode& node) {

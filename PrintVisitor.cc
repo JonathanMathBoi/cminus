@@ -58,10 +58,6 @@ void PrintVisitor::visit(ProgramNode& node) {
     m_output.flush();
 }
 
-void PrintVisitor::visit(DeclarationNode& node) {
-    node.accept(*this);
-}
-
 void PrintVisitor::visit(FunctionDeclarationNode& node) {
     m_output << getIndent() << "Function: " << node.identifier << ": "
              << types.at(node.type.type) << " type\n";
@@ -99,10 +95,6 @@ void PrintVisitor::visit(ParameterNode& node) {
     }
 
     m_output << "type\n";
-}
-
-void PrintVisitor::visit(StatementNode& node) {
-    node.accept(*this);
 }
 
 void PrintVisitor::visit(CompoundStatementNode& node) {
@@ -163,10 +155,6 @@ void PrintVisitor::visit(ExpressionStatementNode& node) {
     } else {
         (*node.expr)->accept(*this);
     }
-}
-
-void PrintVisitor::visit(ExpressionNode& node) {
-    node.accept(*this);
 }
 
 void PrintVisitor::visit(AssignmentExpressionNode& node) {
