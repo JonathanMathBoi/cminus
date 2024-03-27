@@ -87,4 +87,64 @@ void SymbolVisitor::visit(ExpressionStatementNode& node) {
     }
 }
 
+void SymbolVisitor::visit(AssignmentExpressionNode& node) {
+    node.variable->accept(*this);
+    node.expression->accept(*this);
+}
+
+void SymbolVisitor::visit(VariableExpressionNode& node) {
+    auto decl {m_table.lookup(node.identifier)};
+
+    // Check if the var was declared
+    if (!decl) {
+        throw UndeclaredSymbolException {node.identifier, node.loc};
+    }
+
+    // Set the referent to the declaration
+    // decl is not none at this point
+    node.referent = decl;
+}
+
+void SymbolVisitor::visit(SubscriptExpressionNode& node) {
+    visit(static_cast<VariableExpressionNode&>(node));
+    node.index->accept(*this);
+}
+
+void SymbolVisitor::visit(CallExpressionNode& node) {
+    auto decl {m_table.lookup(node.identifier)};
+
+    // Check if the function was declared
+    if (!decl) {
+        throw UndeclaredSymbolException {node.identifier, node.loc};
+    }
+
+    // Set the referent to the declaration
+    // decl is not none at this point
+    node.referent = decl;
+
+    for (auto& arg : node.arguments) {
+        arg->accept(*this);
+    }
+}
+
+void SymbolVisitor::visit(AdditiveExpressionNode& node) {
+    node.left->accept(*this);
+    node.right->accept(*this);
+}
+
+void SymbolVisitor::visit(MultiplicativeExpressionNode& node) {
+    node.left->accept(*this);
+    node.right->accept(*this);
+}
+
+void SymbolVisitor::visit(RelationalExpressionNode& node) {
+    node.left->accept(*this);
+    node.right->accept(*this);
+}
+
+void SymbolVisitor::visit(IntegerLiteralExpressionNode& node) {
+    // Don't do anything
+    // It's a literal
+}
+
 /***********************************************************************/
