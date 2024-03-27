@@ -12,7 +12,10 @@ using std::shared_ptr;
 
 /***********************************************************************/
 
-SymbolTable::SymbolTable() : m_nestLevel {0}, m_table {} {}
+SymbolTable::SymbolTable() : m_nestLevel {0}, m_table {} {
+    // Add the global scope to the table at construction
+    m_table.emplace_back();
+}
 
 void SymbolTable::enterScope() {
     m_nestLevel++;

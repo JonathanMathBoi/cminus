@@ -20,7 +20,7 @@ using ScopeTable =
 
 /***********************************************************************/
 
-class SymbolException : CMinusException {
+class SymbolException : public CMinusException {
 public:
     SymbolException(Location loc) : CMinusException {loc} {}
 };
@@ -47,7 +47,7 @@ private:
 
 /***********************************************************************/
 
-class MultipleDeclaredSymbolException : SymbolException {
+class MultipleDeclaredSymbolException : public SymbolException {
 public:
     MultipleDeclaredSymbolException(
         std::shared_ptr<DeclarationNode> firstDeclaration,

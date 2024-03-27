@@ -46,7 +46,7 @@ private:
 
 /***********************************************************************/
 
-class UndeclaredSymbolException : SymbolException {
+class UndeclaredSymbolException : public SymbolException {
 public:
     UndeclaredSymbolException(const std::string_view name, Location loc);
 
