@@ -53,7 +53,6 @@ public:
     virtual char const* what() const noexcept;
 
 private:
-    const std::string_view m_badName;
     std::string m_errorMessage;
 };
 

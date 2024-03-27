@@ -1,5 +1,10 @@
 #include "SymbolVisitor.hpp"
+#include <iomanip>
+#include <sstream>
+#include <string_view>
 #include "AST.hpp"
+#include "MiscUtils.hpp"
+#include "SymbolTable.hpp"
 
 /***********************************************************************/
 
@@ -145,6 +150,22 @@ void SymbolVisitor::visit(RelationalExpressionNode& node) {
 void SymbolVisitor::visit(IntegerLiteralExpressionNode& node) {
     // Don't do anything
     // It's a literal
+}
+
+/***********************************************************************/
+
+UndeclaredSymbolException::UndeclaredSymbolException(
+    const std::string_view name,
+    Location loc)
+    : SymbolException {loc} {
+    std::stringstream message_buffer;
+    message_buffer << "Undeclared symbol " << std::quoted(name)
+                   << " at line: " << loc.line_num << ", col: " << loc.col_num;
+    m_errorMessage = message_buffer.str();
+}
+
+char const* UndeclaredSymbolException::what() const noexcept {
+    return m_errorMessage.c_str();
 }
 
 /***********************************************************************/
