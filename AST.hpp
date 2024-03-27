@@ -62,6 +62,13 @@ enum class UnaryOp { INCREMENT, DECREMENT };
 
 /***********************************************************************/
 
+/// A vector of all the compiler builtin functions
+///
+/// Owned here as they are not part of a users source tree.
+extern std::vector<std::shared_ptr<FunctionDeclarationNode>> g_builtins;
+
+/***********************************************************************/
+
 class Visitor {
 public:
     virtual void visit(ProgramNode& node) = 0;
@@ -414,6 +421,9 @@ struct FunctionDeclarationNode : DeclarationNode {
     /// unique_ptr would not be applicable.
     std::vector<std::shared_ptr<ParameterNode>> parameters;
     /// The statement block serving as the body of the function
+    ///
+    /// This is a nullptr for compiler built-ins. Should be a valid pointer for
+    /// all other functions.
     std::unique_ptr<CompoundStatementNode> function_body;
 };
 

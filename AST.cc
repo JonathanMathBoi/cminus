@@ -7,9 +7,30 @@
 #include <utility>
 #include <vector>
 
+using std::make_shared;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
+
+/***********************************************************************/
+
+vector<shared_ptr<FunctionDeclarationNode>> g_builtins {
+    make_shared<FunctionDeclarationNode>(
+        ValueType {TypeSpecifier::INT, /*is_array=*/false},
+        "input",
+        vector<shared_ptr<ParameterNode>> {},
+        nullptr,
+        Location {-1, -1}),  // input()
+    make_shared<FunctionDeclarationNode>(
+        ValueType {TypeSpecifier::VOID, /*is_array=*/false},
+        "output",
+        vector<shared_ptr<ParameterNode>> {make_shared<ParameterNode>(
+            ValueType {TypeSpecifier::INT, /*is_array=*/false},
+            "value",
+            Location {-1, -1})},
+        nullptr,
+        Location {-1, -1})  // output(int)
+};
 
 /***********************************************************************/
 // Program Root Node

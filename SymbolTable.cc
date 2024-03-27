@@ -15,6 +15,11 @@ using std::shared_ptr;
 SymbolTable::SymbolTable() : m_nestLevel {0}, m_table {} {
     // Add the global scope to the table at construction
     m_table.emplace_back();
+
+    // Insert all builtins to global scope
+    for (auto& builtin : g_builtins) {
+        m_table[m_nestLevel].emplace(builtin->identifier, builtin);
+    }
 }
 
 void SymbolTable::enterScope() {
