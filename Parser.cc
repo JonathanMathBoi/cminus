@@ -125,6 +125,7 @@ unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
     match("function declaration", RPAREN);
 
     auto body {compoundStatement()};
+    body->is_function_body = true;
 
     return make_unique<FunctionDeclarationNode>(
         type, id, parameters, std::move(body), loc);
