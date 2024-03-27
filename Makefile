@@ -1,7 +1,7 @@
 CXX = clang++
 CXXFLAGS = -Wall -O0 -g -std=c++23
 
-CMinus : CMinus.cc Lexer.o AST.o Parser.o PrintVisitor.o
+CMinus : CMinus.cc Lexer.o AST.o Parser.o PrintVisitor.o SymbolTable.o SymbolVisitor.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 Lexer.o : Lexer.cc Lexer.hpp

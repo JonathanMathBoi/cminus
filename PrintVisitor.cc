@@ -168,11 +168,23 @@ void PrintVisitor::visit(AssignmentExpressionNode& node) {
 }
 
 void PrintVisitor::visit(VariableExpressionNode& node) {
-    m_output << getIndent() << "Variable: " << node.identifier << '\n';
+    m_output << getIndent() << "Variable: " << node.identifier;
+
+    if (node.referent) {
+        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+    }
+
+    m_output << '\n';
 }
 
 void PrintVisitor::visit(SubscriptExpressionNode& node) {
-    m_output << getIndent() << "Subscript: " << node.identifier << '\n';
+    m_output << getIndent() << "Subscript: " << node.identifier;
+
+    if (node.referent) {
+        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+    }
+
+    m_output << '\n';
 
     NestGuard guard {*this};
 
@@ -186,7 +198,13 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
 }
 
 void PrintVisitor::visit(CallExpressionNode& node) {
-    m_output << getIndent() << "FunctionCall: " << node.identifier << '\n';
+    m_output << getIndent() << "FunctionCall: " << node.identifier;
+
+    if (node.referent) {
+        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+    }
+
+    m_output << '\n';
 
     if (!node.arguments.empty()) {
         NestGuard guard {*this};

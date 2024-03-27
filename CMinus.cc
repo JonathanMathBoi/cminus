@@ -3,6 +3,7 @@
 #include "MiscUtils.hpp"
 #include "Parser.hpp"
 #include "PrintVisitor.hpp"
+#include "SymbolVisitor.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -32,6 +33,8 @@ int main(int argc, char* argv[]) {
 
     try {
         ast = parser.parse();
+        SymbolVisitor symbol_visitor;
+        ast->accept(symbol_visitor);
         std::cout << "Valid!" << std::endl;
     } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
