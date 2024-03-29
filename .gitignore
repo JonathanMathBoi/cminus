@@ -1,6 +1,5 @@
 # Ignore compiled files
 CMinus
-*.o
 
 # Ignore testing files
 test
@@ -8,7 +7,15 @@ test
 # Ignore clangd config
 compile_flags.txt
 
-# Ignore generatedd documentation
+# Ignore generated documentation
 html/
 latex/
 
+# Ignore CMake files
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Ignore Generated Makefile
+Makefile
