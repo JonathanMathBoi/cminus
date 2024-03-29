@@ -189,6 +189,12 @@ struct ExpressionNode : virtual Node {
     virtual ~ExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
+
+    /// The type of the expression
+    ///
+    /// An optional is used as this isn't calculated until the semantic analysis
+    /// pass.
+    std::optional<ValueType> type;
 };
 
 /// Abstract Statement Node
