@@ -1,9 +1,9 @@
-#include "AST.hpp"
-#include "Lexer.hpp"
 #include "MiscUtils.hpp"
-#include "Parser.hpp"
-#include "PrintVisitor.hpp"
-#include "SymbolVisitor.hpp"
+#include "ast/AST.hpp"
+#include "ast/PrintVisitor.hpp"
+#include "lexer/Lexer.hpp"
+#include "parser/Parser.hpp"
+#include "symbol/SymbolVisitor.hpp"
 
 #include <filesystem>
 #include <fstream>

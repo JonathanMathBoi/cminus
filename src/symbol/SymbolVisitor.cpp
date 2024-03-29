@@ -1,10 +1,11 @@
 #include "SymbolVisitor.hpp"
+#include "../MiscUtils.hpp"
+#include "../ast/AST.hpp"
+#include "SymbolTable.hpp"
+
 #include <iomanip>
 #include <sstream>
 #include <string_view>
-#include "AST.hpp"
-#include "MiscUtils.hpp"
-#include "SymbolTable.hpp"
 
 /***********************************************************************/
 

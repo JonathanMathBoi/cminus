@@ -1,5 +1,5 @@
 #include "Lexer.hpp"
-#include "MiscUtils.hpp"
+#include "../MiscUtils.hpp"
 
 #include <algorithm>
 #include <cctype>

@@ -3,8 +3,8 @@
 
 /***********************************************************************/
 
-#include "AST.hpp"
-#include "MiscUtils.hpp"
+#include "../MiscUtils.hpp"
+#include "../ast/AST.hpp"
 
 #include <memory>
 #include <optional>

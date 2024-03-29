@@ -3,10 +3,11 @@
 
 /***********************************************************************/
 
-#include <string_view>
-#include "AST.hpp"
-#include "MiscUtils.hpp"
+#include "../MiscUtils.hpp"
+#include "../ast/AST.hpp"
 #include "SymbolTable.hpp"
+
+#include <string_view>
 
 /***********************************************************************/
 

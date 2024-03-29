@@ -3,9 +3,9 @@
 
 /***********************************************************************/
 
-#include "AST.hpp"
-#include "Lexer.hpp"
-#include "MiscUtils.hpp"
+#include "../MiscUtils.hpp"
+#include "../ast/AST.hpp"
+#include "../lexer/Lexer.hpp"
 
 #include <deque>
 #include <memory>

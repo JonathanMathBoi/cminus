@@ -1,5 +1,5 @@
 #include "SymbolTable.hpp"
-#include "AST.hpp"
+#include "../ast/AST.hpp"
 
 #include <iomanip>
 #include <memory>
