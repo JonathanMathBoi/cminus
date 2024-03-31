@@ -7,25 +7,6 @@
 
 /***********************************************************************/
 
-const std::map<TypeSpecifier, const std::string_view> types {
-    {TypeSpecifier::INT, "Int"},
-    {TypeSpecifier::VOID, "void"}};
-
-const std::map<AdditiveOp, const std::string_view> add_symbols {
-    {AdditiveOp::PLUS, "+"},
-    {AdditiveOp::MINUS, "-"}};
-
-const std::map<MultiplicativeOp, const std::string_view> mul_symbols {
-    {MultiplicativeOp::TIMES, "*"},
-    {MultiplicativeOp::DIVIDE, "/"}};
-
-const std::map<RelationalOp, const std::string_view> rel_symbols {
-    {RelationalOp::LT, "<"},  {RelationalOp::LTE, "<="},
-    {RelationalOp::GT, ">"},  {RelationalOp::GTE, ">="},
-    {RelationalOp::EQ, "=="}, {RelationalOp::NEQ, "!="}};
-
-/***********************************************************************/
-
 PrintVisitor::PrintVisitor(std::ostream& out_stream)
     : m_output {out_stream}, m_currentDepth {0} {}
 
@@ -60,7 +41,7 @@ void PrintVisitor::visit(ProgramNode& node) {
 
 void PrintVisitor::visit(FunctionDeclarationNode& node) {
     m_output << getIndent() << "Function: " << node.identifier << ": "
-             << types.at(node.type.type) << " type\n";
+             << node.type.type << " type\n";
 
     NestGuard guard {*this};
 
@@ -73,28 +54,17 @@ void PrintVisitor::visit(FunctionDeclarationNode& node) {
 
 void PrintVisitor::visit(VariableDeclarationNode& node) {
     m_output << getIndent() << "VariableDeclaration: " << node.identifier
-             << ": " << types.at(node.type.type) << " type\n";
+             << ": " << node.type.type << " type\n";
 }
 
 void PrintVisitor::visit(ArrayDeclarationNode& node) {
     m_output << getIndent() << "VariableDeclaration: " << node.identifier << "["
-             << node.size << "]: " << types.at(node.type.type) << " type\n";
+             << node.size << "]: " << node.type.type << " type\n";
 }
 
 void PrintVisitor::visit(ParameterNode& node) {
-    m_output << getIndent() << "Parameter: " << node.identifier;
-
-    if (node.type.is_array) {
-        m_output << "[]";
-    }
-
-    m_output << ": " << types.at(node.type.type) << " ";
-
-    if (node.type.is_array) {
-        m_output << "array ";
-    }
-
-    m_output << "type\n";
+    m_output << getIndent() << "Parameter: " << node.identifier << ": "
+             << node.type.type << " type\n";
 }
 
 void PrintVisitor::visit(CompoundStatementNode& node) {
@@ -158,7 +128,13 @@ void PrintVisitor::visit(ExpressionStatementNode& node) {
 }
 
 void PrintVisitor::visit(AssignmentExpressionNode& node) {
-    m_output << getIndent() << "Assignment:\n";
+    m_output << getIndent() << "Assignment:";
+
+    if (node.type) {
+        m_output << ' ' << *node.type;
+    }
+
+    m_output << '\n';
 
     NestGuard guard {*this};
 
@@ -170,8 +146,9 @@ void PrintVisitor::visit(AssignmentExpressionNode& node) {
 void PrintVisitor::visit(VariableExpressionNode& node) {
     m_output << getIndent() << "Variable: " << node.identifier;
 
+    // TODO: Switch to using the nodes expression type
     if (node.referent) {
-        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+        m_output << ": " << (*node.referent)->type.type << " type";
     }
 
     m_output << '\n';
@@ -180,8 +157,9 @@ void PrintVisitor::visit(VariableExpressionNode& node) {
 void PrintVisitor::visit(SubscriptExpressionNode& node) {
     m_output << getIndent() << "Subscript: " << node.identifier;
 
+    // TODO: Switch to using the nodes expression type
     if (node.referent) {
-        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+        m_output << ": " << (*node.referent)->type.type << " type";
     }
 
     m_output << '\n';
@@ -200,8 +178,9 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
 void PrintVisitor::visit(CallExpressionNode& node) {
     m_output << getIndent() << "FunctionCall: " << node.identifier;
 
+    // TODO: Switch to using the nodes expression type
     if (node.referent) {
-        m_output << ": " << types.at((*node.referent)->type.type) << " type";
+        m_output << ": " << (*node.referent)->type.type << " type";
     }
 
     m_output << '\n';

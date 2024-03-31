@@ -65,24 +65,24 @@ unique_ptr<DeclarationNode> Parser::declaration() {
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
 unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
-    auto spec {typeSpec()};
-    ValueType type {spec.first};
-    Location loc {spec.second};
+    auto [type, loc] {typeSpec()};
 
     std::string id {match("variable declaration", ID).lexeme};
 
     unique_ptr<VariableDeclarationNode> new_node;
 
     if (m_currentToken.type == LBRACK) {
-        type.is_array = true;
+        type.kind = TypeKind::Array;
 
         match("variable declaration", LBRACK);
         int size {match("variable declaration", NUM).number};
         match("variable declaration", RBRACK);
 
-        new_node = make_unique<ArrayDeclarationNode>(type, id, size, loc);
+        new_node = make_unique<ArrayDeclarationNode>(
+            DeclarationType {type, /*is_function=*/false}, id, size, loc);
     } else {
-        new_node = make_unique<VariableDeclarationNode>(type, id, loc);
+        new_node = make_unique<VariableDeclarationNode>(
+            DeclarationType {type, /*is_function=*/false}, id, loc);
     }
 
     match("variable declaration", SEMI);
@@ -93,13 +93,14 @@ unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
 /**
  * Parses type-specifier -> INT | VOID
  */
-std::pair<TypeSpecifier, Location> Parser::typeSpec() {
-    static const std::map<TokenType, TypeSpecifier> types {
-        {VOID, TypeSpecifier::VOID}, {INT, TypeSpecifier::INT}};
+std::pair<Type, Location> Parser::typeSpec() {
+    static const std::map<TokenType, PrimitiveType> types {
+        {VOID, PrimitiveType::Void}, {INT, PrimitiveType::Int}};
 
     if (types.contains(m_currentToken.type)) {
-        std::pair<TypeSpecifier, Location> ret {
-            types.at(m_currentToken.type), m_currentToken.loc};
+        std::pair<Type, Location> ret {
+            Type {TypeKind::Primitive, types.at(m_currentToken.type)},
+            m_currentToken.loc};
         getToken();
         return ret;
     }
@@ -112,9 +113,7 @@ std::pair<TypeSpecifier, Location> Parser::typeSpec() {
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
 unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
-    auto spec {typeSpec()};
-    ValueType type {spec.first};
-    Location loc {spec.second};
+    auto [type, loc] {typeSpec()};
 
     std::string id {match("function declaration", ID).lexeme};
 
@@ -128,7 +127,8 @@ unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
     body->is_function_body = true;
 
     return make_unique<FunctionDeclarationNode>(
-        type, id, parameters, std::move(body), loc);
+        DeclarationType {type, /*is_function=*/true}, id, parameters,
+        std::move(body), loc);
 }
 
 /**
@@ -168,19 +168,18 @@ vector<shared_ptr<ParameterNode>> Parser::parameterList() {
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
 unique_ptr<ParameterNode> Parser::parameter() {
-    auto spec {typeSpec()};
-    ValueType type {spec.first};
-    Location loc {spec.second};
+    auto [type, loc] {typeSpec()};
 
     std::string id {match("parameter", ID).lexeme};
 
     if (m_currentToken.type == LBRACK) {
         match("parameter", LBRACK);
         match("parameter", RBRACK);
-        type.is_array = true;
+        type.kind = TypeKind::Array;
     }
 
-    return make_unique<ParameterNode>(type, id, loc);
+    return make_unique<ParameterNode>(
+        DeclarationType {type, /*is_function=*/false}, id, loc);
 }
 
 /**

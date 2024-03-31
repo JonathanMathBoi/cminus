@@ -64,11 +64,6 @@ private:
     std::shared_ptr<DeclarationNode> m_earlyDecl;
 };
 
-class ArrayFunctionException : public SemanticException {
-public:
-    ArrayFunctionException(FunctionDeclarationNode const& badFunc);
-};
-
 class VoidVariableException : public SemanticException {
 public:
     VoidVariableException(VariableDeclarationNode const& badVar);
@@ -89,8 +84,8 @@ public:
 class BadReturnException : public SemanticException {
 public:
     BadReturnException(
-        TypeSpecifier expected_type,
-        TypeSpecifier received_type,
+        Type expected_type,
+        Type received_type,
         FunctionDeclarationNode const& func,
         ReturnStatementNode const& ret);
 };

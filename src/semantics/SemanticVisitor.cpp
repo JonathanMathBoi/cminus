@@ -23,9 +23,12 @@ void SemanticVisitor::visit(ProgramNode& node) {
 }
 
 void SemanticVisitor::visit(FunctionDeclarationNode& node) {
-    if (node.type.is_array) {
-        throw ArrayFunctionException {node};
-    }
+    assert(
+        node.type.is_function &&
+        "Function declarations should be marked as function");
+    assert(
+        node.type.type.kind != TypeKind::Array &&
+        "Current grammar does not allow for array returning function");
 
     for (auto& param : node.parameters) {
         param->accept(*this);
@@ -37,19 +40,37 @@ void SemanticVisitor::visit(FunctionDeclarationNode& node) {
 }
 
 void SemanticVisitor::visit(VariableDeclarationNode& node) {
-    switch (node.type.type) {
-    case TypeSpecifier::VOID:
+    assert(
+        !node.type.is_function &&
+        "Variable declarations should not be marked as function");
+    assert(
+        node.type.type.kind != TypeKind::Array &&
+        "Primative variable declarations should not have array type");
+
+    // Asserts force type kind to primative
+    switch (node.type.type.base) {
+    case PrimitiveType::Void:
         throw VoidVariableException {node};
-    case TypeSpecifier::INT:
+    case PrimitiveType::Int:
         break;
     }
 }
 
 void SemanticVisitor::visit(ArrayDeclarationNode& node) {
-    // Assert because this should happen at parsing
     assert(
-        node.type.is_array && "ArrayDeclarationNode should have an array type");
-    visit(static_cast<VariableDeclarationNode&>(node));
+        !node.type.is_function &&
+        "Array declarations should not be marked as function");
+    assert(
+        node.type.type.kind == TypeKind::Array &&
+        "Array declarations should have array type");
+
+    // Asserts force type kind to be array
+    switch (node.type.type.base) {
+    case PrimitiveType::Void:
+        throw VoidVariableException {node};
+    case PrimitiveType::Int:
+        break;
+    }
 
     if (node.size <= 0) {
         throw NonPositiveArraySizeException {node};
@@ -57,10 +78,15 @@ void SemanticVisitor::visit(ArrayDeclarationNode& node) {
 }
 
 void SemanticVisitor::visit(ParameterNode& node) {
-    switch (node.type.type) {
-    case TypeSpecifier::VOID:
+    assert(
+        !node.type.is_function &&
+        "Parameters should not be marked as function");
+
+    // Type kind is irrelevant for bad void checking
+    switch (node.type.type.base) {
+    case PrimitiveType::Void:
         throw VoidVariableException {node};
-    case TypeSpecifier::INT:
+    case PrimitiveType::Int:
         break;
     }
 }
@@ -77,9 +103,11 @@ void SemanticVisitor::visit(CompoundStatementNode& node) {
 
 void SemanticVisitor::visit(IfStatementNode& node) {
     node.condition->accept(*this);
-    // Getting the option out should be safe as type should be computed by the
-    // above call
-    if (node.condition->type->type != TypeSpecifier::INT) {
+    assert(
+        node.condition->type &&
+        "Expression type should be calculated by visit");
+    if (node.condition->type !=
+        Type {TypeKind::Primitive, PrimitiveType::Int}) {
         throw InvalidConditionException {node};
     }
 
@@ -92,9 +120,11 @@ void SemanticVisitor::visit(IfStatementNode& node) {
 
 void SemanticVisitor::visit(WhileStatementNode& node) {
     node.condition->accept(*this);
-    // Getting the option out should be safe as type should be computed by the
-    // above call
-    if (node.condition->type->type != TypeSpecifier::INT) {
+    assert(
+        node.condition->type &&
+        "Expression type should be calculated by visit");
+    if (node.condition->type !=
+        Type {TypeKind::Primitive, PrimitiveType::Int}) {
         throw InvalidConditionException {node};
     }
 
@@ -106,34 +136,25 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
         m_currentFunction &&
         "Return statements should only occur within functions");
 
-    if (!node.expression &&
-        m_currentFunction->type.type != TypeSpecifier::VOID) {
-        throw BadReturnException {
-            m_currentFunction->type.type, TypeSpecifier::VOID,
-            *m_currentFunction, node};
-    }
+    Type func_type {m_currentFunction->type.type};
 
-    if (node.expression &&
-        m_currentFunction->type.type == TypeSpecifier::VOID) {
-        (*node.expression)->accept(*this);
-        throw BadReturnException {
-            TypeSpecifier::VOID, (*node.expression)->type->type,
-            *m_currentFunction, node};
-    }
-
-    if (node.expression &&
-        m_currentFunction->type.type != TypeSpecifier::VOID) {
-        (*node.expression)->accept(*this);
-        if ((*node.expression)->type->type != m_currentFunction->type.type) {
+    if (!node.expression) {
+        if (func_type != Type {TypeKind::Primitive, PrimitiveType::Void}) {
             throw BadReturnException {
-                m_currentFunction->type.type, (*node.expression)->type->type,
+                func_type, Type {TypeKind::Primitive, PrimitiveType::Void},
                 *m_currentFunction, node};
         }
-        return;
+    } else {
+        (*node.expression)->accept(*this);
+        assert(
+            (*node.expression)->type &&
+            "Expression type should be calculated by visit");
+        if (func_type != (*node.expression)->type.value()) {
+            throw BadReturnException {
+                func_type, (*node.expression)->type.value(), *m_currentFunction,
+                node};
+        }
     }
-
-    // If return; and void function
-    // no action needed
 }
 
 void SemanticVisitor::visit(ExpressionStatementNode& node) {
@@ -159,24 +180,12 @@ EarlyMainException::EarlyMainException(shared_ptr<DeclarationNode> earlyDecl)
     m_errorMessage = message_buffer.str();
 }
 
-ArrayFunctionException::ArrayFunctionException(
-    FunctionDeclarationNode const& badFunc)
-    : SemanticException {badFunc.loc} {
-    std::stringstream message_buffer;
-    message_buffer << "Error: functions can not return array types.\n"
-                   << "  function " << std::quoted(badFunc.identifier)
-                   << " declared with an array type."
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
-}
-
 VoidVariableException::VoidVariableException(
     VariableDeclarationNode const& badVar)
     : SemanticException {badVar.loc} {
     std::stringstream message_buffer;
     message_buffer << "Error: variable " << std::quoted(badVar.identifier)
-                   << " declared with type \"void\".\n"
+                   << " declared with type " << badVar.type.type << ".\n"
                    << "  line: " << location.line_num
                    << ", col: " << location.col_num << '.';
     m_errorMessage = message_buffer.str();
@@ -186,7 +195,7 @@ VoidVariableException::VoidVariableException(ParameterNode const& badParam)
     : SemanticException {badParam.loc} {
     std::stringstream message_buffer;
     message_buffer << "Error: variable " << std::quoted(badParam.identifier)
-                   << " declared with type \"void\".\n"
+                   << " declared with type " << badParam.type.type << ".\n"
                    << "  line: " << location.line_num
                    << ", col: " << location.col_num << '.';
     m_errorMessage = message_buffer.str();
@@ -227,26 +236,26 @@ InvalidConditionException::InvalidConditionException(
 }
 
 BadReturnException::BadReturnException(
-    TypeSpecifier expected_type,
-    TypeSpecifier received_type,
+    Type expected_type,
+    Type received_type,
     FunctionDeclarationNode const& func,
     ReturnStatementNode const& ret)
     : SemanticException {ret.loc} {
-    static const std::map<TypeSpecifier, const std::string_view> types {
-        {TypeSpecifier::VOID, "void"}, {TypeSpecifier::INT, "int"}};
-
     std::stringstream message_buffer;
     message_buffer << "Error: Incorrect return type\n"
                    << "  Enclosing function " << std::quoted(func.identifier)
-                   << " returns type " << types.at(func.type.type)
+                   << " returns type " << func.type.type << ' '
                    << "(line: " << func.loc.line_num
                    << ", col: " << func.loc.col_num << ")\n"
                    << "  Return statement returns ";
 
     if (ret.expression) {
-        message_buffer << types.at((*ret.expression)->type->type);
+        assert(
+            (*ret.expression)->type &&
+            "Type should already be calculated for return expression");
+        message_buffer << *(*ret.expression)->type;
     } else {
-        message_buffer << types.at(TypeSpecifier::VOID);
+        message_buffer << Type {TypeKind::Primitive, PrimitiveType::Void};
     }
 
     message_buffer << " (line:" << ret.loc.line_num
