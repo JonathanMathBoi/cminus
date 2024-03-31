@@ -1,21 +1,44 @@
 #include "SemanticVisitor.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iomanip>
-#include <map>
 #include <memory>
 #include <sstream>
 
-using std::shared_ptr;
+/***********************************************************************/
+
+bool SemanticVisitor::isValid() const {
+    return m_errors.empty();
+}
+
+const std::vector<SemanticError>& SemanticVisitor::errors() const {
+    return m_errors;
+}
+
+void SemanticVisitor::addError(SemanticError error) {
+    m_errors.push_back(error);
+    // Sorts errors in order of occurance
+    std::ranges::sort(m_errors, [](SemanticError a, SemanticError b) {
+        if (a.location().line_num < b.location().line_num) {
+            return true;
+        }
+
+        if (a.location().line_num > b.location().line_num) {
+            return false;
+        }
+
+        return a.location().col_num < b.location().col_num;
+    });
+}
 
 /***********************************************************************/
 
 void SemanticVisitor::visit(ProgramNode& node) {
     for (auto& decl : node.declarations) {
         // Check if decl is main func, and that it is not the last element
-        // If main is declared early throw
         if (decl->identifier == "main" && &decl != &node.declarations.back()) {
-            throw EarlyMainException {decl};
+            addError(SemanticError::earlyMain(*decl));
         }
 
         decl->accept(*this);
@@ -50,7 +73,8 @@ void SemanticVisitor::visit(VariableDeclarationNode& node) {
     // Asserts force type kind to primative
     switch (node.type.type.base) {
     case PrimitiveType::Void:
-        throw VoidVariableException {node};
+        addError(SemanticError::voidVariable(node));
+        break;
     case PrimitiveType::Int:
         break;
     }
@@ -67,13 +91,14 @@ void SemanticVisitor::visit(ArrayDeclarationNode& node) {
     // Asserts force type kind to be array
     switch (node.type.type.base) {
     case PrimitiveType::Void:
-        throw VoidVariableException {node};
+        addError(SemanticError::voidVariable(node));
+        break;
     case PrimitiveType::Int:
         break;
     }
 
     if (node.size <= 0) {
-        throw NonPositiveArraySizeException {node};
+        addError(SemanticError::nonPositiveArraySize(node));
     }
 }
 
@@ -85,7 +110,8 @@ void SemanticVisitor::visit(ParameterNode& node) {
     // Type kind is irrelevant for bad void checking
     switch (node.type.type.base) {
     case PrimitiveType::Void:
-        throw VoidVariableException {node};
+        addError(SemanticError::voidParam(node));
+        break;
     case PrimitiveType::Int:
         break;
     }
@@ -108,7 +134,7 @@ void SemanticVisitor::visit(IfStatementNode& node) {
         "Expression type should be calculated by visit");
     if (node.condition->type !=
         Type {TypeKind::Primitive, PrimitiveType::Int}) {
-        throw InvalidConditionException {node};
+        addError(SemanticError::invalidCondition(node));
     }
 
     node.then_stmt->accept(*this);
@@ -125,7 +151,7 @@ void SemanticVisitor::visit(WhileStatementNode& node) {
         "Expression type should be calculated by visit");
     if (node.condition->type !=
         Type {TypeKind::Primitive, PrimitiveType::Int}) {
-        throw InvalidConditionException {node};
+        addError(SemanticError::invalidCondition(node));
     }
 
     node.body->accept(*this);
@@ -140,9 +166,7 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
 
     if (!node.expression) {
         if (func_type != Type {TypeKind::Primitive, PrimitiveType::Void}) {
-            throw BadReturnException {
-                func_type, Type {TypeKind::Primitive, PrimitiveType::Void},
-                *m_currentFunction, node};
+            addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     } else {
         (*node.expression)->accept(*this);
@@ -150,9 +174,7 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
             (*node.expression)->type &&
             "Expression type should be calculated by visit");
         if (func_type != (*node.expression)->type.value()) {
-            throw BadReturnException {
-                func_type, (*node.expression)->type.value(), *m_currentFunction,
-                node};
+            addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     }
 }
@@ -165,101 +187,100 @@ void SemanticVisitor::visit(ExpressionStatementNode& node) {
 
 /***********************************************************************/
 
-SemanticException::SemanticException(Location loc) : CMinusException {loc} {}
+SemanticError::SemanticError(std::string error_message, Location loc)
+    : m_message {error_message}, m_location {loc} {}
 
-char const* SemanticException::what() const noexcept {
-    return m_errorMessage.c_str();
+const std::string_view SemanticError::message() const {
+    return m_message;
 }
 
-EarlyMainException::EarlyMainException(shared_ptr<DeclarationNode> earlyDecl)
-    : SemanticException {earlyDecl->loc}, m_earlyDecl {earlyDecl} {
+Location SemanticError::location() const {
+    return m_location;
+}
+
+/***********************************************************************/
+
+SemanticError SemanticError::earlyMain(DeclarationNode const& decl) {
     std::stringstream message_buffer;
-    message_buffer << "Early main declaration at line: " << location.line_num
-                   << ", col: " << location.col_num << ".\n"
+    message_buffer << "Early main declaration at line: " << decl.loc.line_num
+                   << ", col: " << decl.loc.col_num << ".\n"
                    << "  main must be the last function declared.";
-    m_errorMessage = message_buffer.str();
+    return {message_buffer.str(), decl.loc};
 }
 
-VoidVariableException::VoidVariableException(
-    VariableDeclarationNode const& badVar)
-    : SemanticException {badVar.loc} {
+SemanticError SemanticError::voidVariable(
+    VariableDeclarationNode const& varDecl) {
     std::stringstream message_buffer;
-    message_buffer << "Error: variable " << std::quoted(badVar.identifier)
-                   << " declared with type " << badVar.type.type << ".\n"
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
+    message_buffer << "Error: variable " << std::quoted(varDecl.identifier)
+                   << " declared with type " << varDecl.type.type << ".\n"
+                   << "  line: " << varDecl.loc.line_num
+                   << ", col: " << varDecl.loc.col_num << '.';
+    return {message_buffer.str(), varDecl.loc};
 }
 
-VoidVariableException::VoidVariableException(ParameterNode const& badParam)
-    : SemanticException {badParam.loc} {
+SemanticError SemanticError::voidParam(ParameterNode const& paramDecl) {
     std::stringstream message_buffer;
-    message_buffer << "Error: variable " << std::quoted(badParam.identifier)
-                   << " declared with type " << badParam.type.type << ".\n"
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
+    message_buffer << "Error: parameter " << std::quoted(paramDecl.identifier)
+                   << " declared with type " << paramDecl.type.type << ".\n"
+                   << "  line: " << paramDecl.loc.line_num
+                   << ", col: " << paramDecl.loc.col_num << '.';
+    return {message_buffer.str(), paramDecl.loc};
 }
 
-NonPositiveArraySizeException::NonPositiveArraySizeException(
-    ArrayDeclarationNode const& badArray)
-    : SemanticException {badArray.loc} {
+SemanticError SemanticError::nonPositiveArraySize(
+    ArrayDeclarationNode const& arrDecl) {
     std::stringstream message_buffer;
-    message_buffer << "Error: array " << std::quoted(badArray.identifier)
-                   << " declared with non-positive size " << badArray.size
+    message_buffer << "Error: array " << std::quoted(arrDecl.identifier)
+                   << " declared with non-positive size " << arrDecl.size
                    << '\n'
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
+                   << "  line: " << arrDecl.loc.line_num
+                   << ", col: " << arrDecl.loc.col_num << '.';
+    return {message_buffer.str(), arrDecl.loc};
 }
 
-InvalidConditionException::InvalidConditionException(
-    IfStatementNode const& badIf)
-    : SemanticException {badIf.condition->loc} {
+SemanticError SemanticError::invalidCondition(IfStatementNode const& ifStmt) {
     std::stringstream message_buffer;
     message_buffer << "Error: invalid condition for if statement.\n"
                    << "  If condition must be an int.\n"
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
+                   << "  line: " << ifStmt.condition->loc.line_num
+                   << ", col: " << ifStmt.condition->loc.col_num << '.';
+    return {message_buffer.str(), ifStmt.condition->loc};
 }
 
-InvalidConditionException::InvalidConditionException(
-    WhileStatementNode const& badWhile)
-    : SemanticException {badWhile.condition->loc} {
+SemanticError SemanticError::invalidCondition(
+    WhileStatementNode const& whileStmt) {
     std::stringstream message_buffer;
     message_buffer << "Error: invalid condition for while statement.\n"
                    << "  While condition must be an int.\n"
-                   << "  line: " << location.line_num
-                   << ", col: " << location.col_num << '.';
-    m_errorMessage = message_buffer.str();
+                   << "  line: " << whileStmt.condition->loc.line_num
+                   << ", col: " << whileStmt.condition->loc.col_num << '.';
+    return {message_buffer.str(), whileStmt.condition->loc};
 }
 
-BadReturnException::BadReturnException(
-    Type expected_type,
-    Type received_type,
-    FunctionDeclarationNode const& func,
-    ReturnStatementNode const& ret)
-    : SemanticException {ret.loc} {
+SemanticError SemanticError::badReturn(
+    ReturnStatementNode const& ret,
+    FunctionDeclarationNode const& func) {
     std::stringstream message_buffer;
     message_buffer << "Error: Incorrect return type\n"
-                   << "  Enclosing function " << std::quoted(func.identifier)
-                   << " returns type " << func.type.type << ' '
-                   << "(line: " << func.loc.line_num
+                   << "  In function " << std::quoted(func.identifier)
+                   << " returning " << func.type.type
+                   << " (line: " << func.loc.line_num
                    << ", col: " << func.loc.col_num << ")\n"
                    << "  Return statement returns ";
 
     if (ret.expression) {
         assert(
             (*ret.expression)->type &&
-            "Type should already be calculated for return expression");
-        message_buffer << *(*ret.expression)->type;
+            "Type should already be calculated for bad return error");
+        message_buffer << (*ret.expression)->type.value();
     } else {
         message_buffer << Type {TypeKind::Primitive, PrimitiveType::Void};
     }
 
-    message_buffer << " (line:" << ret.loc.line_num
+    message_buffer << " (line: " << ret.loc.line_num
                    << ", col: " << ret.loc.col_num << ")";
+
+    return {message_buffer.str(), ret.loc};
 }
 
 /***********************************************************************/

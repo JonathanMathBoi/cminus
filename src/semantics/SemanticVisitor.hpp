@@ -7,6 +7,11 @@
 #include "../ast/AST.hpp"
 
 #include <memory>
+#include <vector>
+
+/***********************************************************************/
+
+class SemanticError;
 
 /***********************************************************************/
 
@@ -34,7 +39,24 @@ public:
     virtual void visit(RelationalExpressionNode& node) override;
     virtual void visit(IntegerLiteralExpressionNode& node) override;
 
+    /// Check if the program was valid
+    ///
+    /// Should only be called after visiting the AST
+    ///
+    /// \returns if the program is valid
+    bool isValid() const;
+
+    /// Get the semantic errors in the program
+    ///
+    /// \returns all the semantic errors in the program
+    const std::vector<SemanticError>& errors() const;
+
 private:
+    void addError(SemanticError error);
+
+private:
+    /// A vector of all semantic error in the program
+    std::vector<SemanticError> m_errors;
     /// The pointer to the function currently being checked
     ///
     /// A raw pointer is used as it is non-owning. It is initilized as nullptr
@@ -44,50 +66,29 @@ private:
 
 /***********************************************************************/
 
-class SemanticException : public CMinusException {
+class SemanticError {
 public:
-    SemanticException(Location loc);
+    const std::string_view message() const;
+    Location location() const;
 
-    virtual char const* what() const noexcept override;
-
-protected:
-    std::string m_errorMessage;
-};
-
-/***********************************************************************/
-
-class EarlyMainException : public SemanticException {
 public:
-    EarlyMainException(std::shared_ptr<DeclarationNode> earlyDecl);
+    static SemanticError earlyMain(DeclarationNode const& decl);
+    static SemanticError voidVariable(VariableDeclarationNode const& varDecl);
+    static SemanticError voidParam(ParameterNode const& paramDecl);
+    static SemanticError nonPositiveArraySize(
+        ArrayDeclarationNode const& arrDecl);
+    static SemanticError invalidCondition(IfStatementNode const& ifStmt);
+    static SemanticError invalidCondition(WhileStatementNode const& whileStmt);
+    static SemanticError badReturn(
+        ReturnStatementNode const& ret,
+        FunctionDeclarationNode const& func);
 
 private:
-    std::shared_ptr<DeclarationNode> m_earlyDecl;
-};
+    SemanticError(std::string error_message, Location loc);
 
-class VoidVariableException : public SemanticException {
-public:
-    VoidVariableException(VariableDeclarationNode const& badVar);
-    VoidVariableException(ParameterNode const& badParam);
-};
-
-class NonPositiveArraySizeException : public SemanticException {
-public:
-    NonPositiveArraySizeException(ArrayDeclarationNode const& badArray);
-};
-
-class InvalidConditionException : public SemanticException {
-public:
-    InvalidConditionException(IfStatementNode const& badIf);
-    InvalidConditionException(WhileStatementNode const& badWhile);
-};
-
-class BadReturnException : public SemanticException {
-public:
-    BadReturnException(
-        Type expected_type,
-        Type received_type,
-        FunctionDeclarationNode const& func,
-        ReturnStatementNode const& ret);
+private:
+    std::string m_message;
+    Location m_location;
 };
 
 /***********************************************************************/
