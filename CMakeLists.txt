@@ -20,3 +20,5 @@ add_executable(CMinus
     src/symbol/SymbolVisitor.cpp
     src/symbol/SymbolVisitor.hpp
 )
+
+target_compile_options(CMinus PRIVATE -O1 -g)

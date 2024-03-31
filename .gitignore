@@ -6,6 +6,7 @@ test
 
 # Ignore clangd config
 compile_flags.txt
+.clangd
 
 # Ignore generated documentation
 html/
