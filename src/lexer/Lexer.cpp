@@ -8,6 +8,51 @@
 #include <sstream>
 #include <string>
 
+/***********************************************************************/
+
+Token::Token(TokenType type, std::string lexeme, Location loc)
+    : m_type {type}, m_lexeme {lexeme}, m_location {loc} {}
+
+Token::Token(int value, std::string lexeme, Location loc)
+    : m_type {INT_LITERAL}, m_lexeme {lexeme}, m_location {loc} {
+    m_value.intLiteral = value;
+}
+
+Token::Token(float value, std::string lexeme, Location loc)
+    : m_type {FLOAT_LITERAL}, m_lexeme {lexeme}, m_location {loc} {
+    m_value.floatLiteral = value;
+}
+
+TokenType Token::type() const {
+    return m_type;
+}
+
+const std::string_view Token::lexeme() const {
+    return m_lexeme;
+}
+
+Location Token::location() const {
+    return m_location;
+}
+
+int Token::intValue() const {
+    if (m_type != INT_LITERAL) {
+        throw BadTokenValueAccess {};
+    }
+
+    return m_value.intLiteral;
+}
+
+float Token::floatValue() const {
+    if (m_type != FLOAT_LITERAL) {
+        throw BadTokenValueAccess {};
+    }
+
+    return m_value.floatLiteral;
+}
+
+/***********************************************************************/
+
 Lexer::Lexer(std::ifstream&& source_file)
     : m_sourceFile {std::move(source_file)}, m_lineNum {1}, m_colNum {0} {}
 
@@ -19,10 +64,19 @@ int Lexer::get_column_num() const {
     return m_colNum;
 }
 
-Token Lexer::makeToken(TokenType type, std::string lexeme, int number) const {
-    return Token {
-        type, lexeme, number, Location {m_tokenLineNum, m_tokenColNum}};
+Token Lexer::makeToken(TokenType type, std::string lexeme) const {
+    return Token {type, lexeme, Location {m_tokenLineNum, m_tokenColNum}};
 }
+
+Token Lexer::makeToken(int value, std::string lexeme) const {
+    return Token {value, lexeme, Location {m_tokenLineNum, m_tokenColNum}};
+}
+
+Token Lexer::makeToken(float value, std::string lexeme) const {
+    return Token {value, lexeme, Location {m_tokenLineNum, m_tokenColNum}};
+}
+
+/***********************************************************************/
 
 Token Lexer::getToken() {
     char c {getChar()};
@@ -102,7 +156,7 @@ Token Lexer::lexLiteral() {
     std::string lexeme {};
     do {
         lexeme += getChar();
-    } while (peekChar() == '_' || is_digit(peekChar()));
+    } while (peekChar() == '_' || peekChar() == '.' || is_digit(peekChar()));
 
     if (is_alpha(peekChar())) {
         do {
@@ -115,12 +169,30 @@ Token Lexer::lexLiteral() {
     // Strip out '_'s
     std::string num {lexeme};
     num.erase(std::remove(num.begin(), num.end(), '_'), num.end());
+
+    if (num.contains('.')) {
+        float value;
+        try {
+            value = std::stof(num);
+        } catch (std::exception const& e) {
+            // String to float failed, therefore error
+            throw LexerException {makeToken(ERROR, lexeme)};
+        }
+
+        return makeToken(value, lexeme);
+    }
+
     int value = std::stoi(num);
 
-    return makeToken(NUM, lexeme, value);
+    return makeToken(value, lexeme);
 }
 
 Token Lexer::lexKeywordID() {
+    static const std::map<std::string, TokenType> keywords {
+        {"if", IF},       {"else", ELSE},  {"int", INT},       {"bool", BOOL},
+        {"float", FLOAT}, {"void", VOID},  {"return", RETURN}, {"while", WHILE},
+        {"true", TRUE},   {"false", FALSE}};
+
     std::string lexeme {};
     do {
         lexeme += getChar();
@@ -204,10 +276,10 @@ bool is_digit(char c) {
 }
 
 LexerException::LexerException(Token bad_token)
-    : CMinusException {bad_token.loc}, m_badToken {bad_token} {
+    : CMinusException {bad_token.location()}, m_badToken {bad_token} {
     std::stringstream message_buffer;
     message_buffer << "Error while lexing\n"
-                   << "  Encountered: " << std::quoted(m_badToken.lexeme)
+                   << "  Encountered: " << std::quoted(m_badToken.lexeme())
                    << " (line " << location.line_num << ", column "
                    << location.col_num << ")";
     m_errorMessage = message_buffer.str();

@@ -75,7 +75,7 @@ unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
         type.kind = TypeKind::Array;
 
         match("variable declaration", LBRACK);
-        int size {match("variable declaration", NUM).number};
+        int size {match("variable declaration", INT_LITERAL).number};
         match("variable declaration", RBRACK);
 
         new_node = make_unique<ArrayDeclarationNode>(
@@ -533,8 +533,8 @@ unique_ptr<ExpressionNode> Parser::factor() {
         match("factor", RPAREN);
         return expr;
     }
-    case NUM: {
-        auto [_, __, num, loc] {match("factor", NUM)};
+    case INT_LITERAL: {
+        auto [_, __, num, loc] {match("factor", INT_LITERAL)};
         return make_unique<IntegerLiteralExpressionNode>(num, loc);
     }
     case ID:
@@ -593,7 +593,7 @@ vector<unique_ptr<ExpressionNode>> Parser::argumentList() {
 /***********************************************************************/
 
 Parser::Parser(Lexer&& lexer)
-    : m_lexer {std::move(lexer)}, m_currentToken {Token {END_OF_FILE}} {}
+    : m_lexer {std::move(lexer)}, m_currentToken {TokenOld {END_OF_FILE}} {}
 
 unique_ptr<Node> Parser::parse() {
     // Pull first token from lexer to start with good state
@@ -602,7 +602,7 @@ unique_ptr<Node> Parser::parse() {
     return program();
 }
 
-Token const& Parser::getToken() {
+TokenOld const& Parser::getToken() {
     if (!m_peekedTokens.empty()) {
         m_currentToken = m_peekedTokens.front();
         m_peekedTokens.pop_front();
@@ -613,7 +613,7 @@ Token const& Parser::getToken() {
     return m_currentToken;
 }
 
-Token const& Parser::peekToken(size_t index) {
+TokenOld const& Parser::peekToken(size_t index) {
     if (index == 0) {
         return m_currentToken;
     }
@@ -627,11 +627,11 @@ Token const& Parser::peekToken(size_t index) {
     return m_peekedTokens[index];
 }
 
-Token const Parser::match(
+TokenOld const Parser::match(
     const std::string_view construct,
     const TokenType expected_token) {
     if (m_currentToken.type == expected_token) {
-        Token matched_tok {m_currentToken};
+        TokenOld matched_tok {m_currentToken};
         getToken();
         return matched_tok;
     } else {
@@ -650,7 +650,7 @@ ParserException Parser::error(
 
 ParserException::ParserException(
     const std::string_view construct,
-    Token received_token,
+    TokenOld received_token,
     const std::string_view expected)
     : CMinusException {received_token.loc}, m_receivedToken {received_token} {
     std::stringstream message_buffer;
