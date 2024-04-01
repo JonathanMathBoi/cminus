@@ -82,6 +82,35 @@ public:
     static SemanticError badReturn(
         ReturnStatementNode const& ret,
         FunctionDeclarationNode const& func);
+    static SemanticError arrayAssignment(
+        AssignmentExpressionNode const& assignExpr);
+    static SemanticError mismatchAssignment(
+        AssignmentExpressionNode const& assignExpr);
+    static SemanticError functionAsVariable(
+        VariableExpressionNode const& varExpr);
+    static SemanticError variableAsFunction(CallExpressionNode const& callExpr);
+    static SemanticError wrongArgumentCount(
+        CallExpressionNode const& callExpr,
+        FunctionDeclarationNode const& func);
+    static SemanticError wrongArgumentType(
+        CallExpressionNode const& callExpr,
+        FunctionDeclarationNode const& func,
+        unsigned arg_num);
+    static SemanticError indexNonArray(
+        SubscriptExpressionNode const& subscriptExpr);
+    static SemanticError badIndex(SubscriptExpressionNode const& subscriptExpr);
+    static SemanticError invalidOperation(
+        AdditiveExpressionNode const& addExpr,
+        Type left,
+        Type right);
+    static SemanticError invalidOperation(
+        MultiplicativeExpressionNode const& mulExpr,
+        Type left,
+        Type right);
+    static SemanticError invalidOperation(
+        RelationalExpressionNode const& relExpr,
+        Type left,
+        Type right);
 
 private:
     SemanticError(std::string error_message, Location loc);

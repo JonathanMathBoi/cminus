@@ -65,6 +65,66 @@ std::ostream& operator<<(std::ostream& os, Type const& type) {
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op) {
+    switch (add_op) {
+    case AdditiveOp::PLUS:
+        os << '+';
+        break;
+    case AdditiveOp::MINUS:
+        os << '-';
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, MultiplicativeOp const& mul_op) {
+    switch (mul_op) {
+    case MultiplicativeOp::TIMES:
+        os << '*';
+        break;
+    case MultiplicativeOp::DIVIDE:
+        os << '/';
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, RelationalOp const& rel_op) {
+    switch (rel_op) {
+    case RelationalOp::LT:
+        os << '<';
+        break;
+    case RelationalOp::LTE:
+        os << "<=";
+        break;
+    case RelationalOp::GT:
+        os << '>';
+        break;
+    case RelationalOp::GTE:
+        os << ">=";
+        break;
+    case RelationalOp::EQ:
+        os << "==";
+        break;
+    case RelationalOp::NEQ:
+        os << "!=";
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op) {
+    switch (unary_op) {
+    case UnaryOp::INCREMENT:
+        os << "++";
+        break;
+    case UnaryOp::DECREMENT:
+        os << "--";
+        break;
+    }
+    return os;
+}
+
 /***********************************************************************/
 // Program Root Node
 

@@ -74,12 +74,16 @@ std::ostream& operator<<(std::ostream& os, Type const& type);
 /***********************************************************************/
 
 enum class AdditiveOp { PLUS, MINUS };
+std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op);
 
 enum class MultiplicativeOp { TIMES, DIVIDE };
+std::ostream& operator<<(std::ostream& os, MultiplicativeOp const& mul_op);
 
 enum class RelationalOp { LT, LTE, GT, GTE, EQ, NEQ };
+std::ostream& operator<<(std::ostream& os, RelationalOp const& rel_op);
 
 enum class UnaryOp { INCREMENT, DECREMENT };
+std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op);
 
 /***********************************************************************/
 
