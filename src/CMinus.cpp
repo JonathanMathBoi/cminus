@@ -3,6 +3,7 @@
 #include "ast/PrintVisitor.hpp"
 #include "lexer/Lexer.hpp"
 #include "parser/Parser.hpp"
+#include "semantics/SemanticVisitor.hpp"
 #include "symbol/SymbolVisitor.hpp"
 
 #include <filesystem>
@@ -10,6 +11,7 @@
 #include <ios>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string_view>
 
 /***********************************************************************/
@@ -35,11 +37,22 @@ int main(int argc, char* argv[]) {
         ast = parser.parse();
         SymbolVisitor symbol_visitor;
         ast->accept(symbol_visitor);
-        std::cout << "Valid!" << std::endl;
     } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
         return -1;
     }
+
+    SemanticVisitor semantic_visitor;
+    ast->accept(semantic_visitor);
+    if (!semantic_visitor.isValid()) {
+        for (auto& error : semantic_visitor.errors()) {
+            std::cout << error.message() << '\n';
+        }
+        std::cout << std::flush;
+        return -1;
+    }
+
+    std::cout << "Valid!\n";
 
     std::filesystem::path old_path {input_file};
     std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
@@ -50,4 +63,6 @@ int main(int argc, char* argv[]) {
     PrintVisitor printer {ast_file};
 
     ast->accept(printer);
+
+    std::cout << "AST saved to " << new_path << std::endl;
 }
