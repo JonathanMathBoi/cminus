@@ -1,9 +1,7 @@
 #include "PrintVisitor.hpp"
 #include "AST.hpp"
 
-#include <map>
 #include <ostream>
-#include <string_view>
 
 /***********************************************************************/
 
@@ -41,7 +39,7 @@ void PrintVisitor::visit(ProgramNode& node) {
 
 void PrintVisitor::visit(FunctionDeclarationNode& node) {
     m_output << getIndent() << "Function: " << node.identifier << ": "
-             << node.type.type << " type\n";
+             << node.type.type << '\n';
 
     NestGuard guard {*this};
 
@@ -54,17 +52,17 @@ void PrintVisitor::visit(FunctionDeclarationNode& node) {
 
 void PrintVisitor::visit(VariableDeclarationNode& node) {
     m_output << getIndent() << "VariableDeclaration: " << node.identifier
-             << ": " << node.type.type << " type\n";
+             << ": " << node.type.type << '\n';
 }
 
 void PrintVisitor::visit(ArrayDeclarationNode& node) {
     m_output << getIndent() << "VariableDeclaration: " << node.identifier << "["
-             << node.size << "]: " << node.type.type << " type\n";
+             << node.size << "]: " << node.type.type << '\n';
 }
 
 void PrintVisitor::visit(ParameterNode& node) {
     m_output << getIndent() << "Parameter: " << node.identifier << ": "
-             << node.type.type << " type\n";
+             << node.type.type << '\n';
 }
 
 void PrintVisitor::visit(CompoundStatementNode& node) {
@@ -146,9 +144,10 @@ void PrintVisitor::visit(AssignmentExpressionNode& node) {
 void PrintVisitor::visit(VariableExpressionNode& node) {
     m_output << getIndent() << "Variable: " << node.identifier;
 
-    // TODO: Switch to using the nodes expression type
-    if (node.referent) {
-        m_output << ": " << (*node.referent)->type.type << " type";
+    if (node.type) {
+        m_output << ": " << node.type.value();
+    } else if (node.referent) {
+        m_output << ": " << node.referent.value()->type.type;
     }
 
     m_output << '\n';
@@ -157,9 +156,10 @@ void PrintVisitor::visit(VariableExpressionNode& node) {
 void PrintVisitor::visit(SubscriptExpressionNode& node) {
     m_output << getIndent() << "Subscript: " << node.identifier;
 
-    // TODO: Switch to using the nodes expression type
-    if (node.referent) {
-        m_output << ": " << (*node.referent)->type.type << " type";
+    if (node.type) {
+        m_output << ": " << node.type.value();
+    } else if (node.referent) {
+        m_output << ": " << node.referent.value()->type.type;
     }
 
     m_output << '\n';
@@ -178,9 +178,10 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
 void PrintVisitor::visit(CallExpressionNode& node) {
     m_output << getIndent() << "FunctionCall: " << node.identifier;
 
-    // TODO: Switch to using the nodes expression type
-    if (node.referent) {
-        m_output << ": " << (*node.referent)->type.type << " type";
+    if (node.type) {
+        m_output << ": " << node.type.value();
+    } else if (node.referent) {
+        m_output << ": " << node.referent.value()->type.type;
     }
 
     m_output << '\n';
@@ -201,9 +202,13 @@ void PrintVisitor::visit(CallExpressionNode& node) {
 }
 
 void PrintVisitor::visit(AdditiveExpressionNode& node) {
-    m_output << getIndent()
-             << "AdditiveExpression: " << add_symbols.at(node.operation)
-             << '\n';
+    m_output << getIndent() << "AdditiveExpression: " << node.operation;
+
+    if (node.type) {
+        m_output << " : " << node.type.value();
+    }
+
+    m_output << '\n';
 
     NestGuard guard {*this};
 
@@ -225,9 +230,13 @@ void PrintVisitor::visit(AdditiveExpressionNode& node) {
 }
 
 void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
-    m_output << getIndent()
-             << "MultiplicativeExpression: " << mul_symbols.at(node.operation)
-             << '\n';
+    m_output << getIndent() << "MultiplicativeExpression: " << node.operation;
+
+    if (node.type) {
+        m_output << " : " << node.type.value();
+    }
+
+    m_output << '\n';
 
     NestGuard guard {*this};
 
@@ -249,9 +258,13 @@ void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
 }
 
 void PrintVisitor::visit(RelationalExpressionNode& node) {
-    m_output << getIndent()
-             << "RelationalExpression: " << rel_symbols.at(node.operation)
-             << '\n';
+    m_output << getIndent() << "RelationalExpression: " << node.operation;
+
+    if (node.type) {
+        m_output << " : " << node.type.value();
+    }
+
+    m_output << '\n';
 
     NestGuard guard {*this};
 
