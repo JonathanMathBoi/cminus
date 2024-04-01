@@ -19,4 +19,8 @@ add_executable(CMinus
     src/symbol/SymbolTable.hpp
     src/symbol/SymbolVisitor.cpp
     src/symbol/SymbolVisitor.hpp
+    src/semantics/SemanticVisitor.hpp
+    src/semantics/SemanticVisitor.cpp
 )
+
+target_compile_options(CMinus PRIVATE -O1 -g)

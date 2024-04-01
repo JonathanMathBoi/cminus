@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -45,20 +46,44 @@ struct SymbolUseNode;
 
 /***********************************************************************/
 
-enum class TypeSpecifier { VOID, INT };
+/// A primative type of C-
+enum class PrimitiveType { Void, Int };
 
-struct ValueType {
-    TypeSpecifier type;
-    bool is_array;
+/// A type kind in C-
+enum class TypeKind { Primitive, Array };
+
+/// A C- type
+struct Type {
+    /// The kind of the type
+    TypeKind kind;
+    /// The underlying primitive type
+    PrimitiveType base;
+
+    bool operator==(Type const&) const& = default;
 };
 
+/// They type of a C- declaration
+struct DeclarationType {
+    Type type;
+    bool is_function;
+};
+
+std::ostream& operator<<(std::ostream& os, PrimitiveType const& prim_type);
+std::ostream& operator<<(std::ostream& os, Type const& type);
+
+/***********************************************************************/
+
 enum class AdditiveOp { PLUS, MINUS };
+std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op);
 
 enum class MultiplicativeOp { TIMES, DIVIDE };
+std::ostream& operator<<(std::ostream& os, MultiplicativeOp const& mul_op);
 
 enum class RelationalOp { LT, LTE, GT, GTE, EQ, NEQ };
+std::ostream& operator<<(std::ostream& os, RelationalOp const& rel_op);
 
 enum class UnaryOp { INCREMENT, DECREMENT };
+std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op);
 
 /***********************************************************************/
 
@@ -136,7 +161,7 @@ struct DeclarationNode : virtual Node {
     /// \param type the type for the declared construct
     /// \param identifier the identifier for the declared construct
     /// \param loc the location where the declaration begins
-    DeclarationNode(ValueType type, std::string identifier)
+    DeclarationNode(DeclarationType type, std::string identifier)
         : type {type}, identifier {identifier} {}
 
     virtual ~DeclarationNode() = default;
@@ -144,7 +169,7 @@ struct DeclarationNode : virtual Node {
     virtual void accept(Visitor& visitor) = 0;
 
     /// The type of the declared construct
-    ValueType type;
+    DeclarationType type;
     /// The identifier of the declared construct
     std::string identifier;
     /// The nest level of the declaration
@@ -189,6 +214,12 @@ struct ExpressionNode : virtual Node {
     virtual ~ExpressionNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
+
+    /// The type of the expression
+    ///
+    /// An optional is used as this isn't calculated until the semantic analysis
+    /// pass.
+    std::optional<Type> type;
 };
 
 /// Abstract Statement Node
@@ -404,7 +435,7 @@ struct FunctionDeclarationNode : DeclarationNode {
     /// \param body the function body
     /// \param loc the location where the function is declared
     FunctionDeclarationNode(
-        ValueType type,
+        DeclarationType type,
         std::string identifier,
         std::vector<std::shared_ptr<ParameterNode>> params,
         std::unique_ptr<CompoundStatementNode> body,
@@ -437,7 +468,7 @@ struct VariableDeclarationNode : DeclarationNode {
     /// \param identifier the identifier for the variable
     /// \param loc the location where the variable is declared
     VariableDeclarationNode(
-        ValueType type,
+        DeclarationType type,
         std::string identifier,
         Location loc);
 
@@ -457,7 +488,7 @@ struct ArrayDeclarationNode : VariableDeclarationNode {
     /// \param size the length of the array
     /// \param loc the location where the array is declared
     ArrayDeclarationNode(
-        ValueType type,
+        DeclarationType type,
         std::string identifier,
         int size,
         Location loc);
@@ -482,7 +513,7 @@ struct ParameterNode : DeclarationNode {
     /// \param type the type of the parameter
     /// \param identifier the name of the parameter
     /// \param loc the location where the parameter is declared
-    ParameterNode(ValueType type, std::string identifier, Location loc);
+    ParameterNode(DeclarationType type, std::string identifier, Location loc);
 
     virtual ~ParameterNode() = default;
 

@@ -1,6 +1,7 @@
 #include "AST.hpp"
 #include "../MiscUtils.hpp"
 
+#include <cassert>
 #include <memory>
 #include <optional>
 #include <string>
@@ -16,21 +17,113 @@ using std::vector;
 
 vector<shared_ptr<FunctionDeclarationNode>> g_builtins {
     make_shared<FunctionDeclarationNode>(
-        ValueType {TypeSpecifier::INT, /*is_array=*/false},
+        DeclarationType {
+            Type {TypeKind::Primitive, PrimitiveType::Int},
+            /*is_function=*/true},
         "input",
         vector<shared_ptr<ParameterNode>> {},
         nullptr,
         Location {-1, -1}),  // input()
     make_shared<FunctionDeclarationNode>(
-        ValueType {TypeSpecifier::VOID, /*is_array=*/false},
+        DeclarationType {
+            Type {TypeKind::Primitive, PrimitiveType::Void},
+            /*is_function=*/true},
         "output",
         vector<shared_ptr<ParameterNode>> {make_shared<ParameterNode>(
-            ValueType {TypeSpecifier::INT, /*is_array=*/false},
+            DeclarationType {
+                Type {TypeKind::Primitive, PrimitiveType::Int},
+                /*is_function=*/false},
             "value",
             Location {-1, -1})},
         nullptr,
         Location {-1, -1})  // output(int)
 };
+
+/***********************************************************************/
+
+std::ostream& operator<<(std::ostream& os, PrimitiveType const& prim_type) {
+    switch (prim_type) {
+    case PrimitiveType::Void:
+        os << "void";
+        break;
+    case PrimitiveType::Int:
+        os << "int";
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, Type const& type) {
+    switch (type.kind) {
+    case TypeKind::Primitive:
+        os << type.base;
+        break;
+    case TypeKind::Array:
+        os << type.base << "[]";
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op) {
+    switch (add_op) {
+    case AdditiveOp::PLUS:
+        os << '+';
+        break;
+    case AdditiveOp::MINUS:
+        os << '-';
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, MultiplicativeOp const& mul_op) {
+    switch (mul_op) {
+    case MultiplicativeOp::TIMES:
+        os << '*';
+        break;
+    case MultiplicativeOp::DIVIDE:
+        os << '/';
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, RelationalOp const& rel_op) {
+    switch (rel_op) {
+    case RelationalOp::LT:
+        os << '<';
+        break;
+    case RelationalOp::LTE:
+        os << "<=";
+        break;
+    case RelationalOp::GT:
+        os << '>';
+        break;
+    case RelationalOp::GTE:
+        os << ">=";
+        break;
+    case RelationalOp::EQ:
+        os << "==";
+        break;
+    case RelationalOp::NEQ:
+        os << "!=";
+        break;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op) {
+    switch (unary_op) {
+    case UnaryOp::INCREMENT:
+        os << "++";
+        break;
+    case UnaryOp::DECREMENT:
+        os << "--";
+        break;
+    }
+    return os;
+}
 
 /***********************************************************************/
 // Program Root Node
@@ -48,7 +141,7 @@ void ProgramNode::accept(Visitor& visitor) {
 // Declaration Nodes
 
 FunctionDeclarationNode::FunctionDeclarationNode(
-    ValueType type,
+    DeclarationType type,
     std::string identifier,
     vector<shared_ptr<ParameterNode>> params,
     unique_ptr<CompoundStatementNode> body,
@@ -56,40 +149,57 @@ FunctionDeclarationNode::FunctionDeclarationNode(
     : Node {loc}
     , DeclarationNode {type, identifier}
     , parameters {params}
-    , function_body {std::move(body)} {}
+    , function_body {std::move(body)} {
+    assert(
+        type.is_function &&
+        "Function declarations should be marked as function");
+}
 
 void FunctionDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 VariableDeclarationNode::VariableDeclarationNode(
-    ValueType type,
+    DeclarationType type,
     std::string identifier,
     Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {}
+    : Node {loc}, DeclarationNode {type, identifier} {
+    assert(
+        !type.is_function &&
+        "Variable declarations should not be marked as function");
+}
 
 void VariableDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 ArrayDeclarationNode::ArrayDeclarationNode(
-    ValueType type,
+    DeclarationType type,
     std::string identifier,
     int size,
     Location loc)
-    : Node {loc}
-    , VariableDeclarationNode {type, identifier, loc}
-    , size {size} {}
+    : Node {loc}, VariableDeclarationNode {type, identifier, loc}, size {size} {
+    assert(
+        !type.is_function &&
+        "Array declarations should not be marked as function");
+    assert(
+        type.type.kind == TypeKind::Array &&
+        "Array declarations should have an array type");
+}
 
 void ArrayDeclarationNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 ParameterNode::ParameterNode(
-    ValueType type,
+    DeclarationType type,
     std::string identifier,
     Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {}
+    : Node {loc}, DeclarationNode {type, identifier} {
+    assert(
+        !type.is_function &&
+        "Parameter declarations should not be marked as function");
+}
 
 void ParameterNode::accept(Visitor& visitor) {
     visitor.visit(*this);
