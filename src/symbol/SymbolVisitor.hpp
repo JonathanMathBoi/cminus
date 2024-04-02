@@ -40,6 +40,8 @@ public:
     virtual void visit(MultiplicativeExpressionNode& node) override;
     virtual void visit(RelationalExpressionNode& node) override;
     virtual void visit(IntegerLiteralExpressionNode& node) override;
+    virtual void visit(FloatLiteralExpressionNode& node) override;
+    virtual void visit(BoolLiteralExpressionNode& node) override;
 
 private:
     SymbolTable m_table;

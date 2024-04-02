@@ -153,6 +153,16 @@ void SymbolVisitor::visit(IntegerLiteralExpressionNode& node) {
     // It's a literal
 }
 
+void SymbolVisitor::visit(FloatLiteralExpressionNode& node) {
+    // Don't do anything
+    // It's a literal
+}
+
+void SymbolVisitor::visit(BoolLiteralExpressionNode& node) {
+    // Don't do anything
+    // It's a literal
+}
+
 /***********************************************************************/
 
 UndeclaredSymbolException::UndeclaredSymbolException(

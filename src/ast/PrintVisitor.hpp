@@ -42,6 +42,8 @@ public:
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) override;
     virtual void visit(IntegerLiteralExpressionNode& node) override;
+    virtual void visit(FloatLiteralExpressionNode& node) override;
+    virtual void visit(BoolLiteralExpressionNode& node) override;
 
 private:
     /// Prints the indent in front of the next to be printed element

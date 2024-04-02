@@ -17,22 +17,16 @@ using std::vector;
 
 vector<shared_ptr<FunctionDeclarationNode>> g_builtins {
     make_shared<FunctionDeclarationNode>(
-        DeclarationType {
-            Type {TypeKind::Primitive, PrimitiveType::Int},
-            /*is_function=*/true},
+        DeclarationType {Types::Int, /*is_function=*/true},
         "input",
         vector<shared_ptr<ParameterNode>> {},
         nullptr,
         Location {-1, -1}),  // input()
     make_shared<FunctionDeclarationNode>(
-        DeclarationType {
-            Type {TypeKind::Primitive, PrimitiveType::Void},
-            /*is_function=*/true},
+        DeclarationType {Types::Void, /*is_function=*/true},
         "output",
         vector<shared_ptr<ParameterNode>> {make_shared<ParameterNode>(
-            DeclarationType {
-                Type {TypeKind::Primitive, PrimitiveType::Int},
-                /*is_function=*/false},
+            DeclarationType {Types::Int, /*is_function=*/false},
             "value",
             Location {-1, -1})},
         nullptr,
@@ -48,6 +42,12 @@ std::ostream& operator<<(std::ostream& os, PrimitiveType const& prim_type) {
         break;
     case PrimitiveType::Int:
         os << "int";
+        break;
+    case PrimitiveType::Float:
+        os << "float";
+        break;
+    case PrimitiveType::Bool:
+        os << "bool";
         break;
     }
     return os;
@@ -297,6 +297,22 @@ IntegerLiteralExpressionNode::IntegerLiteralExpressionNode(
     : Node {loc}, value {value} {}
 
 void IntegerLiteralExpressionNode::accept(Visitor& visitor) {
+    visitor.visit(*this);
+}
+
+FloatLiteralExpressionNode::FloatLiteralExpressionNode(
+    float value,
+    Location loc)
+    : Node {loc}, value {value} {}
+
+void FloatLiteralExpressionNode::accept(Visitor& visitor) {
+    visitor.visit(*this);
+}
+
+BoolLiteralExpressionNode::BoolLiteralExpressionNode(bool value, Location loc)
+    : Node {loc}, value {value} {}
+
+void BoolLiteralExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 

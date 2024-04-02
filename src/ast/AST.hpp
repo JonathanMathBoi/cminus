@@ -41,13 +41,15 @@ struct AdditiveExpressionNode;
 struct MultiplicativeExpressionNode;
 struct RelationalExpressionNode;
 struct IntegerLiteralExpressionNode;
+struct FloatLiteralExpressionNode;
+struct BoolLiteralExpressionNode;
 
 struct SymbolUseNode;
 
 /***********************************************************************/
 
 /// A primative type of C-
-enum class PrimitiveType { Void, Int };
+enum class PrimitiveType { Void, Int, Float, Bool };
 
 /// A type kind in C-
 enum class TypeKind { Primitive, Array };
@@ -61,6 +63,17 @@ struct Type {
 
     bool operator==(Type const&) const& = default;
 };
+
+namespace Types {
+/// Void primative type
+static const Type Void {TypeKind::Primitive, PrimitiveType::Void};
+/// Int primative type
+static const Type Int {TypeKind::Primitive, PrimitiveType::Int};
+/// Float primative type
+static const Type Float {TypeKind::Primitive, PrimitiveType::Float};
+/// Bool primative type
+static const Type Bool {TypeKind::Primitive, PrimitiveType::Bool};
+}  // namespace Types
 
 /// They type of a C- declaration
 struct DeclarationType {
@@ -121,6 +134,8 @@ public:
     // Not parsing increment and decrement yet
     // virtual void visit(unary_expression_node& node) = 0;
     virtual void visit(IntegerLiteralExpressionNode& node) = 0;
+    virtual void visit(FloatLiteralExpressionNode& node) = 0;
+    virtual void visit(BoolLiteralExpressionNode& node) = 0;
 };
 
 /// Abstract AST Node
@@ -709,6 +724,42 @@ struct IntegerLiteralExpressionNode : ExpressionNode {
 
     /// The value of the integer literal
     int value;
+};
+
+/// Float Literal Expression Node
+///
+/// Represents a float literal
+struct FloatLiteralExpressionNode : ExpressionNode {
+    /// Constructs a Float Literal Expression Node
+    ///
+    /// \param value the value of the literal
+    /// \param loc the location of the literal in the source code
+    FloatLiteralExpressionNode(float value, Location loc);
+
+    virtual ~FloatLiteralExpressionNode() = default;
+
+    virtual void accept(Visitor& visitor) override;
+
+    /// The value of the float literal
+    float value;
+};
+
+/// Bool Literal Expression Node
+///
+/// Represents a bool literal
+struct BoolLiteralExpressionNode : ExpressionNode {
+    /// Constructs a Bool Literal Expression Node
+    ///
+    /// \param value the value of the bool literal
+    /// \param loc the location of the literal in the source code
+    BoolLiteralExpressionNode(bool value, Location loc);
+
+    virtual ~BoolLiteralExpressionNode() = default;
+
+    virtual void accept(Visitor& visitor) override;
+
+    /// The value of the bool literal
+    bool value;
 };
 
 /***********************************************************************/

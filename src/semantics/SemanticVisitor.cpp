@@ -379,6 +379,14 @@ void SemanticVisitor::visit(IntegerLiteralExpressionNode& node) {
     node.type = Type {TypeKind::Primitive, PrimitiveType::Int};
 }
 
+void SemanticVisitor::visit(FloatLiteralExpressionNode& node) {
+    node.type = Types::Float;
+}
+
+void SemanticVisitor::visit(BoolLiteralExpressionNode& node) {
+    node.type = Types::Bool;
+}
+
 /***********************************************************************/
 
 SemanticError::SemanticError(std::string error_message, Location loc)
