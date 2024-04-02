@@ -67,16 +67,11 @@ void SemanticVisitor::visit(VariableDeclarationNode& node) {
         !node.type.is_function &&
         "Variable declarations should not be marked as function");
     assert(
-        node.type.type.kind != TypeKind::Array &&
+        node.type.type.kind == TypeKind::Primitive &&
         "Primative variable declarations should not have array type");
 
-    // Asserts force type kind to primative
-    switch (node.type.type.base) {
-    case PrimitiveType::Void:
+    if (node.type.type == Types::Void) {
         addError(SemanticError::voidVariable(node));
-        break;
-    case PrimitiveType::Int:
-        break;
     }
 }
 
@@ -89,12 +84,8 @@ void SemanticVisitor::visit(ArrayDeclarationNode& node) {
         "Array declarations should have array type");
 
     // Asserts force type kind to be array
-    switch (node.type.type.base) {
-    case PrimitiveType::Void:
+    if (node.type.type.base == PrimitiveType::Void) {
         addError(SemanticError::voidVariable(node));
-        break;
-    case PrimitiveType::Int:
-        break;
     }
 
     if (node.size <= 0) {
@@ -108,12 +99,8 @@ void SemanticVisitor::visit(ParameterNode& node) {
         "Parameters should not be marked as function");
 
     // Type kind is irrelevant for bad void checking
-    switch (node.type.type.base) {
-    case PrimitiveType::Void:
+    if (node.type.type.base == PrimitiveType::Void) {
         addError(SemanticError::voidParam(node));
-        break;
-    case PrimitiveType::Int:
-        break;
     }
 }
 
@@ -132,8 +119,7 @@ void SemanticVisitor::visit(IfStatementNode& node) {
     assert(
         node.condition->type &&
         "Expression type should be calculated by visit");
-    if (node.condition->type !=
-        Type {TypeKind::Primitive, PrimitiveType::Int}) {
+    if (node.condition->type != Types::Bool) {
         addError(SemanticError::invalidCondition(node));
     }
 
@@ -149,8 +135,7 @@ void SemanticVisitor::visit(WhileStatementNode& node) {
     assert(
         node.condition->type &&
         "Expression type should be calculated by visit");
-    if (node.condition->type !=
-        Type {TypeKind::Primitive, PrimitiveType::Int}) {
+    if (node.condition->type != Types::Bool) {
         addError(SemanticError::invalidCondition(node));
     }
 
@@ -165,7 +150,7 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
     Type func_type {m_currentFunction->type.type};
 
     if (!node.expression) {
-        if (func_type != Type {TypeKind::Primitive, PrimitiveType::Void}) {
+        if (func_type != Types::Void) {
             addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     } else {
@@ -203,8 +188,8 @@ void SemanticVisitor::visit(AssignmentExpressionNode& node) {
         addError(SemanticError::mismatchAssignment(node));
     }
 
-    // Set result type to var type for chained assignments
-    node.type = node.variable->type;
+    // Set result type to void type to ban chained assignments
+    node.type = Types::Void;
 }
 
 void SemanticVisitor::visit(VariableExpressionNode& node) {
@@ -235,8 +220,7 @@ void SemanticVisitor::visit(SubscriptExpressionNode& node) {
     node.index->accept(*this);
     assert(node.index->type && "Expression type should be calculated by visit");
 
-    if (node.index->type.value() !=
-        Type {TypeKind::Primitive, PrimitiveType::Int}) {
+    if (node.index->type.value() != Types::Int) {
         addError(SemanticError::badIndex(node));
     }
 
@@ -294,15 +278,13 @@ void SemanticVisitor::visit(AdditiveExpressionNode& node) {
     assert(node.right->type && "Expression type should be calculated by visit");
     Type right_type {node.right->type.value()};
 
-    if (left_type.kind == TypeKind::Array ||
-        left_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = left_type;
         return;
     }
 
-    if (right_type.kind == TypeKind::Array ||
-        right_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (right_type.kind == TypeKind::Array || right_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = right_type;
         return;
@@ -324,15 +306,13 @@ void SemanticVisitor::visit(MultiplicativeExpressionNode& node) {
     assert(node.right->type && "Expression type should be calculated by visit");
     Type right_type {node.right->type.value()};
 
-    if (left_type.kind == TypeKind::Array ||
-        left_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = left_type;
         return;
     }
 
-    if (right_type.kind == TypeKind::Array ||
-        right_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (right_type.kind == TypeKind::Array || right_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = right_type;
         return;
@@ -354,17 +334,15 @@ void SemanticVisitor::visit(RelationalExpressionNode& node) {
     assert(node.right->type && "Expression type should be calculated by visit");
     Type right_type {node.right->type.value()};
 
-    if (left_type.kind == TypeKind::Array ||
-        left_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
-        node.type = Type {TypeKind::Primitive, PrimitiveType::Int};
+        node.type = Types::Bool;
         return;
     }
 
-    if (right_type.kind == TypeKind::Array ||
-        right_type == Type {TypeKind::Primitive, PrimitiveType::Void}) {
+    if (right_type.kind == TypeKind::Array || right_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
-        node.type = Type {TypeKind::Primitive, PrimitiveType::Int};
+        node.type = Types::Bool;
         return;
     }
 
@@ -372,11 +350,17 @@ void SemanticVisitor::visit(RelationalExpressionNode& node) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
     }
 
-    node.type = Type {TypeKind::Primitive, PrimitiveType::Int};
+    // Only == and != are defined for bool types
+    if (left_type == Types::Bool && !(node.operation == RelationalOp::EQ ||
+                                      node.operation == RelationalOp::NEQ)) {
+        addError(SemanticError::invalidOperation(node, left_type, right_type));
+    }
+
+    node.type = Types::Bool;
 }
 
 void SemanticVisitor::visit(IntegerLiteralExpressionNode& node) {
-    node.type = Type {TypeKind::Primitive, PrimitiveType::Int};
+    node.type = Types::Int;
 }
 
 void SemanticVisitor::visit(FloatLiteralExpressionNode& node) {
@@ -443,7 +427,7 @@ SemanticError SemanticError::nonPositiveArraySize(
 SemanticError SemanticError::invalidCondition(IfStatementNode const& ifStmt) {
     std::stringstream message_buffer;
     message_buffer << "Error: invalid condition for if statement.\n"
-                   << "  If condition must be an int.\n"
+                   << "  If condition must be an bool.\n"
                    << "  line: " << ifStmt.condition->loc.line_num
                    << ", col: " << ifStmt.condition->loc.col_num << '.';
     return {message_buffer.str(), ifStmt.condition->loc};
@@ -453,7 +437,7 @@ SemanticError SemanticError::invalidCondition(
     WhileStatementNode const& whileStmt) {
     std::stringstream message_buffer;
     message_buffer << "Error: invalid condition for while statement.\n"
-                   << "  While condition must be an int.\n"
+                   << "  While condition must be an bool.\n"
                    << "  line: " << whileStmt.condition->loc.line_num
                    << ", col: " << whileStmt.condition->loc.col_num << '.';
     return {message_buffer.str(), whileStmt.condition->loc};

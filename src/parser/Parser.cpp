@@ -92,21 +92,27 @@ unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
 }
 
 /**
- * Parses type-specifier -> INT | VOID
+ * Parses type-specifier -> INT | FLOAT | BOOL | VOID
  */
 std::pair<Type, Location> Parser::typeSpec() {
-    static const std::map<TokenType, PrimitiveType> types {
-        {VOID, PrimitiveType::Void}, {INT, PrimitiveType::Int}};
+    Location loc {m_currentToken.location()};
 
-    if (types.contains(m_currentToken.type())) {
-        std::pair<Type, Location> ret {
-            Type {TypeKind::Primitive, types.at(m_currentToken.type())},
-            m_currentToken.location()};
+    switch (m_currentToken.type()) {
+    case VOID:
         getToken();
-        return ret;
+        return {Types::Void, loc};
+    case INT:
+        getToken();
+        return {Types::Int, loc};
+    case FLOAT:
+        getToken();
+        return {Types::Float, loc};
+    case BOOL:
+        getToken();
+        return {Types::Bool, loc};
+    default:
+        throw error("type specifier", "INT, FLOAT, BOOL, or VOID");
     }
-
-    throw error("type specifier", "INT or VOID");
 }
 
 /**
@@ -204,7 +210,19 @@ unique_ptr<CompoundStatementNode> Parser::compoundStatement() {
 vector<shared_ptr<VariableDeclarationNode>> Parser::localDeclarations() {
     vector<shared_ptr<VariableDeclarationNode>> decls;
 
-    while (m_currentToken.type() == VOID || m_currentToken.type() == INT) {
+    auto is_type = [](TokenType type) {
+        switch (type) {
+        case VOID:
+        case INT:
+        case FLOAT:
+        case BOOL:
+            return true;
+        default:
+            return false;
+        }
+    };
+
+    while (is_type(m_currentToken.type())) {
         decls.emplace_back(variableDeclaration());
     }
 
@@ -541,6 +559,20 @@ unique_ptr<ExpressionNode> Parser::factor() {
         int num {tok.intValue()};
         Location loc {tok.location()};
         return make_unique<IntegerLiteralExpressionNode>(num, loc);
+    }
+    case FLOAT_LITERAL: {
+        Token tok {match("factor", FLOAT_LITERAL)};
+        float num {tok.floatValue()};
+        Location loc {tok.location()};
+        return make_unique<FloatLiteralExpressionNode>(num, loc);
+    }
+    case TRUE: {
+        Location loc {match("factor", TRUE).location()};
+        return make_unique<BoolLiteralExpressionNode>(true, loc);
+    }
+    case FALSE: {
+        Location loc {match("factor", FALSE).location()};
+        return make_unique<BoolLiteralExpressionNode>(false, loc);
     }
     case ID:
         if (peekToken(1).type() == LPAREN) {
