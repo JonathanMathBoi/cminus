@@ -64,14 +64,14 @@ private:
      * Move the current token one forward and returns a reference to the new
      * current token.
      */
-    TokenOld const& getToken();
+    Token const& getToken();
 
     /**
      * Peeks the token `index` after the current token.
      *
      * Note: peek_token(0) returns the current token.
      */
-    TokenOld const& peekToken(size_t index);
+    Token const& peekToken(size_t index);
 
     /// Matches on a TokenType
     ///
@@ -86,7 +86,7 @@ private:
     ///
     /// \throws parser_exception if the current token does not match the
     ///                          expected type
-    TokenOld const match(
+    Token const match(
         const std::string_view construct,
         const TokenType expected_token);
 
@@ -100,8 +100,8 @@ private:
 
 private:
     Lexer m_lexer;
-    TokenOld m_currentToken;
-    std::deque<TokenOld> m_peekedTokens;
+    Token m_currentToken;
+    std::deque<Token> m_peekedTokens;
 };
 
 /***********************************************************************/
@@ -110,13 +110,13 @@ class ParserException : public CMinusException {
 public:
     ParserException(
         const std::string_view construct,
-        TokenOld received_token,
+        Token received_token,
         const std::string_view expected);
 
     virtual char const* what() const noexcept;
 
 private:
-    TokenOld m_receivedToken;
+    Token m_receivedToken;
     std::string m_errorMessage;
 };
 
