@@ -9,8 +9,7 @@ compile_flags.txt
 .clangd
 
 # Ignore generated documentation
-html/
-latex/
+docs/
 
 # Ignore CMake files
 build/
