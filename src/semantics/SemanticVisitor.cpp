@@ -119,14 +119,14 @@ void SemanticVisitor::visit(IfStatementNode& node) {
     assert(
         node.condition->type &&
         "Expression type should be calculated by visit");
-    if (node.condition->type != Types::Bool) {
+    if (*node.condition->type != Types::Bool) {
         addError(SemanticError::invalidCondition(node));
     }
 
     node.then_stmt->accept(*this);
 
     if (node.else_stmt) {
-        (*node.else_stmt)->accept(*this);
+        node.else_stmt->accept(*this);
     }
 }
 
@@ -135,7 +135,7 @@ void SemanticVisitor::visit(WhileStatementNode& node) {
     assert(
         node.condition->type &&
         "Expression type should be calculated by visit");
-    if (node.condition->type != Types::Bool) {
+    if (*node.condition->type != Types::Bool) {
         addError(SemanticError::invalidCondition(node));
     }
 
@@ -154,11 +154,11 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
             addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     } else {
-        (*node.expression)->accept(*this);
+        node.expression->accept(*this);
         assert(
-            (*node.expression)->type &&
+            node.expression->type &&
             "Expression type should be calculated by visit");
-        if (func_type != (*node.expression)->type.value()) {
+        if (func_type != *node.expression->type) {
             addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     }
@@ -166,7 +166,7 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
 
 void SemanticVisitor::visit(ExpressionStatementNode& node) {
     if (node.expr) {
-        (*node.expr)->accept(*this);
+        node.expr->accept(*this);
     }
 }
 
@@ -197,11 +197,11 @@ void SemanticVisitor::visit(VariableExpressionNode& node) {
         node.referent &&
         "Variable expression nodes should be linked to their declarations");
 
-    if ((*node.referent)->type.is_function) {
+    if (node.referent->type.is_function) {
         addError(SemanticError::functionAsVariable(node));
     }
 
-    node.type = (*node.referent)->type.type;
+    node.type = node.referent->type.type;
 }
 
 void SemanticVisitor::visit(SubscriptExpressionNode& node) {
@@ -209,22 +209,22 @@ void SemanticVisitor::visit(SubscriptExpressionNode& node) {
         node.referent &&
         "Subscript nodes should be linked to their declarations");
 
-    if ((*node.referent)->type.is_function) {
+    if (node.referent->type.is_function) {
         addError(SemanticError::functionAsVariable(node));
     }
 
-    if ((*node.referent)->type.type.kind != TypeKind::Array) {
+    if (node.referent->type.type.kind != TypeKind::Array) {
         addError(SemanticError::indexNonArray(node));
     }
 
     node.index->accept(*this);
     assert(node.index->type && "Expression type should be calculated by visit");
 
-    if (node.index->type.value() != Types::Int) {
+    if (*node.index->type != Types::Int) {
         addError(SemanticError::badIndex(node));
     }
 
-    node.type = Type {TypeKind::Primitive, (*node.referent)->type.type.base};
+    node.type = Type {TypeKind::Primitive, node.referent->type.type.base};
 }
 
 void SemanticVisitor::visit(CallExpressionNode& node) {
@@ -232,24 +232,24 @@ void SemanticVisitor::visit(CallExpressionNode& node) {
         node.referent &&
         "Function call nodes should be linked to their declarations");
 
-    if (!(*node.referent)->type.is_function) {
+    if (!node.referent->type.is_function) {
         addError(SemanticError::variableAsFunction(node));
         for (auto& arg : node.arguments) {
             arg->accept(*this);
         }
-        node.type = (*node.referent)->type.type;
+        node.type = node.referent->type.type;
         return;
     }
 
     auto function {
-        static_cast<FunctionDeclarationNode const*>(node.referent->get())};
+        static_cast<FunctionDeclarationNode const*>(node.referent.get())};
 
     if (function->parameters.size() != node.arguments.size()) {
         addError(SemanticError::wrongArgumentCount(node, *function));
         for (auto& arg : node.arguments) {
             arg->accept(*this);
         }
-        node.type = (*node.referent)->type.type;
+        node.type = node.referent->type.type;
         return;
     }
 
@@ -258,7 +258,7 @@ void SemanticVisitor::visit(CallExpressionNode& node) {
         assert(
             node.arguments[i]->type &&
             "Expression type should be calculated by visit");
-        Type arg_type {node.arguments[i]->type.value()};
+        Type arg_type {*node.arguments[i]->type};
         Type param_type {function->parameters[i]->type.type};
 
         if (arg_type != param_type) {
@@ -266,17 +266,17 @@ void SemanticVisitor::visit(CallExpressionNode& node) {
         }
     }
 
-    node.type = (*node.referent)->type.type;
+    node.type = node.referent->type.type;
 }
 
 void SemanticVisitor::visit(AdditiveExpressionNode& node) {
     node.left->accept(*this);
     assert(node.left->type && "Expression type should be calculated by visit");
-    Type left_type {node.left->type.value()};
+    Type left_type {*node.left->type};
 
     node.right->accept(*this);
     assert(node.right->type && "Expression type should be calculated by visit");
-    Type right_type {node.right->type.value()};
+    Type right_type {*node.right->type};
 
     if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
@@ -300,11 +300,11 @@ void SemanticVisitor::visit(AdditiveExpressionNode& node) {
 void SemanticVisitor::visit(MultiplicativeExpressionNode& node) {
     node.left->accept(*this);
     assert(node.left->type && "Expression type should be calculated by visit");
-    Type left_type {node.left->type.value()};
+    Type left_type {*node.left->type};
 
     node.right->accept(*this);
     assert(node.right->type && "Expression type should be calculated by visit");
-    Type right_type {node.right->type.value()};
+    Type right_type {*node.right->type};
 
     if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
@@ -328,11 +328,11 @@ void SemanticVisitor::visit(MultiplicativeExpressionNode& node) {
 void SemanticVisitor::visit(RelationalExpressionNode& node) {
     node.left->accept(*this);
     assert(node.left->type && "Expression type should be calculated by visit");
-    Type left_type {node.left->type.value()};
+    Type left_type {*node.left->type};
 
     node.right->accept(*this);
     assert(node.right->type && "Expression type should be calculated by visit");
-    Type right_type {node.right->type.value()};
+    Type right_type {*node.right->type};
 
     if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
@@ -456,9 +456,9 @@ SemanticError SemanticError::badReturn(
 
     if (ret.expression) {
         assert(
-            (*ret.expression)->type &&
+            ret.expression->type &&
             "Type should already be calculated for bad return error");
-        message_buffer << (*ret.expression)->type.value();
+        message_buffer << *ret.expression->type;
     } else {
         message_buffer << Type {TypeKind::Primitive, PrimitiveType::Void};
     }
@@ -483,9 +483,8 @@ SemanticError SemanticError::mismatchAssignment(
     AssignmentExpressionNode const& assignExpr) {
     std::stringstream message_buffer;
     message_buffer << "Error: Variable assignment type mismatch\n"
-                   << "  Attempting to assign "
-                   << assignExpr.expression->type.value() << " to "
-                   << assignExpr.variable->type.value() << ' '
+                   << "  Attempting to assign " << *assignExpr.expression->type
+                   << " to " << *assignExpr.variable->type << ' '
                    << std::quoted(assignExpr.variable->identifier)
                    << "\n  line: " << assignExpr.loc.line_num
                    << ", col: " << assignExpr.loc.col_num;
@@ -548,7 +547,7 @@ SemanticError SemanticError::wrongArgumentType(
     messgae_buffer << "Error: Incorrect argument type for function "
                    << std::quoted(func.identifier) << "\n  Argument "
                    << badParam.identifier << " expected " << badParam.type.type
-                   << ". Received " << badArg.type.value()
+                   << ". Received " << *badArg.type
                    << ".\n  (line:" << badArg.loc.line_num
                    << ", col: " << badArg.loc.col_num << ")";
     return {messgae_buffer.str(), badArg.loc};
@@ -601,7 +600,7 @@ SemanticError SemanticError::indexNonArray(
 }
 
 SemanticError SemanticError::badIndex(SubscriptExpressionNode const& subExpr) {
-    Type index_type {subExpr.index->type.value()};
+    Type index_type {*subExpr.index->type};
     std::stringstream message_buffer;
     message_buffer << "Error: Non-int Index to array "
                    << std::quoted(subExpr.identifier) << "\n  Expected "

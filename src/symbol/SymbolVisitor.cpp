@@ -72,7 +72,7 @@ void SymbolVisitor::visit(IfStatementNode& node) {
     node.condition->accept(*this);
     node.then_stmt->accept(*this);
     if (node.else_stmt) {
-        (*node.else_stmt)->accept(*this);
+        node.else_stmt->accept(*this);
     }
 }
 
@@ -83,13 +83,13 @@ void SymbolVisitor::visit(WhileStatementNode& node) {
 
 void SymbolVisitor::visit(ReturnStatementNode& node) {
     if (node.expression) {
-        (*node.expression)->accept(*this);
+        node.expression->accept(*this);
     }
 }
 
 void SymbolVisitor::visit(ExpressionStatementNode& node) {
     if (node.expr) {
-        (*node.expr)->accept(*this);
+        node.expr->accept(*this);
     }
 }
 
@@ -107,7 +107,7 @@ void SymbolVisitor::visit(VariableExpressionNode& node) {
     }
 
     // Set the referent to the declaration
-    // decl is not none at this point
+    // decl is not nullptr at this point
     node.referent = decl;
 }
 
