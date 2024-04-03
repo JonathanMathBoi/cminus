@@ -6,7 +6,6 @@
 #include "../MiscUtils.hpp"
 #include "../ast/AST.hpp"
 
-#include <memory>
 #include <vector>
 
 /***********************************************************************/

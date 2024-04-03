@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -332,7 +331,7 @@ void CompoundStatementNode::accept(Visitor& visitor) {
 IfStatementNode::IfStatementNode(
     unique_ptr<ExpressionNode> condition,
     unique_ptr<StatementNode> then_stmt,
-    std::optional<unique_ptr<StatementNode>> else_stmt,
+    unique_ptr<StatementNode> else_stmt,
     Location loc)
     : Node {loc}
     , condition {std::move(condition)}
@@ -346,7 +345,7 @@ IfStatementNode::IfStatementNode(
     : Node {loc}
     , condition {std::move(condition)}
     , then_stmt {std::move(then_stmt)}
-    , else_stmt {std::nullopt} {}
+    , else_stmt {nullptr} {}
 
 void IfStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
@@ -363,24 +362,24 @@ void WhileStatementNode::accept(Visitor& visitor) {
 }
 
 ReturnStatementNode::ReturnStatementNode(
-    std::optional<unique_ptr<ExpressionNode>> expr,
+    unique_ptr<ExpressionNode> expr,
     Location loc)
     : Node {loc}, expression {std::move(expr)} {}
 
 ReturnStatementNode::ReturnStatementNode(Location loc)
-    : Node {loc}, expression {std::nullopt} {}
+    : Node {loc}, expression {nullptr} {}
 
 void ReturnStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
 ExpressionStatementNode::ExpressionStatementNode(
-    std::optional<unique_ptr<ExpressionNode>> expr,
+    unique_ptr<ExpressionNode> expr,
     Location loc)
     : Node {loc}, expr {std::move(expr)} {}
 
 ExpressionStatementNode::ExpressionStatementNode(Location loc)
-    : Node {loc}, expr {std::nullopt} {}
+    : Node {loc}, expr {nullptr} {}
 
 void ExpressionStatementNode::accept(Visitor& visitor) {
     visitor.visit(*this);

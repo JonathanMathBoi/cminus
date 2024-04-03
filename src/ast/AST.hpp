@@ -212,8 +212,8 @@ struct SymbolUseNode : virtual Node {
     std::string identifier;
     /// The referent of this identifier
     ///
-    /// An optional is used as this isn't set until the symbol visitor pass
-    std::optional<std::shared_ptr<DeclarationNode>> referent;
+    /// This value is null until the symbol visitor pass
+    std::shared_ptr<DeclarationNode> referent;
 };
 
 /// Abstract Expression Node
@@ -325,7 +325,7 @@ struct IfStatementNode : StatementNode {
     IfStatementNode(
         std::unique_ptr<ExpressionNode> condition,
         std::unique_ptr<StatementNode> then_stmt,
-        std::optional<std::unique_ptr<StatementNode>> else_stmt,
+        std::unique_ptr<StatementNode> else_stmt,
         Location loc);
 
     /// Constructs an If Statement Node
@@ -350,7 +350,9 @@ struct IfStatementNode : StatementNode {
     /// The then statement for the if statement
     std::unique_ptr<StatementNode> then_stmt;
     /// An optional else statement attached to the if statement
-    std::optional<std::unique_ptr<StatementNode>> else_stmt;
+    ///
+    /// This is null if there is no else statement
+    std::unique_ptr<StatementNode> else_stmt;
 };
 
 /// While Statement Node
@@ -388,9 +390,7 @@ struct ReturnStatementNode : StatementNode {
     ///
     /// \param expr the expression to be returned
     /// \param loc the location of the return statement in the source code
-    ReturnStatementNode(
-        std::optional<std::unique_ptr<ExpressionNode>> expr,
-        Location loc);
+    ReturnStatementNode(std::unique_ptr<ExpressionNode> expr, Location loc);
 
     /// Constructs a Return Statement Node
     ///
@@ -405,7 +405,9 @@ struct ReturnStatementNode : StatementNode {
     virtual void accept(Visitor& visitor) override;
 
     /// An option expression to be returned
-    std::optional<std::unique_ptr<ExpressionNode>> expression;
+    ///
+    /// If there is no returned expression, this is a nullptr
+    std::unique_ptr<ExpressionNode> expression;
 };
 
 /// Expression Statement Node
@@ -416,9 +418,7 @@ struct ExpressionStatementNode : StatementNode {
     ///
     /// \param expr the expression to be evaluated
     /// \param loc the location of the expression in the source code.
-    ExpressionStatementNode(
-        std::optional<std::unique_ptr<ExpressionNode>> expr,
-        Location loc);
+    ExpressionStatementNode(std::unique_ptr<ExpressionNode> expr, Location loc);
 
     /// Constructs an Expression Statement
     ///
@@ -433,7 +433,9 @@ struct ExpressionStatementNode : StatementNode {
     virtual void accept(Visitor& visitor) override;
 
     /// The optional expression to be evaluated
-    std::optional<std::unique_ptr<ExpressionNode>> expr;
+    ///
+    /// If there is no expression, this is a nullptr
+    std::unique_ptr<ExpressionNode> expr;
 };
 
 /***********************************************************************/
