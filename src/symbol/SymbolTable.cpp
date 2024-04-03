@@ -3,7 +3,6 @@
 
 #include <iomanip>
 #include <memory>
-#include <optional>
 #include <ranges>
 #include <sstream>
 #include <string_view>
@@ -45,7 +44,7 @@ void SymbolTable::insert(shared_ptr<DeclarationNode> node) {
     m_table[m_nestLevel].emplace(node->identifier, node);
 }
 
-std::optional<shared_ptr<DeclarationNode>> SymbolTable::lookup(
+shared_ptr<DeclarationNode> SymbolTable::lookup(
     const std::string_view name) const {
     // Needed so it can be used to index ScopeTable
     std::string name_cp {name};
@@ -55,7 +54,7 @@ std::optional<shared_ptr<DeclarationNode>> SymbolTable::lookup(
         }
     }
 
-    return std::nullopt;
+    return nullptr;
 }
 
 /***********************************************************************/
