@@ -3,9 +3,11 @@
 
 /***********************************************************************/
 
+#include <exception>
 #include <fstream>
 #include <map>
 #include <string>
+#include <string_view>
 
 #include "../MiscUtils.hpp"
 
@@ -20,9 +22,13 @@ enum TokenType {
     IF,
     ELSE,
     INT,
+    FLOAT,
+    BOOL,
     VOID,
     RETURN,
     WHILE,
+    TRUE,
+    FALSE,
 
     // Operators
     PLUS,
@@ -51,7 +57,8 @@ enum TokenType {
 
     // Identifiers and integer literals
     ID,
-    NUM
+    INT_LITERAL,
+    FLOAT_LITERAL
 };
 
 const std::map<TokenType, std::string> token_types {
@@ -60,6 +67,8 @@ const std::map<TokenType, std::string> token_types {
     {IF, "IF"},
     {ELSE, "ELSE"},
     {INT, "INT"},
+    {FLOAT, "FLOAT"},
+    {BOOL, "BOOL"},
     {VOID, "VOID"},
     {RETURN, "RETURN"},
     {WHILE, "WHILE"},
@@ -85,35 +94,62 @@ const std::map<TokenType, std::string> token_types {
     {LBRACE, "LBRACE"},
     {RBRACE, "RBRACE"},
     {ID, "ID"},
-    {NUM, "NUM"}};
+    {INT_LITERAL, "INT_LITERAL"},
+    {FLOAT_LITERAL, "FLOAT_LITERAL"}};
 
 /***********************************************************************/
 
-/// Token Struct
+/// Token Class
 ///
-/// A lexed token from a source file.
-///
-/// Consists of its TokenType, its lexeme, an optional number (used for NUM
-/// tokens), and its location in the code.
-struct Token {
-    Token(
-        TokenType pType,
-        std::string pLexeme = "",
-        int pNumber = 0,
-        Location loc = Location {-1, -1})
-        : type {pType}, lexeme {pLexeme}, number {pNumber}, loc {loc} {}
+/// A lexed token form a source file.
+class Token {
+public:
+    /// Constructs a general Token
+    ///
+    /// \param type the type of the token
+    /// \param lexeme the lexeme of the token
+    /// \param loc the location of the token in source code
+    Token(TokenType type, std::string lexeme, Location loc);
+    /// Constructs an int literal Token
+    ///
+    /// \param value the int value of the token
+    /// \param lexeme the lexeme of the token
+    /// \param loc the location of the token in source code
+    Token(int value, std::string lexeme, Location loc);
+    /// Constructs a float literal Token
+    ///
+    /// \param value the float value of the token
+    /// \param lexeme the lexeme of the token
+    /// \param loc the location of the token in source code
+    Token(float value, std::string lexeme, Location loc);
 
-    TokenType type;
-    std::string lexeme;
-    int number;
-    Location loc;
+public:
+    /// Gets the type of the token
+    TokenType type() const;
+    /// Gets the lexeme of the token
+    const std::string_view lexeme() const;
+    /// Gets the location of the token
+    Location location() const;
+    /// Gets the integer value of the token
+    ///
+    /// \throws BadValueAccess if the token is not an int literal
+    int intValue() const;
+    /// Gets the float value of the token
+    ///
+    /// \throws BadValueAccess if the token is not a float literal
+    float floatValue() const;
+
+private:
+    TokenType m_type;
+    std::string m_lexeme;
+    Location m_location;
+    union {
+        int intLiteral;
+        float floatLiteral;
+    } m_value;
 };
 
-/***********************************************************************/
-
-const std::map<std::string, TokenType> keywords {
-    {"if", IF},     {"else", ELSE},     {"int", INT},
-    {"void", VOID}, {"return", RETURN}, {"while", WHILE}};
+class BadTokenValueAccess : public std::exception {};
 
 /***********************************************************************/
 
@@ -152,22 +188,27 @@ private:
      */
     Token
     nextOrElse(char cur, char look_for, TokenType found, TokenType not_found);
-
     Token lexLiteral();
-
     Token lexKeywordID();
 
     void eatComment();
-
-    /**
-     * Creates a token with the currently lexed token's line number and column
-     * number.
-     */
-    Token makeToken(TokenType type, std::string lexeme = "", int number = 0)
-        const;
-
-    // Additional helper methods
-    // ...
+    /// Creates a new Token
+    ///
+    /// Creates a token with the current token location of the lexer
+    ///
+    /// \param type the type of the new token
+    /// \param lexeme the lexeme of the new token
+    Token makeToken(TokenType type, std::string lexeme = "") const;
+    /// Creates a new int literal Token
+    ///
+    /// \param value the value of the integer literal
+    /// \param lexeme the lexeme of the literal
+    Token makeToken(int value, std::string lexeme) const;
+    /// Creates a new float literal Token
+    ///
+    /// \param value the value of the float literal
+    /// \param lexeme the lexeme of the float literal
+    Token makeToken(float value, std::string lexeme) const;
 
 private:
     std::ifstream m_sourceFile;

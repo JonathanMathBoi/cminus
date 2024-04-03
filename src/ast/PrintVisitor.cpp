@@ -289,4 +289,18 @@ void PrintVisitor::visit(IntegerLiteralExpressionNode& node) {
     m_output << getIndent() << "Integer: " << node.value << '\n';
 }
 
+void PrintVisitor::visit(FloatLiteralExpressionNode& node) {
+    m_output << getIndent() << "Float: " << node.value << '\n';
+}
+
+void PrintVisitor::visit(BoolLiteralExpressionNode& node) {
+    m_output << getIndent() << "Boolean: ";
+    if (node.value) {
+        m_output << "true";
+    } else {
+        m_output << "false";
+    }
+    m_output << '\n';
+}
+
 /***********************************************************************/
