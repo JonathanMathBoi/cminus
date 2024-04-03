@@ -89,7 +89,7 @@ void PrintVisitor::visit(IfStatementNode& node) {
     node.then_stmt->accept(*this);
 
     if (node.else_stmt) {
-        (*node.else_stmt)->accept(*this);
+        node.else_stmt->accept(*this);
     }
 }
 
@@ -108,8 +108,7 @@ void PrintVisitor::visit(ReturnStatementNode& node) {
 
     if (node.expression) {
         NestGuard guard {*this};
-
-        (*node.expression)->accept(*this);
+        node.expression->accept(*this);
     }
 }
 
@@ -121,7 +120,7 @@ void PrintVisitor::visit(ExpressionStatementNode& node) {
     if (!node.expr) {
         m_output << getIndent() << "Semicolon\n";
     } else {
-        (*node.expr)->accept(*this);
+        node.expr->accept(*this);
     }
 }
 
@@ -145,9 +144,9 @@ void PrintVisitor::visit(VariableExpressionNode& node) {
     m_output << getIndent() << "Variable: " << node.identifier;
 
     if (node.type) {
-        m_output << ": " << node.type.value();
+        m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent.value()->type.type;
+        m_output << ": " << node.referent->type.type;
     }
 
     m_output << '\n';
@@ -157,9 +156,9 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
     m_output << getIndent() << "Subscript: " << node.identifier;
 
     if (node.type) {
-        m_output << ": " << node.type.value();
+        m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent.value()->type.type;
+        m_output << ": " << node.referent->type.type;
     }
 
     m_output << '\n';
@@ -179,9 +178,9 @@ void PrintVisitor::visit(CallExpressionNode& node) {
     m_output << getIndent() << "FunctionCall: " << node.identifier;
 
     if (node.type) {
-        m_output << ": " << node.type.value();
+        m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent.value()->type.type;
+        m_output << ": " << node.referent->type.type;
     }
 
     m_output << '\n';
@@ -205,7 +204,7 @@ void PrintVisitor::visit(AdditiveExpressionNode& node) {
     m_output << getIndent() << "AdditiveExpression: " << node.operation;
 
     if (node.type) {
-        m_output << " : " << node.type.value();
+        m_output << " : " << *node.type;
     }
 
     m_output << '\n';
@@ -233,7 +232,7 @@ void PrintVisitor::visit(MultiplicativeExpressionNode& node) {
     m_output << getIndent() << "MultiplicativeExpression: " << node.operation;
 
     if (node.type) {
-        m_output << " : " << node.type.value();
+        m_output << " : " << *node.type;
     }
 
     m_output << '\n';
@@ -261,7 +260,7 @@ void PrintVisitor::visit(RelationalExpressionNode& node) {
     m_output << getIndent() << "RelationalExpression: " << node.operation;
 
     if (node.type) {
-        m_output << " : " << node.type.value();
+        m_output << " : " << *node.type;
     }
 
     m_output << '\n';
