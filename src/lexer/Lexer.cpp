@@ -53,7 +53,7 @@ float Token::floatValue() const {
 
 /***********************************************************************/
 
-Lexer::Lexer(std::ifstream&& source_file)
+Lexer::Lexer(std::ifstream source_file)
     : m_sourceFile {std::move(source_file)}, m_lineNum {1}, m_colNum {0} {}
 
 int Lexer::get_line_num() const {
