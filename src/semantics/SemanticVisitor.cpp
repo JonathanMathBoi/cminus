@@ -60,6 +60,14 @@ void SemanticVisitor::visit(FunctionDeclarationNode& node) {
     m_currentFunction = &node;
     node.function_body->accept(*this);
     m_currentFunction = nullptr;
+
+    assert(
+        node.function_body->always_returns &&
+        "Return nature of statement should be calculated by visit");
+    // Non-void functions must return
+    if (!*node.function_body->always_returns && node.type.type != Types::Void) {
+        addError(SemanticError::nonReturningFunction(node));
+    }
 }
 
 void SemanticVisitor::visit(VariableDeclarationNode& node) {
@@ -111,7 +119,14 @@ void SemanticVisitor::visit(CompoundStatementNode& node) {
 
     for (auto& stmt : node.statements) {
         stmt->accept(*this);
+        assert(
+            stmt->always_returns &&
+            "Return nature of statement should be calculated by visit");
     }
+
+    // Compound Statement always returns if any of its statements always return
+    node.always_returns = std::ranges::any_of(
+        node.statements, [](auto& stmt) { return *stmt->always_returns; });
 }
 
 void SemanticVisitor::visit(IfStatementNode& node) {
@@ -124,10 +139,24 @@ void SemanticVisitor::visit(IfStatementNode& node) {
     }
 
     node.then_stmt->accept(*this);
+    assert(
+        node.then_stmt->always_returns &&
+        "Return nature of statement should be calculated by visit");
 
+    // If statement always returns if and only if else exists and then and
+    // else always return
     if (node.else_stmt) {
         node.else_stmt->accept(*this);
+        assert(
+            node.else_stmt->always_returns &&
+            "Return nature of statement should be calculated by visit");
+
+        node.always_returns =
+            *node.then_stmt->always_returns && *node.else_stmt->always_returns;
+        return;
     }
+
+    node.always_returns = false;
 }
 
 void SemanticVisitor::visit(WhileStatementNode& node) {
@@ -140,6 +169,10 @@ void SemanticVisitor::visit(WhileStatementNode& node) {
     }
 
     node.body->accept(*this);
+
+    // Without further static analyis while loops can not be said to always
+    // return
+    node.always_returns = false;
 }
 
 void SemanticVisitor::visit(ReturnStatementNode& node) {
@@ -162,12 +195,17 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
             addError(SemanticError::badReturn(node, *m_currentFunction));
         }
     }
+
+    node.always_returns = true;
 }
 
 void SemanticVisitor::visit(ExpressionStatementNode& node) {
     if (node.expr) {
         node.expr->accept(*this);
     }
+
+    // Expression statements never return
+    node.always_returns = false;
 }
 
 void SemanticVisitor::visit(AssignmentExpressionNode& node) {
@@ -609,6 +647,16 @@ SemanticError SemanticError::badIndex(SubscriptExpressionNode const& subExpr) {
                    << "\n  loc: " << subExpr.index->loc.line_num
                    << ", col: " << subExpr.index->loc.col_num;
     return {message_buffer.str(), subExpr.index->loc};
+}
+
+SemanticError SemanticError::nonReturningFunction(
+    FunctionDeclarationNode const& func) {
+    std::stringstream message_buffer;
+    message_buffer << "Error: Non-void function "
+                   << std::quoted(func.identifier)
+                   << " doesn't return in all control paths.\n  loc:"
+                   << func.loc.line_num << ", col: " << func.loc.col_num;
+    return {message_buffer.str(), func.loc};
 }
 
 /***********************************************************************/

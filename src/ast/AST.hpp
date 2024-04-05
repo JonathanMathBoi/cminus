@@ -273,6 +273,11 @@ struct StatementNode : virtual Node {
     virtual ~StatementNode() = default;
 
     virtual void accept(Visitor& visitor) = 0;
+
+    /// Whether or not the statement definitely returns
+    ///
+    /// An optional is used as it isn't calculated until semantic analysis
+    std::optional<bool> always_returns;
 };
 
 /***********************************************************************/

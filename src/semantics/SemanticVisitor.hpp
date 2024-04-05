@@ -112,6 +112,8 @@ public:
         RelationalExpressionNode const& relExpr,
         Type left,
         Type right);
+    static SemanticError nonReturningFunction(
+        FunctionDeclarationNode const& func);
 
 private:
     SemanticError(std::string error_message, Location loc);
