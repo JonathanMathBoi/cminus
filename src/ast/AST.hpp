@@ -70,9 +70,17 @@ struct Type {
     ///
     /// \return the primative for primatives, and a pointer for arrays.
     ///
-    /// \note When a sized array is needed it should be constructed where needed
-    /// and this function should not be relied upon.
-    llvm::Type* llvmType(llvm::LLVMContext& C) const;
+    /// \note When a sized array is needed llvmVarType() should be called.
+    llvm::Type* llvmParamType(llvm::LLVMContext& C) const;
+    /// \brief Gets the LLVM type corresponding to this type
+    ///
+    /// \param C the LLVMContext for the type
+    /// \param arraySize the size of the array
+    ///
+    /// \returns the primative type for primatives, and a sized array for arrays
+    llvm::Type* llvmVarType(
+        llvm::LLVMContext& C,
+        std::optional<int> arraySize = std::nullopt);
 };
 
 namespace Types {

@@ -55,8 +55,8 @@ private:
 
 private:
     std::shared_ptr<llvm::LLVMContext> m_context;
-    std::unique_ptr<llvm::IRBuilder<>> m_irBuilder;
     std::shared_ptr<llvm::Module> m_module;
+    std::unique_ptr<llvm::IRBuilder<>> m_irBuilder;
 };
 
 /***********************************************************************/

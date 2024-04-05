@@ -2,6 +2,7 @@
 #include "../MiscUtils.hpp"
 
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
 #include <cassert>
@@ -67,12 +68,44 @@ std::ostream& operator<<(std::ostream& os, Type const& type) {
     return os;
 }
 
-llvm::Type* Type::llvmType(llvm::LLVMContext& C) const {
+llvm::Type* Type::llvmParamType(llvm::LLVMContext& C) const {
     if (kind != TypeKind::Primitive) {
         return llvm::PointerType::getUnqual(C);
     }
 
     // kind must be Primative at this point
+    switch (base) {
+    case PrimitiveType::Void:
+        return llvm::Type::getVoidTy(C);
+    case PrimitiveType::Int:
+        return llvm::Type::getInt32Ty(C);
+    case PrimitiveType::Float:
+        return llvm::Type::getFloatTy(C);
+    case PrimitiveType::Bool:
+        return llvm::Type::getInt1Ty(C);
+    }
+}
+
+llvm::Type* Type::llvmVarType(
+    llvm::LLVMContext& C,
+    std::optional<int> arraySize) {
+    if (kind == TypeKind::Array) {
+        assert(arraySize && "LLVM Array types must be sized");
+        llvm::Type* elem_type;
+        switch (base) {
+        case PrimitiveType::Void:
+            elem_type = llvm::Type::getVoidTy(C);
+        case PrimitiveType::Int:
+            elem_type = llvm::Type::getInt32Ty(C);
+        case PrimitiveType::Float:
+            elem_type = llvm::Type::getFloatTy(C);
+        case PrimitiveType::Bool:
+            elem_type = llvm::Type::getInt1Ty(C);
+        }
+
+        return llvm::ArrayType::get(elem_type, *arraySize);
+    }
+
     switch (base) {
     case PrimitiveType::Void:
         return llvm::Type::getVoidTy(C);
