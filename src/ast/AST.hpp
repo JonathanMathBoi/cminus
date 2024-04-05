@@ -5,6 +5,10 @@
 
 #include "../MiscUtils.hpp"
 
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -62,6 +66,13 @@ struct Type {
     PrimitiveType base;
 
     bool operator==(Type const&) const& = default;
+    /// \brief Gets the LLVM type corresponding to this type
+    ///
+    /// \return the primative for primatives, and a pointer for arrays.
+    ///
+    /// \note When a sized array is needed it should be constructed where needed
+    /// and this function should not be relied upon.
+    llvm::Type* llvmType(llvm::LLVMContext& C) const;
 };
 
 namespace Types {
@@ -161,6 +172,10 @@ struct Node {
 
     /// The location of the construct in the source code
     Location loc;
+    /// \brief The LLVM IR value for the node
+    ///
+    /// Only used in codegen pass. Null until codegen visit.
+    llvm::Value* ir_value;
 };
 
 /// Abstract Declaration Node

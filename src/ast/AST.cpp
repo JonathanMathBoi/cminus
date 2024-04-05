@@ -1,6 +1,9 @@
 #include "AST.hpp"
 #include "../MiscUtils.hpp"
 
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Value.h>
+
 #include <cassert>
 #include <memory>
 #include <string>
@@ -63,6 +66,26 @@ std::ostream& operator<<(std::ostream& os, Type const& type) {
     }
     return os;
 }
+
+llvm::Type* Type::llvmType(llvm::LLVMContext& C) const {
+    if (kind != TypeKind::Primitive) {
+        return llvm::PointerType::getUnqual(C);
+    }
+
+    // kind must be Primative at this point
+    switch (base) {
+    case PrimitiveType::Void:
+        return llvm::Type::getVoidTy(C);
+    case PrimitiveType::Int:
+        return llvm::Type::getInt32Ty(C);
+    case PrimitiveType::Float:
+        return llvm::Type::getFloatTy(C);
+    case PrimitiveType::Bool:
+        return llvm::Type::getInt1Ty(C);
+    }
+}
+
+/***********************************************************************/
 
 std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op) {
     switch (add_op) {
