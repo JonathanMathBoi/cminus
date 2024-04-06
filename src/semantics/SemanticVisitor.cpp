@@ -323,13 +323,15 @@ void SemanticVisitor::visit(AdditiveExpressionNode& node) {
     assert(node.right->type && "Expression type should be calculated by visit");
     Type right_type {*node.right->type};
 
-    if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
+    if (left_type.kind == TypeKind::Array || left_type == Types::Void ||
+        left_type == Types::Bool) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = left_type;
         return;
     }
 
-    if (right_type.kind == TypeKind::Array || right_type == Types::Void) {
+    if (right_type.kind == TypeKind::Array || right_type == Types::Void ||
+        right_type == Types::Bool) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = right_type;
         return;
@@ -351,13 +353,15 @@ void SemanticVisitor::visit(MultiplicativeExpressionNode& node) {
     assert(node.right->type && "Expression type should be calculated by visit");
     Type right_type {*node.right->type};
 
-    if (left_type.kind == TypeKind::Array || left_type == Types::Void) {
+    if (left_type.kind == TypeKind::Array || left_type == Types::Void ||
+        left_type == Types::Bool) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = left_type;
         return;
     }
 
-    if (right_type.kind == TypeKind::Array || right_type == Types::Void) {
+    if (right_type.kind == TypeKind::Array || right_type == Types::Void ||
+        right_type == Types::Bool) {
         addError(SemanticError::invalidOperation(node, left_type, right_type));
         node.type = right_type;
         return;

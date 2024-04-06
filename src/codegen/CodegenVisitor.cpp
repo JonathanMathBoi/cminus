@@ -2,9 +2,11 @@
 
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
@@ -17,6 +19,7 @@ using llvm::BasicBlock;
 using llvm::Function;
 using llvm::FunctionType;
 using llvm::GlobalVariable;
+using llvm::Value;
 
 /***********************************************************************/
 
@@ -256,6 +259,193 @@ void CodegenVisitor::visit(SubscriptExpressionNode& node) {
     // lvalue of given element of array
     node.ir_value = m_irBuilder->CreateGEP(
         elem, node.referent->ir_value, node.index->ir_value);
+}
+
+void CodegenVisitor::visit(ImplicitCastNode& node) {
+    node.lvalue->accept(*this);
+    assert(
+        node.lvalue->ir_value && "Expression should have a value after visit");
+    llvm::Type* type {node.type->llvmVarType(*m_context)};
+    node.ir_value = m_irBuilder->CreateLoad(type, node.lvalue->ir_value);
+}
+
+void CodegenVisitor::visit(CallExpressionNode& node) {
+    std::vector<Value*> args;
+    for (auto& arg : node.arguments) {
+        arg->accept(*this);
+        assert(arg->ir_value && "Expression should have a value after visit");
+        args.push_back(arg->ir_value);
+    }
+
+    // Referent of CallExpr should be a function
+    Function* func {static_cast<Function*>(node.referent->ir_value)};
+    node.ir_value = m_irBuilder->CreateCall(func, args);
+}
+
+void CodegenVisitor::visit(AdditiveExpressionNode& node) {
+    node.left->accept(*this);
+    assert(node.left->ir_value && "Expression should have a value after visit");
+    node.right->accept(*this);
+    assert(
+        node.right->ir_value && "Expression should have a value after visit");
+
+    if (*node.type == Types::Int) {
+        switch (node.operation) {
+        case AdditiveOp::PLUS:
+            node.ir_value = m_irBuilder->CreateAdd(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        case AdditiveOp::MINUS:
+            node.ir_value = m_irBuilder->CreateSub(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        }
+        return;
+    }
+
+    if (*node.type == Types::Float) {
+        switch (node.operation) {
+        case AdditiveOp::PLUS:
+            node.ir_value = m_irBuilder->CreateFAdd(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        case AdditiveOp::MINUS:
+            node.ir_value = m_irBuilder->CreateFSub(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        }
+        return;
+    }
+}
+
+void CodegenVisitor::visit(MultiplicativeExpressionNode& node) {
+    node.left->accept(*this);
+    assert(node.left->ir_value && "Expression should have a value after visit");
+    node.right->accept(*this);
+    assert(
+        node.right->ir_value && "Expression should have a value after visit");
+
+    if (*node.type == Types::Int) {
+        switch (node.operation) {
+        case MultiplicativeOp::TIMES:
+            node.ir_value = m_irBuilder->CreateMul(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        case MultiplicativeOp::DIVIDE:
+            node.ir_value = m_irBuilder->CreateSDiv(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        }
+        return;
+    }
+
+    if (*node.type == Types::Float) {
+        switch (node.operation) {
+        case MultiplicativeOp::TIMES:
+            node.ir_value = m_irBuilder->CreateFMul(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        case MultiplicativeOp::DIVIDE:
+            node.ir_value = m_irBuilder->CreateFDiv(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        }
+        return;
+    }
+}
+
+void CodegenVisitor::visit(RelationalExpressionNode& node) {
+    node.left->accept(*this);
+    assert(node.left->ir_value && "Expression should have a value after visit");
+    node.right->accept(*this);
+    assert(
+        node.right->ir_value && "Expression should have a value after visit");
+
+    if (*node.type == Types::Int || *node.type == Types::Bool) {
+        switch (node.operation) {
+        case RelationalOp::EQ:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_EQ, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::NEQ:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_NE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::LT:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_SLT, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::LTE:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_SLE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::GT:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_SGT, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::GTE:
+            node.ir_value = m_irBuilder->CreateICmp(
+                llvm::CmpInst::ICMP_SGE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        }
+        return;
+    }
+
+    if (*node.type == Types::Float) {
+        switch (node.operation) {
+        case RelationalOp::EQ:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_OEQ, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::NEQ:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_ONE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::LT:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_OLT, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::LTE:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_OLE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::GT:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_OGT, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        case RelationalOp::GTE:
+            node.ir_value = m_irBuilder->CreateFCmp(
+                llvm::CmpInst::FCMP_UGE, node.left->ir_value,
+                node.right->ir_value);
+            break;
+        }
+        return;
+    }
+}
+
+void CodegenVisitor::visit(IntegerLiteralExpressionNode& node) {
+    node.ir_value =
+        llvm::ConstantInt::getSigned(m_irBuilder->getInt32Ty(), node.value);
+}
+
+void CodegenVisitor::visit(FloatLiteralExpressionNode& node) {
+    node.ir_value =
+        llvm::ConstantFP::get(m_irBuilder->getFloatTy(), node.value);
+}
+
+void CodegenVisitor::visit(BoolLiteralExpressionNode& node) {
+    node.ir_value = llvm::ConstantInt::getBool(*m_context, node.value);
 }
 
 /***********************************************************************/
