@@ -229,4 +229,33 @@ void CodegenVisitor::visit(ExpressionStatementNode& node) {
     }
 }
 
+void CodegenVisitor::visit(AssignmentExpressionNode& node) {
+    node.expression->accept(*this);
+    assert(
+        node.expression->ir_value &&
+        "Expression should have a value after visit");
+    node.variable->accept(*this);
+    assert(node.variable->ir_value && "Variable should get lvalue after visit");
+    // value is set to the instruction as assigns return void
+    node.ir_value = m_irBuilder->CreateStore(
+        node.expression->ir_value, node.variable->ir_value);
+}
+
+void CodegenVisitor::visit(VariableExpressionNode& node) {
+    // lvalues have the same value as their declaration
+    // (the pointer to the var in memory)
+    node.ir_value = node.referent->ir_value;
+}
+
+void CodegenVisitor::visit(SubscriptExpressionNode& node) {
+    node.index->accept(*this);
+    assert(
+        node.index->ir_value && "Expression should have a value after visit");
+
+    llvm::Type* elem {node.type->llvmVarType(*m_context)};
+    // lvalue of given element of array
+    node.ir_value = m_irBuilder->CreateGEP(
+        elem, node.referent->ir_value, node.index->ir_value);
+}
+
 /***********************************************************************/
