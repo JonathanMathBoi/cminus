@@ -174,6 +174,10 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
     }
 }
 
+void PrintVisitor::visit(ImplicitCastNode& node) {
+    node.lvalue->accept(*this);
+}
+
 void PrintVisitor::visit(CallExpressionNode& node) {
     m_output << getIndent() << "FunctionCall: " << node.identifier;
 

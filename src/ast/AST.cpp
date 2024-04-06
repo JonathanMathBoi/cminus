@@ -294,6 +294,13 @@ void SubscriptExpressionNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
+ImplicitCastNode::ImplicitCastNode(unique_ptr<VariableExpressionNode> lvalue)
+    : Node {lvalue->loc}, lvalue {std::move(lvalue)} {}
+
+void ImplicitCastNode::accept(Visitor& visitor) {
+    visitor.visit(*this);
+}
+
 CallExpressionNode::CallExpressionNode(
     std::string identifier,
     vector<unique_ptr<ExpressionNode>> args,

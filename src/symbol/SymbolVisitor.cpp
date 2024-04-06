@@ -116,6 +116,10 @@ void SymbolVisitor::visit(SubscriptExpressionNode& node) {
     node.index->accept(*this);
 }
 
+void SymbolVisitor::visit(ImplicitCastNode& node) {
+    node.lvalue->accept(*this);
+}
+
 void SymbolVisitor::visit(CallExpressionNode& node) {
     auto decl {m_table.lookup(node.identifier)};
 

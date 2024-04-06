@@ -265,6 +265,13 @@ void SemanticVisitor::visit(SubscriptExpressionNode& node) {
     node.type = Type {TypeKind::Primitive, node.referent->type.type.base};
 }
 
+void SemanticVisitor::visit(ImplicitCastNode& node) {
+    node.lvalue->accept(*this);
+    assert(
+        node.lvalue->type && "Expression type should be calculated by visit");
+    node.type = node.lvalue->type;
+}
+
 void SemanticVisitor::visit(CallExpressionNode& node) {
     assert(
         node.referent &&

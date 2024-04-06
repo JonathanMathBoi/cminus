@@ -38,8 +38,6 @@ struct ExpressionStatementNode;
 
 struct ExpressionNode;
 struct AssignmentExpressionNode;
-struct VariableExpressionNode;
-struct SubscriptExpressionNode;
 struct CallExpressionNode;
 struct AdditiveExpressionNode;
 struct MultiplicativeExpressionNode;
@@ -47,6 +45,10 @@ struct RelationalExpressionNode;
 struct IntegerLiteralExpressionNode;
 struct FloatLiteralExpressionNode;
 struct BoolLiteralExpressionNode;
+struct ImplicitCastNode;
+
+struct VariableExpressionNode;
+struct SubscriptExpressionNode;
 
 struct SymbolUseNode;
 
@@ -146,6 +148,7 @@ public:
     virtual void visit(AssignmentExpressionNode& node) = 0;
     virtual void visit(VariableExpressionNode& node) = 0;
     virtual void visit(SubscriptExpressionNode& node) = 0;
+    virtual void visit(ImplicitCastNode& node) = 0;
     virtual void visit(CallExpressionNode& node) = 0;
     virtual void visit(AdditiveExpressionNode& node) = 0;
     virtual void visit(MultiplicativeExpressionNode& node) = 0;
@@ -628,6 +631,25 @@ struct SubscriptExpressionNode : VariableExpressionNode {
 
     /// The expression indexing the variable
     std::unique_ptr<ExpressionNode> index;
+};
+
+/// lvalue to rvalue cast node
+///
+/// A node representing an implicit cast from an lvalue to an rvalue
+struct ImplicitCastNode : ExpressionNode {
+    /// Constructs an Implicit Cast Node
+    ///
+    /// Casts from an lvalue (variable use) to an rvalue
+    ///
+    /// \param lvalue the lvalue to be cast
+    ImplicitCastNode(std::unique_ptr<VariableExpressionNode> lvalue);
+
+    virtual ~ImplicitCastNode() = default;
+
+    virtual void accept(Visitor& visitor) override;
+
+    /// The lvalue being cast
+    std::unique_ptr<VariableExpressionNode> lvalue;
 };
 
 /// Function Call Expression Node

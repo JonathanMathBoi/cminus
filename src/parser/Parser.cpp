@@ -579,7 +579,7 @@ unique_ptr<ExpressionNode> Parser::factor() {
             return functionCall();
         }
 
-        return variableExpression();
+        return make_unique<ImplicitCastNode>(variableExpression());
     default:
         throw error(
             "factor", "( expression ), variable, function call, or literal");
