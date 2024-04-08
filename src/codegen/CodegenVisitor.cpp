@@ -13,6 +13,7 @@
 #include <llvm/IR/Verifier.h>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 using llvm::BasicBlock;
@@ -29,6 +30,37 @@ CodegenVisitor::CodegenVisitor(
     : m_context {context}
     , m_module {module}
     , m_irBuilder {std::make_unique<llvm::IRBuilder<>>(*m_context)} {}
+
+llvm::Type* CodegenVisitor::useType(Type const& type) const {
+    if (type.kind == TypeKind::Array) {
+        return m_irBuilder->getPtrTy();
+    }
+
+    return baseType(type);
+}
+
+llvm::Type* CodegenVisitor::declType(Type const& type, std::optional<int> size)
+    const {
+    if (type.kind == TypeKind::Array) {
+        assert(size && "Array declarations must include a size");
+        return llvm::ArrayType::get(baseType(type), *size);
+    }
+
+    return baseType(type);
+}
+
+llvm::Type* CodegenVisitor::baseType(Type const& type) const {
+    switch (type.base) {
+    case PrimitiveType::Void:
+        return m_irBuilder->getVoidTy();
+    case PrimitiveType::Int:
+        return m_irBuilder->getInt32Ty();
+    case PrimitiveType::Float:
+        return m_irBuilder->getFloatTy();
+    case PrimitiveType::Bool:
+        return m_irBuilder->getInt1Ty();
+    }
+}
 
 /***********************************************************************/
 

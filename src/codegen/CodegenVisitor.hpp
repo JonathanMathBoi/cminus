@@ -6,6 +6,7 @@
 #include "../ast/AST.hpp"
 
 #include <memory>
+#include <optional>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -53,6 +54,15 @@ public:
 private:
     /// Generates the code for the compiler builtin functions
     void codegenBuiltins();
+
+    /// Gets the LLVM type of the use of a variable
+    llvm::Type* useType(Type const& type) const;
+    /// Gets the LLVM type of the declaration of a variable
+    llvm::Type* declType(
+        Type const& type,
+        std::optional<int> size = std::nullopt) const;
+    /// Gets the LLVM type for the base type of a type
+    llvm::Type* baseType(Type const& type) const;
 
 private:
     std::shared_ptr<llvm::LLVMContext> m_context;
