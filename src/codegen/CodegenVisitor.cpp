@@ -33,6 +33,8 @@ CodegenVisitor::CodegenVisitor(
 /***********************************************************************/
 
 void CodegenVisitor::visit(ProgramNode& node) {
+    codegenBuiltins();
+
     for (auto& decl : node.declarations) {
         decl->accept(*this);
     }
@@ -446,6 +448,27 @@ void CodegenVisitor::visit(FloatLiteralExpressionNode& node) {
 
 void CodegenVisitor::visit(BoolLiteralExpressionNode& node) {
     node.ir_value = llvm::ConstantInt::getBool(*m_context, node.value);
+}
+
+/***********************************************************************/
+
+void CodegenVisitor::codegenBuiltins() {
+    // Gen input()
+    auto input_type {
+        FunctionType::get(m_irBuilder->getInt32Ty(), /*isVarArg=*/false)};
+    auto input {Function::Create(
+        input_type, Function::PrivateLinkage, "input", *m_module)};
+    g_builtins[0]->ir_value = input;
+    // Needs to be linked to a definition later
+
+    // Gen output(int)
+    std::vector<llvm::Type*> output_params {m_irBuilder->getInt32Ty()};
+    auto output_type {FunctionType::get(
+        m_irBuilder->getVoidTy(), output_params, /*isVarArg=*/false)};
+    auto output {Function::Create(
+        output_type, Function::PrivateLinkage, "output", *m_module)};
+    g_builtins[1]->ir_value = output;
+    // Need to be linked to a definition later
 }
 
 /***********************************************************************/
