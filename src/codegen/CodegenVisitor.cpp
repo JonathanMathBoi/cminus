@@ -75,12 +75,11 @@ void CodegenVisitor::visit(ProgramNode& node) {
 void CodegenVisitor::visit(FunctionDeclarationNode& node) {
     std::vector<llvm::Type*> param_types;
     for (auto& param : node.parameters) {
-        param_types.push_back(param->type.type.llvmType(*m_context));
+        param_types.push_back(useType(param->type.type));
     }
 
     FunctionType* func_type {FunctionType::get(
-        node.type.type.llvmType(*m_context), param_types,
-        /*isVarArg=*/false)};
+        useType(node.type.type), param_types, /*isVarArg=*/false)};
 
     Function* func {Function::Create(
         func_type, Function::ExternalLinkage, node.identifier, *m_module)};
@@ -95,7 +94,7 @@ void CodegenVisitor::visit(FunctionDeclarationNode& node) {
     for (auto [param, arg] : llvm::zip(node.parameters, func->args())) {
         // %param.local = alloca <type>
         param->ir_value = m_irBuilder->CreateAlloca(
-            param->type.type.llvmType(*m_context), /*ArraySize=*/nullptr,
+            useType(param->type.type), /*ArraySize=*/nullptr,
             param->identifier + ".local");
         // store <type> %param, ptr %param.local
         m_irBuilder->CreateStore(&arg, param->ir_value);
@@ -132,7 +131,7 @@ void CodegenVisitor::visit(VariableDeclarationNode& node) {
 
     if (node.nest_level == 0) {
         GlobalVariable* global = new GlobalVariable(
-            node.type.type.llvmSizedType(*m_context), /*isConstant=*/false,
+            declType(node.type.type), /*isConstant=*/false,
             GlobalVariable::ExternalLinkage, /*Initializer=*/nullptr,
             node.identifier);
         node.ir_value = global;
@@ -141,8 +140,7 @@ void CodegenVisitor::visit(VariableDeclarationNode& node) {
         return;
     }
 
-    node.ir_value =
-        m_irBuilder->CreateAlloca(node.type.type.llvmSizedType(*m_context));
+    node.ir_value = m_irBuilder->CreateAlloca(declType(node.type.type));
 }
 
 void CodegenVisitor::visit(ArrayDeclarationNode& node) {
@@ -152,7 +150,7 @@ void CodegenVisitor::visit(ArrayDeclarationNode& node) {
 
     if (node.nest_level == 0) {
         GlobalVariable* data = new GlobalVariable(
-            node.type.type.llvmSizedType(*m_context, node.size),
+            declType(node.type.type, node.size),
             /*isConstant=*/false, GlobalVariable::ExternalLinkage,
             /*Initializer=*/nullptr, node.identifier + ".data");
         // move into and give ownership to module
@@ -166,8 +164,7 @@ void CodegenVisitor::visit(ArrayDeclarationNode& node) {
         return;
     }
 
-    auto data {m_irBuilder->CreateAlloca(
-        node.type.type.llvmSizedType(*m_context, node.size))};
+    auto data {m_irBuilder->CreateAlloca(declType(node.type.type, node.size))};
 
     node.ir_value = m_irBuilder->CreateAlloca(m_irBuilder->getPtrTy());
     m_irBuilder->CreateStore(data, node.ir_value);
@@ -297,19 +294,19 @@ void CodegenVisitor::visit(SubscriptExpressionNode& node) {
     assert(
         node.index->ir_value && "Expression should have a value after visit");
 
-    llvm::Type* elem {node.type->llvmBaseType(*m_context)};
     // lvalue of given element of array
     auto array {m_irBuilder->CreateLoad(
         m_irBuilder->getPtrTy(), node.referent->ir_value)};
-    node.ir_value = m_irBuilder->CreateGEP(elem, array, node.index->ir_value);
+    node.ir_value = m_irBuilder->CreateGEP(
+        useType(*node.type), array, node.index->ir_value);
 }
 
 void CodegenVisitor::visit(ImplicitCastNode& node) {
     node.lvalue->accept(*this);
     assert(
         node.lvalue->ir_value && "Expression should have a value after visit");
-    llvm::Type* type {node.type->llvmType(*m_context)};
-    node.ir_value = m_irBuilder->CreateLoad(type, node.lvalue->ir_value);
+    node.ir_value =
+        m_irBuilder->CreateLoad(useType(*node.type), node.lvalue->ir_value);
 }
 
 void CodegenVisitor::visit(CallExpressionNode& node) {
