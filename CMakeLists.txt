@@ -4,6 +4,8 @@ project(CMinus)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Boost REQUIRED COMPONENTS program_options)
+
 add_executable(CMinus
     src/CMinus.cpp
     src/MiscUtils.hpp
@@ -22,5 +24,7 @@ add_executable(CMinus
     src/semantics/SemanticVisitor.hpp
     src/semantics/SemanticVisitor.cpp
 )
+
+target_link_libraries(CMinus PRIVATE Boost::program_options)
 
 target_compile_options(CMinus PRIVATE -O1 -g)

@@ -5,6 +5,8 @@
 #include <cctype>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <istream>
 #include <sstream>
 #include <string>
 
@@ -55,6 +57,8 @@ float Token::floatValue() const {
 
 Lexer::Lexer(std::ifstream source_file)
     : m_sourceFile {std::move(source_file)}, m_lineNum {1}, m_colNum {0} {}
+
+Lexer::Lexer() : m_lineNum {1}, m_colNum {0} {}
 
 int Lexer::get_line_num() const {
     return m_lineNum;
@@ -233,8 +237,16 @@ void Lexer::eatComment() {
     ungetChar(c);
 }
 
+std::istream& Lexer::source() {
+    if (m_sourceFile) {
+        return *m_sourceFile;
+    }
+
+    return std::cin;
+}
+
 char Lexer::getChar() {
-    char c {static_cast<char>(m_sourceFile.get())};
+    char c {static_cast<char>(source().get())};
     switch (c) {
     case '\n':
         m_lineNum++;
@@ -255,11 +267,11 @@ char Lexer::getChar() {
 }
 
 char Lexer::peekChar() {
-    return m_sourceFile.peek();
+    return source().peek();
 }
 
 void Lexer::ungetChar(char c) {
-    m_sourceFile.putback(c);
+    source().putback(c);
     m_colNum--;
 }
 
