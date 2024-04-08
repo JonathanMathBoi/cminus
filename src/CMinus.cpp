@@ -1,6 +1,10 @@
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/raw_ostream.h>
 #include "MiscUtils.hpp"
 #include "ast/AST.hpp"
 #include "ast/PrintVisitor.hpp"
+#include "codegen/CodegenVisitor.hpp"
 #include "lexer/Lexer.hpp"
 #include "parser/Parser.hpp"
 #include "semantics/SemanticVisitor.hpp"
@@ -65,4 +69,11 @@ int main(int argc, char* argv[]) {
     ast->accept(printer);
 
     std::cout << "AST saved to " << new_path << std::endl;
+
+    auto context {std::make_shared<llvm::LLVMContext>()};
+    auto module {std::make_shared<llvm::Module>("cmprogram", *context)};
+
+    CodegenVisitor codegen {context, module};
+    ast->accept(codegen);
+    module->print(llvm::errs(), /*AAW=*/nullptr);
 }

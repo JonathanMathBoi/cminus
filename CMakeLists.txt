@@ -30,6 +30,8 @@ add_executable(CMinus
     src/symbol/SymbolVisitor.hpp
     src/semantics/SemanticVisitor.hpp
     src/semantics/SemanticVisitor.cpp
+    src/codegen/CodegenVisitor.hpp
+    src/codegen/CodegenVisitor.cpp
 )
 
 target_compile_options(CMinus PRIVATE -O1 -g)
