@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream& os, Type const& type) {
     return os;
 }
 
-llvm::Type* Type::llvmParamType(llvm::LLVMContext& C) const {
+llvm::Type* Type::llvmType(llvm::LLVMContext& C) const {
     if (kind != TypeKind::Primitive) {
         return llvm::PointerType::getUnqual(C);
     }
@@ -86,9 +86,9 @@ llvm::Type* Type::llvmParamType(llvm::LLVMContext& C) const {
     }
 }
 
-llvm::Type* Type::llvmVarType(
+llvm::Type* Type::llvmSizedType(
     llvm::LLVMContext& C,
-    std::optional<int> arraySize) {
+    std::optional<int> arraySize) const {
     if (kind == TypeKind::Array) {
         assert(arraySize && "LLVM Array types must be sized");
         llvm::Type* elem_type;
@@ -106,6 +106,19 @@ llvm::Type* Type::llvmVarType(
         return llvm::ArrayType::get(elem_type, *arraySize);
     }
 
+    switch (base) {
+    case PrimitiveType::Void:
+        return llvm::Type::getVoidTy(C);
+    case PrimitiveType::Int:
+        return llvm::Type::getInt32Ty(C);
+    case PrimitiveType::Float:
+        return llvm::Type::getFloatTy(C);
+    case PrimitiveType::Bool:
+        return llvm::Type::getInt1Ty(C);
+    }
+}
+
+llvm::Type* Type::llvmBaseType(llvm::LLVMContext& C) const {
     switch (base) {
     case PrimitiveType::Void:
         return llvm::Type::getVoidTy(C);
