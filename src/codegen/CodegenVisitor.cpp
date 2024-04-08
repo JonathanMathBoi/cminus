@@ -209,7 +209,7 @@ void CodegenVisitor::visit(IfStatementNode& node) {
     if (node.else_stmt) {
         func->insert(func->end(), else_block);
         m_irBuilder->SetInsertPoint(else_block);
-        node.condition->accept(*this);
+        node.else_stmt->accept(*this);
         m_irBuilder->CreateBr(merge_block);
     }
 
