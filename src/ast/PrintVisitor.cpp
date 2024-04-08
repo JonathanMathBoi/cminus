@@ -175,6 +175,15 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
 }
 
 void PrintVisitor::visit(ImplicitCastNode& node) {
+    m_output << getIndent() << "ImplicitCast: lvalue to rvalue";
+    if (node.type) {
+        m_output << ": " << *node.type << '\n';
+    } else {
+        m_output << '\n';
+    }
+
+    NestGuard guard {*this};
+
     node.lvalue->accept(*this);
 }
 

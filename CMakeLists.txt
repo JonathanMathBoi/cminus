@@ -34,7 +34,7 @@ add_executable(CMinus
     src/codegen/CodegenVisitor.cpp
 )
 
-target_compile_options(CMinus PRIVATE -O1 -g)
+target_compile_options(CMinus PRIVATE -O0 -g)
 
 llvm_config(CMinus USE_SHARED support core irreader)
 
