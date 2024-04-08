@@ -10,28 +10,59 @@
 #include "semantics/SemanticVisitor.hpp"
 #include "symbol/SymbolVisitor.hpp"
 
+#include <boost/program_options.hpp>
+
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/value_semantic.hpp>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <istream>
 #include <memory>
 #include <ostream>
 #include <string_view>
 
+namespace po = boost::program_options;
+
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cout << "No source file provided" << std::endl;
+    // Define command line options
+    po::options_description desc("Options");
+    desc.add_options()("help,h", "Produce help message")(
+        "optimize,O", po::value<int>()->default_value(0),
+        "Optimization level (0, 1, 2, or 3)")(
+        "input-file", po::value<std::string>(), "Input file");
+
+    po::positional_options_description p;
+    p.add("input-file", -1);
+
+    // Parse the command line
+    po::variables_map vm;
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+        vm);
+    po::notify(vm);
+
+    // Handle help option
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
         return 1;
     }
 
-    const std::string_view input_file {argv[1]};
+    // Check if input file is provided
+    if (!vm.count("input-file")) {
+        std::cerr << "Error: Input file not specified!" << std::endl;
+        return 1;
+    }
 
-    // ifstream needs a full std::string or raw char const*
-    std::ifstream source {input_file.data()};
+    std::string input_file {vm["input-file"].as<std::string>()};
 
-    Lexer lexer {std::move(source)};
+    Lexer lexer {
+        input_file == "-" ? Lexer {} : Lexer {std::ifstream {input_file}}};
 
     Parser parser {std::move(lexer)};
 

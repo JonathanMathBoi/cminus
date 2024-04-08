@@ -13,6 +13,8 @@ include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
+find_package(Boost REQUIRED COMPONENTS program_options)
+
 add_executable(CMinus
     src/CMinus.cpp
     src/MiscUtils.hpp
@@ -40,3 +42,4 @@ llvm_config(CMinus USE_SHARED support core irreader)
 
 target_link_libraries(CMinus ${llvm_libs})
 
+target_link_libraries(CMinus PRIVATE Boost::program_options)
