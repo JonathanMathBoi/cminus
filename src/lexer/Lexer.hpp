@@ -6,6 +6,7 @@
 #include <exception>
 #include <fstream>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -166,6 +167,8 @@ public:
     ///
     /// \param source_file the source file to be lexed
     Lexer(std::ifstream source_file);
+    /// \breif Constructs a Lexer reading from standard in
+    Lexer();
 
     /// Gets the next token from the source file
     Token getToken();
@@ -247,10 +250,12 @@ private:
     /// \param value the value of the float literal
     /// \param lexeme the lexeme of the float literal
     Token makeToken(float value, std::string lexeme) const;
+    /// \brief Gets a reference to the current source file
+    std::istream& source();
 
 private:
     /// The source file to lex from
-    std::ifstream m_sourceFile;
+    std::optional<std::ifstream> m_sourceFile;
     /// The current line number of the lexer
     int m_lineNum;
     /// The current column number of the lexer
