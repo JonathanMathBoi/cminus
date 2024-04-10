@@ -34,6 +34,8 @@ po::variables_map getCmdArgs(int argc, char* argv[]);
 
 std::unique_ptr<Node> getAST(std::string source);
 
+void linkSymbols(Node& ast);
+
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
@@ -41,13 +43,7 @@ int main(int argc, char* argv[]) {
 
     std::unique_ptr<Node> ast {getAST(vm["input-file"].as<std::string>())};
 
-    try {
-        SymbolVisitor symbol_visitor;
-        ast->accept(symbol_visitor);
-    } catch (CMinusException const& exception) {
-        std::cout << exception.what() << std::endl;
-        return -1;
-    }
+    linkSymbols(*ast);
 
     SemanticVisitor semantic_visitor;
     ast->accept(semantic_visitor);
@@ -125,6 +121,18 @@ std::unique_ptr<Node> getAST(std::string source) {
 
     try {
         return parser.parse();
+    } catch (CMinusException const& exception) {
+        std::cout << exception.what() << std::endl;
+        std::exit(1);
+    }
+}
+
+/***********************************************************************/
+
+void linkSymbols(Node& ast) {
+    SymbolVisitor symbolVisitor;
+    try {
+        ast.accept(symbolVisitor);
     } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
         std::exit(1);
