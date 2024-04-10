@@ -31,26 +31,19 @@ namespace po = boost::program_options;
 /***********************************************************************/
 
 po::variables_map getCmdArgs(int argc, char* argv[]);
-
 std::unique_ptr<Node> getAST(std::string source);
-
 void linkSymbols(Node& ast);
-
 void checkSemantics(Node& ast);
-
 void printAST(Node& ast, std::filesystem::path outfile);
-
 std::filesystem::path getOutputFile(po::variables_map& options);
 
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
     po::variables_map vm {getCmdArgs(argc, argv)};
-
     std::unique_ptr<Node> ast {getAST(vm["input-file"].as<std::string>())};
 
     linkSymbols(*ast);
-
     checkSemantics(*ast);
 
     auto outfile {getOutputFile(vm)};
