@@ -495,7 +495,7 @@ void CodegenVisitor::codegenBuiltins() {
     auto input_type {
         FunctionType::get(m_irBuilder->getInt32Ty(), /*isVarArg=*/false)};
     auto input {Function::Create(
-        input_type, Function::PrivateLinkage, "input", *m_module)};
+        input_type, Function::ExternalLinkage, "input", *m_module)};
     g_builtins[0]->ir_value = input;
     // Needs to be linked to a definition later
 
@@ -504,7 +504,7 @@ void CodegenVisitor::codegenBuiltins() {
     auto output_type {FunctionType::get(
         m_irBuilder->getVoidTy(), output_params, /*isVarArg=*/false)};
     auto output {Function::Create(
-        output_type, Function::PrivateLinkage, "output", *m_module)};
+        output_type, Function::ExternalLinkage, "output", *m_module)};
     g_builtins[1]->ir_value = output;
     // Need to be linked to a definition later
 }
