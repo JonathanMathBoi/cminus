@@ -36,6 +36,8 @@ std::unique_ptr<Node> getAST(std::string source);
 
 void linkSymbols(Node& ast);
 
+void checkSemantics(Node& ast);
+
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
@@ -45,15 +47,7 @@ int main(int argc, char* argv[]) {
 
     linkSymbols(*ast);
 
-    SemanticVisitor semantic_visitor;
-    ast->accept(semantic_visitor);
-    if (!semantic_visitor.isValid()) {
-        for (auto& error : semantic_visitor.errors()) {
-            std::cout << error.message() << '\n';
-        }
-        std::cout << std::flush;
-        return -1;
-    }
+    checkSemantics(*ast);
 
     std::cout << "Valid!\n";
 
@@ -135,6 +129,20 @@ void linkSymbols(Node& ast) {
         ast.accept(symbolVisitor);
     } catch (CMinusException const& exception) {
         std::cout << exception.what() << std::endl;
+        std::exit(1);
+    }
+}
+
+/***********************************************************************/
+
+void checkSemantics(Node& ast) {
+    SemanticVisitor semanticVisitor;
+    ast.accept(semanticVisitor);
+    if (!semanticVisitor.isValid()) {
+        for (auto& error : semanticVisitor.errors()) {
+            std::cout << error.message() << '\n';
+        }
+        std::cout << std::flush;
         std::exit(1);
     }
 }
