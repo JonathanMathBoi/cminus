@@ -566,6 +566,24 @@ unique_ptr<ExpressionNode> Parser::factor() {
         Location loc {tok.location()};
         return make_unique<FloatLiteralExpressionNode>(num, loc);
     }
+    // Minus handling should eventually be moved to a unary operator
+    case MINUS: {
+        Location loc {match("factor", MINUS).location()};
+        switch (m_currentToken.type()) {
+        case INT_LITERAL: {
+            int num {match("factor", INT_LITERAL).intValue()};
+            return make_unique<IntegerLiteralExpressionNode>(-num, loc);
+        }
+        case FLOAT_LITERAL: {
+            float num {match("factor", FLOAT_LITERAL).floatValue()};
+            return make_unique<FloatLiteralExpressionNode>(-num, loc);
+        }
+        default:
+            throw error(
+                "factor",
+                "( expression ), variable, function call, or literal");
+        }
+    }
     case TRUE: {
         Location loc {match("factor", TRUE).location()};
         return make_unique<BoolLiteralExpressionNode>(true, loc);
