@@ -11,17 +11,17 @@
 #include "symbol/SymbolVisitor.hpp"
 
 #include <boost/program_options.hpp>
-
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/positional_options.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iostream>
-#include <istream>
 #include <memory>
 #include <ostream>
 #include <string_view>
@@ -32,22 +32,16 @@ namespace po = boost::program_options;
 
 po::variables_map getCmdArgs(int argc, char* argv[]);
 
+std::unique_ptr<Node> getAST(std::string source);
+
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
     po::variables_map vm {getCmdArgs(argc, argv)};
 
-    std::string input_file {vm["input-file"].as<std::string>()};
-
-    Lexer lexer {
-        input_file == "-" ? Lexer {} : Lexer {std::ifstream {input_file}}};
-
-    Parser parser {std::move(lexer)};
-
-    std::unique_ptr<Node> ast;
+    std::unique_ptr<Node> ast {getAST(vm["input-file"].as<std::string>())};
 
     try {
-        ast = parser.parse();
         SymbolVisitor symbol_visitor;
         ast->accept(symbol_visitor);
     } catch (CMinusException const& exception) {
@@ -67,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Valid!\n";
 
-    std::filesystem::path old_path {input_file};
+    std::filesystem::path old_path {vm["input-file"].as<std::string>()};
     std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
     new_path += ".ast";
 
@@ -120,6 +114,21 @@ po::variables_map getCmdArgs(int argc, char* argv[]) {
     }
 
     return vm;
+}
+
+/***********************************************************************/
+
+std::unique_ptr<Node> getAST(std::string source) {
+    // If an input file is given, use the file, else use stdin
+    Lexer lexer {source == "-" ? Lexer {} : Lexer {std::ifstream {source}}};
+    Parser parser {std::move(lexer)};
+
+    try {
+        return parser.parse();
+    } catch (CMinusException const& exception) {
+        std::cout << exception.what() << std::endl;
+        std::exit(1);
+    }
 }
 
 /***********************************************************************/
