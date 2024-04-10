@@ -114,6 +114,11 @@ Token Lexer::getToken() {
     case '+':
         return nextOrElse('+', '+', INCREMENT, PLUS);
     case '-':
+        // Negative number literals
+        if (is_digit(peekChar())) {
+            ungetChar(c);
+            return lexLiteral();
+        }
         return nextOrElse('-', '-', DECREMENT, MINUS);
     case '*':
         return makeToken(TIMES, "*");
@@ -158,6 +163,12 @@ Token Lexer::getToken() {
 
 Token Lexer::lexLiteral() {
     std::string lexeme {};
+
+    // Only allow 1 leading -
+    if (peekChar() == '-') {
+        lexeme += getChar();
+    }
+
     do {
         lexeme += getChar();
     } while (peekChar() == '_' || peekChar() == '.' || is_digit(peekChar()));
