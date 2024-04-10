@@ -38,6 +38,10 @@ void linkSymbols(Node& ast);
 
 void checkSemantics(Node& ast);
 
+void printAST(Node& ast, std::filesystem::path outfile);
+
+std::filesystem::path getOutputFile(po::variables_map& options);
+
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
@@ -49,19 +53,12 @@ int main(int argc, char* argv[]) {
 
     checkSemantics(*ast);
 
-    std::cout << "Valid!\n";
+    auto outfile {getOutputFile(vm)};
 
-    std::filesystem::path old_path {vm["input-file"].as<std::string>()};
-    std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
-    new_path += ".ast";
-
-    std::ofstream ast_file {new_path, std::ios::trunc};
-
-    PrintVisitor printer {ast_file};
-
-    ast->accept(printer);
-
-    std::cout << "AST saved to " << new_path << std::endl;
+    if (vm.count("emit-ast")) {
+        printAST(*ast, outfile);
+        return 0;
+    }
 
     auto context {std::make_shared<llvm::LLVMContext>()};
     auto module {std::make_shared<llvm::Module>("cmprogram", *context)};
@@ -79,7 +76,10 @@ po::variables_map getCmdArgs(int argc, char* argv[]) {
     desc.add_options()("help,h", "Produce help message")(
         "optimize,O", po::value<int>()->default_value(0),
         "Optimization level (0, 1, 2, or 3)")(
-        "input-file", po::value<std::string>(), "Input file");
+        "input-file", po::value<std::string>(), "Input file")(
+        "output-file,o", po::value<std::string>(), "Output file")(
+        "emit-ast", "Emit AST to the output")(
+        "emit-llvm", "Emit LLVM assembly to the output");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -100,6 +100,13 @@ po::variables_map getCmdArgs(int argc, char* argv[]) {
     // Check if input file is provided
     if (!vm.count("input-file")) {
         std::cerr << "Error: Input file not specified!" << std::endl;
+        std::exit(1);
+    }
+
+    unsigned long emit_types {vm.count("emit-ast") + vm.count("emit-llvm")};
+    if (emit_types > 1) {
+        std::cout << "Error: can not use both --emit-ast and --emit-llvm"
+                  << std::endl;
         std::exit(1);
     }
 
@@ -145,6 +152,33 @@ void checkSemantics(Node& ast) {
         std::cout << std::flush;
         std::exit(1);
     }
+}
+
+/***********************************************************************/
+
+std::filesystem::path getOutputFile(po::variables_map& options) {
+    if (options.count("output-file")) {
+        return std::filesystem::path {options["output-file"].as<std::string>()};
+    }
+
+    std::filesystem::path old_path {options["input-file"].as<std::string>()};
+    std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
+
+    if (options.count("emit-ast")) {
+        new_path += ".ast";
+    } else if (options.count("emit-llvm")) {
+        new_path += ".ll";
+    }
+
+    return new_path;
+}
+
+/***********************************************************************/
+
+void printAST(Node& ast, std::filesystem::path outfile) {
+    std::ofstream output {outfile, std::ios::trunc};
+    PrintVisitor printer {output};
+    ast.accept(printer);
 }
 
 /***********************************************************************/
