@@ -1,6 +1,3 @@
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/raw_ostream.h>
 #include "MiscUtils.hpp"
 #include "ast/AST.hpp"
 #include "ast/PrintVisitor.hpp"
@@ -16,6 +13,16 @@
 #include <boost/program_options/positional_options.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/CodeGen.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/TargetParser/Host.h>
 
 #include <cstdlib>
 #include <filesystem>
@@ -36,12 +43,17 @@ void linkSymbols(Node& ast);
 void checkSemantics(Node& ast);
 void printAST(Node& ast, std::filesystem::path outfile);
 std::filesystem::path getOutputFile(po::variables_map& options);
+void codegen(
+    Node& ast,
+    std::shared_ptr<llvm::LLVMContext> context,
+    std::shared_ptr<llvm::Module> module);
 
 /***********************************************************************/
 
 int main(int argc, char* argv[]) {
     po::variables_map vm {getCmdArgs(argc, argv)};
-    std::unique_ptr<Node> ast {getAST(vm["input-file"].as<std::string>())};
+    auto infile {vm["input-file"].as<std::string>()};
+    std::unique_ptr<Node> ast {getAST(infile)};
 
     linkSymbols(*ast);
     checkSemantics(*ast);
@@ -54,11 +66,15 @@ int main(int argc, char* argv[]) {
     }
 
     auto context {std::make_shared<llvm::LLVMContext>()};
-    auto module {std::make_shared<llvm::Module>("cmprogram", *context)};
+    auto module {std::make_shared<llvm::Module>(infile, *context)};
 
-    CodegenVisitor codegen {context, module};
-    ast->accept(codegen);
-    module->print(llvm::errs(), /*AAW=*/nullptr);
+    codegen(*ast, context, module);
+
+    if (vm.count("emit-llvm")) {
+        std::error_code ec;
+        llvm::raw_fd_ostream output {outfile.string(), ec};
+        module->print(output, /*AAW=*/nullptr);
+    }
 }
 
 /***********************************************************************/
@@ -172,6 +188,40 @@ void printAST(Node& ast, std::filesystem::path outfile) {
     std::ofstream output {outfile, std::ios::trunc};
     PrintVisitor printer {output};
     ast.accept(printer);
+}
+
+/***********************************************************************/
+
+void codegen(
+    Node& ast,
+    std::shared_ptr<llvm::LLVMContext> context,
+    std::shared_ptr<llvm::Module> module) {
+    std::string target_triple {llvm::sys::getDefaultTargetTriple()};
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+
+    std::string error;
+    auto target {llvm::TargetRegistry::lookupTarget(target_triple, error)};
+
+    if (!target) {
+        std::cerr << error;
+        std::exit(1);
+    }
+
+    std::string cpu {llvm::sys::getHostCPUName()};
+    std::string features {""};
+
+    llvm::TargetOptions opts;
+    auto target_machine {target->createTargetMachine(
+        target_triple, cpu, features, opts, llvm::Reloc::PIC_)};
+
+    module->setDataLayout(target_machine->createDataLayout());
+    module->setTargetTriple(target_triple);
+
+    CodegenVisitor codegen {context, module};
+    ast.accept(codegen);
 }
 
 /***********************************************************************/
