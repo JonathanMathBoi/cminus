@@ -13,6 +13,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <variant>
 #include <vector>
 
 /***********************************************************************/
@@ -23,6 +24,7 @@ struct Node;
 
 struct ProgramNode;
 
+class Declaration;
 struct DeclarationNode;
 struct FunctionDeclarationNode;
 struct ParameterNode;
@@ -117,6 +119,7 @@ class Visitor {
 public:
     virtual void visit(ProgramNode& node) = 0;
 
+    virtual void visit(Declaration& node) = 0;
     virtual void visit(FunctionDeclarationNode& node) = 0;
     virtual void visit(VariableDeclarationNode& node) = 0;
     virtual void visit(ArrayDeclarationNode& node) = 0;
@@ -797,6 +800,106 @@ struct BoolLiteralExpressionNode : ExpressionNode {
 
     /// The value of the bool literal
     bool value;
+};
+
+/***********************************************************************/
+
+/// \brief Construct Declaration Node
+///
+/// This is a discrimated union representing any type of declaration.
+///
+/// When a smart pointer is needed to a declaration node, a `shared_ptr` is
+/// likely the best choice, as these nodes eventually need to be pointed to at
+/// both their parent and by all their references.
+class Declaration final : public Node {
+public:
+    /// Single Variable Declaration
+    struct Variable {};
+    /// Array Declaration
+    struct Array {
+        /// \brief The size of the array
+        ///
+        /// Must be checked at semantic analysis. Must be positive.
+        int size;
+    };
+    /// Parameter Declaration
+    struct Parameter {};
+    /// Function Declaration
+    struct Function {
+        /// Vector of the functions parameters
+        ///
+        /// A vector of *shared_ptr*s is used as usage of these parameters will
+        /// eventually be linked back to their delarations here. As such a
+        /// unique_ptr would not be applicable.
+        std::vector<std::shared_ptr<Declaration>> parameters;
+        /// Statement block body of the function
+        std::unique_ptr<CompoundStatementNode> body;
+    };
+
+    using Kind = std::variant<Variable, Array, Parameter, Function>;
+
+public:
+    /// The identifier of the declared construct
+    std::string identifier;
+    /// The type of the declared construct
+    Type type;
+    /// The nest level of the declaration
+    ///
+    /// An optional is used as this isn't set until the symbol visitor pass
+    std::optional<unsigned> nest_level;
+    /// The kind of construct being declared
+    Kind kind;
+
+public:
+    virtual ~Declaration() = default;
+    virtual void accept(Visitor& visitor) override;
+
+public:
+    /// \brief Builds a variable declaration node
+    ///
+    /// \param id the name of the variable
+    /// \param ty the type of the variable. (Must not have kind
+    ///           TypeKind::Array.)
+    /// \param loc the location of the variable declaration in source code
+    ///
+    /// \returns a declaration node representing the variable declaration
+    static Declaration variableDecl(std::string id, Type ty, Location loc);
+    /// \brief Builds an array declaration node
+    ///
+    /// \param id the name of the array
+    /// \param ty the type of the array. (Must have TypeKind TypeKind::Array.)
+    /// \param size the size of the array
+    /// \param loc the location of the array declaration in source code
+    ///
+    /// \returns a declaration node representing the array declaration
+    static Declaration
+    arrayDecl(std::string id, Type ty, int size, Location loc);
+    /// \brief Builds a parameter declaration node
+    ///
+    /// \param id the name of the parameter
+    /// \param ty the type of the parameter
+    /// \param loc the location of the parameter declaration in source code
+    ///
+    /// \returns a declaration node representing the parameter declaration
+    static Declaration paramDecl(std::string id, Type ty, Location loc);
+    /// \brief Builds a function declaration node
+    ///
+    /// \param id the name of the function
+    /// \param ty the return type of the function
+    /// \param params the parameters to the function
+    /// \param body the function body
+    /// \param loc the location of the function declaration in source code
+    ///
+    /// \returns a declaration node representing the function declaration
+    static Declaration functionDecl(
+        std::string id,
+        Type ty,
+        std::vector<std::shared_ptr<Declaration>> params,
+        std::unique_ptr<CompoundStatementNode> body,
+        Location loc);
+
+private:
+    Declaration(std::string id, Type ty, Kind kind, Location loc);
 };
 
 /***********************************************************************/

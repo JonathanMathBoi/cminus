@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 using std::make_shared;
@@ -143,7 +144,46 @@ void ProgramNode::accept(Visitor& visitor) {
 }
 
 /***********************************************************************/
-// Declaration Nodes
+
+void Declaration::accept(Visitor& visitor) {
+    visitor.visit(*this);
+}
+
+Declaration Declaration::variableDecl(std::string id, Type ty, Location loc) {
+    assert(
+        ty.kind != TypeKind::Array &&
+        "Variable declarations must have non-array type");
+    return {id, ty, Variable {}, loc};
+}
+
+Declaration
+Declaration::arrayDecl(std::string id, Type ty, int size, Location loc) {
+    assert(
+        ty.kind == TypeKind::Array &&
+        "Array declarations must have array type");
+    return {id, ty, Array {size}, loc};
+}
+
+Declaration Declaration::paramDecl(std::string id, Type ty, Location loc) {
+    return {id, ty, Parameter {}, loc};
+}
+
+Declaration Declaration::functionDecl(
+    std::string id,
+    Type ty,
+    std::vector<std::shared_ptr<Declaration>> params,
+    std::unique_ptr<CompoundStatementNode> body,
+    Location loc) {
+    for (auto& param : params) {
+        assert(
+            std::holds_alternative<Parameter>(param->kind) &&
+            "All function parameters must be parameter declarations");
+    }
+    return {id, ty, Function {params, std::move(body)}, loc};
+}
+
+Declaration::Declaration(std::string id, Type ty, Kind kind, Location loc)
+    : Node {loc}, identifier {id}, type {ty}, kind {std::move(kind)} {}
 
 FunctionDeclarationNode::FunctionDeclarationNode(
     DeclarationType type,
