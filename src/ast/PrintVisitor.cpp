@@ -2,6 +2,7 @@
 #include "AST.hpp"
 
 #include <ostream>
+#include <variant>
 
 /***********************************************************************/
 
@@ -36,6 +37,45 @@ void PrintVisitor::visit(ProgramNode& node) {
 
     m_output.flush();
 }
+
+/***********************************************************************/
+// Declaration Visit
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
+void PrintVisitor::visit(Declaration& node) {
+    std::visit(
+        overloaded {
+            [this, &node](Declaration::Variable& var) {
+                m_output << getIndent()
+                         << "Variable Declaration: " << node.identifier << ": "
+                         << node.type << '\n';
+            },
+            [this, &node](Declaration::Array& arr) {
+                m_output << getIndent()
+                         << "Array Declaration: " << node.identifier << '['
+                         << arr.size << "]: " << node.type << '\n';
+            },
+            [this, &node](Declaration::Parameter& param) {
+                m_output << getIndent() << "Parameter: " << node.identifier
+                         << ": " << node.type << '\n';
+            },
+            [this, &node](Declaration::Function& func) {
+                m_output << getIndent() << "Function: " << node.identifier
+                         << ": " << node.type << '\n';
+                NestGuard {*this};
+                for (auto& param : func.parameters) {
+                    param->accept(*this);
+                }
+                func.body->accept(*this);
+            }},
+        node.kind);
+}
+
+/***********************************************************************/
 
 void PrintVisitor::visit(FunctionDeclarationNode& node) {
     m_output << getIndent() << "Function: " << node.identifier << ": "
