@@ -26,19 +26,37 @@ public:
 
 private:
     std::unique_ptr<ProgramNode> program();
-    std::vector<std::shared_ptr<DeclarationNode>> declarationList();
-    std::unique_ptr<DeclarationNode> declaration();
+    std::vector<std::shared_ptr<Declaration>> declarationList();
+    std::unique_ptr<Declaration> declaration();
     /// Parses a type specifier
     ///
     /// \returns the type specified and its location in the code
     std::pair<Type, Location> typeSpec();
-    std::unique_ptr<VariableDeclarationNode> variableDeclaration();
-    std::unique_ptr<FunctionDeclarationNode> functionDeclaration();
-    std::vector<std::shared_ptr<ParameterNode>> functionParameters();
-    std::vector<std::shared_ptr<ParameterNode>> parameterList();
-    std::unique_ptr<ParameterNode> parameter();
+    /// \brief Parses a variable declaration
+    ///
+    /// \returns a declaration with Variable kind
+    std::unique_ptr<Declaration> variableDeclaration();
+    /// \brief Parses a function declaration
+    ///
+    /// \returns a declaration with Function kind
+    std::unique_ptr<Declaration> functionDeclaration();
+    /// \brief Parses parameters to a function
+    ///
+    /// \returns a vector of parameter declarations
+    std::vector<std::shared_ptr<Declaration>> functionParameters();
+    /// \brief Parses a list of parameters
+    ///
+    /// \returns a vector of parameter declarations
+    std::vector<std::shared_ptr<Declaration>> parameterList();
+    /// \brief Parses a function parameter
+    ///
+    /// \returns a declaration with Parameter kind
+    std::unique_ptr<Declaration> parameter();
     std::unique_ptr<CompoundStatementNode> compoundStatement();
-    std::vector<std::shared_ptr<VariableDeclarationNode>> localDeclarations();
+    /// \brief Parses a list of variable declarations
+    ///
+    /// \returns a vector of declarations with Variable or Array kind
+    std::vector<std::shared_ptr<Declaration>> localDeclarations();
     std::vector<std::unique_ptr<StatementNode>> statementList();
     std::unique_ptr<StatementNode> statement();
     std::unique_ptr<ExpressionStatementNode> expressionStatement();

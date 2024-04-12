@@ -19,23 +19,20 @@ using std::vector;
 
 /***********************************************************************/
 
-vector<shared_ptr<FunctionDeclarationNode>> g_builtins {
-    make_shared<FunctionDeclarationNode>(
-        DeclarationType {Types::Int, /*is_function=*/true},
+vector<shared_ptr<Declaration>> g_builtins {
+    make_shared<Declaration>(Declaration::functionDecl(
         "input",
-        vector<shared_ptr<ParameterNode>> {},
+        Types::Int,
+        {},
         nullptr,
-        Location {-1, -1}),  // input()
-    make_shared<FunctionDeclarationNode>(
-        DeclarationType {Types::Void, /*is_function=*/true},
+        Location {-1, -1})),
+    make_shared<Declaration>(Declaration::functionDecl(
         "output",
-        vector<shared_ptr<ParameterNode>> {make_shared<ParameterNode>(
-            DeclarationType {Types::Int, /*is_function=*/false},
-            "value",
-            Location {-1, -1})},
+        Types::Void,
+        {make_shared<Declaration>(
+            Declaration::paramDecl("value", Types::Int, Location {-1, -1}))},
         nullptr,
-        Location {-1, -1})  // output(int)
-};
+        Location {-1, -1}))};
 
 /***********************************************************************/
 
@@ -136,7 +133,7 @@ std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op) {
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-ProgramNode::ProgramNode(vector<shared_ptr<DeclarationNode>> declarations)
+ProgramNode::ProgramNode(vector<shared_ptr<Declaration>> declarations)
     : Node {Location {1, 1}}, declarations {declarations} {}
 
 void ProgramNode::accept(Visitor& visitor) {
@@ -184,71 +181,6 @@ Declaration Declaration::functionDecl(
 
 Declaration::Declaration(std::string id, Type ty, Kind kind, Location loc)
     : Node {loc}, identifier {id}, type {ty}, kind {std::move(kind)} {}
-
-FunctionDeclarationNode::FunctionDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    vector<shared_ptr<ParameterNode>> params,
-    unique_ptr<CompoundStatementNode> body,
-    Location loc)
-    : Node {loc}
-    , DeclarationNode {type, identifier}
-    , parameters {params}
-    , function_body {std::move(body)} {
-    assert(
-        type.is_function &&
-        "Function declarations should be marked as function");
-}
-
-void FunctionDeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
-VariableDeclarationNode::VariableDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {
-    assert(
-        !type.is_function &&
-        "Variable declarations should not be marked as function");
-}
-
-void VariableDeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
-ArrayDeclarationNode::ArrayDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    int size,
-    Location loc)
-    : Node {loc}, VariableDeclarationNode {type, identifier, loc}, size {size} {
-    assert(
-        !type.is_function &&
-        "Array declarations should not be marked as function");
-    assert(
-        type.type.kind == TypeKind::Array &&
-        "Array declarations should have an array type");
-}
-
-void ArrayDeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
-ParameterNode::ParameterNode(
-    DeclarationType type,
-    std::string identifier,
-    Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {
-    assert(
-        !type.is_function &&
-        "Parameter declarations should not be marked as function");
-}
-
-void ParameterNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
 
 /***********************************************************************/
 // Expression Nodes
@@ -372,7 +304,7 @@ void BoolLiteralExpressionNode::accept(Visitor& visitor) {
 // Statement Nodes
 
 CompoundStatementNode::CompoundStatementNode(
-    vector<shared_ptr<VariableDeclarationNode>> decls,
+    vector<shared_ptr<Declaration>> decls,
     vector<unique_ptr<StatementNode>> stmts,
     Location loc)
     : Node {loc}, local_decls {decls}, statements {std::move(stmts)} {}

@@ -25,11 +25,6 @@ struct Node;
 struct ProgramNode;
 
 class Declaration;
-struct DeclarationNode;
-struct FunctionDeclarationNode;
-struct ParameterNode;
-struct VariableDeclarationNode;
-struct ArrayDeclarationNode;
 
 struct StatementNode;
 struct CompoundStatementNode;
@@ -111,7 +106,7 @@ std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op);
 /// A vector of all the compiler builtin functions
 ///
 /// Owned here as they are not part of a users source tree.
-extern std::vector<std::shared_ptr<FunctionDeclarationNode>> g_builtins;
+extern std::vector<std::shared_ptr<Declaration>> g_builtins;
 
 /***********************************************************************/
 
@@ -120,10 +115,6 @@ public:
     virtual void visit(ProgramNode& node) = 0;
 
     virtual void visit(Declaration& node) = 0;
-    virtual void visit(FunctionDeclarationNode& node) = 0;
-    virtual void visit(VariableDeclarationNode& node) = 0;
-    virtual void visit(ArrayDeclarationNode& node) = 0;
-    virtual void visit(ParameterNode& node) = 0;
 
     virtual void visit(CompoundStatementNode& node) = 0;
     virtual void visit(IfStatementNode& node) = 0;
@@ -177,36 +168,6 @@ struct Node {
     llvm::Value* ir_value;
 };
 
-/// Abstract Declaration Node
-///
-/// This node type serves as the base for all declaration nodes to inherit from.
-///
-/// When a smart pointer is needed to a declaration node, a `shared_ptr` is
-/// likely the best choice, as these nodes eventually need to be pointed to at
-/// both their parent and by all their references.
-struct DeclarationNode : virtual Node {
-    /// Constructs a Declaration Node
-    ///
-    /// \param type the type for the declared construct
-    /// \param identifier the identifier for the declared construct
-    /// \param loc the location where the declaration begins
-    DeclarationNode(DeclarationType type, std::string identifier)
-        : type {type}, identifier {identifier} {}
-
-    virtual ~DeclarationNode() = default;
-
-    virtual void accept(Visitor& visitor) = 0;
-
-    /// The type of the declared construct
-    DeclarationType type;
-    /// The identifier of the declared construct
-    std::string identifier;
-    /// The nest level of the declaration
-    ///
-    /// An optional is used as this isn't set until the symbol visitor pass
-    std::optional<unsigned> nest_level;
-};
-
 /// Abstract Symbol Use Node
 ///
 /// This node is an abstract node to represent constructs that refer back to a
@@ -227,7 +188,7 @@ struct SymbolUseNode : virtual Node {
     /// The referent of this identifier
     ///
     /// This value is null until the symbol visitor pass
-    std::shared_ptr<DeclarationNode> referent;
+    std::shared_ptr<Declaration> referent;
 };
 
 /// Abstract Expression Node
@@ -282,7 +243,7 @@ struct ProgramNode : Node {
     ///
     /// \param declarations a vector of all the top level declarations in the
     ///                     program
-    ProgramNode(std::vector<std::shared_ptr<DeclarationNode>> declarations);
+    ProgramNode(std::vector<std::shared_ptr<Declaration>> declarations);
 
     virtual ~ProgramNode() = default;
 
@@ -293,7 +254,7 @@ struct ProgramNode : Node {
     /// A vector of shared_ptr is used as usage of these identifers will
     /// eventually be linked back to their delarations. As such a unique_ptr
     /// would not be applicable.
-    std::vector<std::shared_ptr<DeclarationNode>> declarations;
+    std::vector<std::shared_ptr<Declaration>> declarations;
 };
 
 /***********************************************************************/
@@ -308,7 +269,7 @@ struct CompoundStatementNode : StatementNode {
     /// \param stmts the list of statments in the block
     /// \param loc the location of the start of the block in the source code
     CompoundStatementNode(
-        std::vector<std::shared_ptr<VariableDeclarationNode>> decls,
+        std::vector<std::shared_ptr<Declaration>> decls,
         std::vector<std::unique_ptr<StatementNode>> stmts,
         Location loc);
 
@@ -321,7 +282,7 @@ struct CompoundStatementNode : StatementNode {
     /// A vector of shared_ptr is used as usage of these variables will
     /// eventually be linked back to their delarations here. As such a
     /// unique_ptr would not be applicable.
-    std::vector<std::shared_ptr<VariableDeclarationNode>> local_decls;
+    std::vector<std::shared_ptr<Declaration>> local_decls;
     /// The list of statements in the block
     std::vector<std::unique_ptr<StatementNode>> statements;
     /// Whether or not this is the body of a function
@@ -455,105 +416,6 @@ struct ExpressionStatementNode : StatementNode {
     ///
     /// If there is no expression, this is a nullptr
     std::unique_ptr<ExpressionNode> expr;
-};
-
-/***********************************************************************/
-
-/// Function Declaration Node
-///
-/// This node type represents a function declaration.
-struct FunctionDeclarationNode : DeclarationNode {
-    /// Constructs a Function Declaration Node
-    ///
-    /// \param type the function return type
-    /// \param identifier the function name
-    /// \param params the list of parameters of the function
-    /// \param body the function body
-    /// \param loc the location where the function is declared
-    FunctionDeclarationNode(
-        DeclarationType type,
-        std::string identifier,
-        std::vector<std::shared_ptr<ParameterNode>> params,
-        std::unique_ptr<CompoundStatementNode> body,
-        Location loc);
-
-    virtual ~FunctionDeclarationNode() = default;
-
-    virtual void accept(Visitor& visitor) override;
-
-    /// This list of all the parameters to the function
-    ///
-    /// A vector of shared_ptr is used as usage of these parameters will
-    /// eventually be linked back to their delarations here. As such a
-    /// unique_ptr would not be applicable.
-    std::vector<std::shared_ptr<ParameterNode>> parameters;
-    /// The statement block serving as the body of the function
-    ///
-    /// This is a nullptr for compiler built-ins. Should be a valid pointer for
-    /// all other functions.
-    std::unique_ptr<CompoundStatementNode> function_body;
-};
-
-/// Variable Declaration Node
-///
-/// This node type represents a variable declaration.
-struct VariableDeclarationNode : DeclarationNode {
-    /// Constructs a Variable Declaration Node
-    ///
-    /// \param type the type of the variable
-    /// \param identifier the identifier for the variable
-    /// \param loc the location where the variable is declared
-    VariableDeclarationNode(
-        DeclarationType type,
-        std::string identifier,
-        Location loc);
-
-    virtual ~VariableDeclarationNode() = default;
-
-    virtual void accept(Visitor& visitor) override;
-};
-
-/// Array Declaration Node
-///
-/// This node type represents the declaration of an array variable.
-struct ArrayDeclarationNode : VariableDeclarationNode {
-    /// Constructs an Array Declaration Node
-    ///
-    /// \param type the type of the array
-    /// \param identifier the identifier for the array
-    /// \param size the length of the array
-    /// \param loc the location where the array is declared
-    ArrayDeclarationNode(
-        DeclarationType type,
-        std::string identifier,
-        int size,
-        Location loc);
-
-    virtual ~ArrayDeclarationNode() = default;
-
-    virtual void accept(Visitor& visitor) override;
-
-    /// The size of the array
-    ///
-    /// Should be positive. This is to be checked at semantic analysis as the
-    /// grammar allows any integer literal as the size durring parsing.
-    int size;
-};
-
-/// Parameter Declaration Node
-///
-/// This node type represents a parameter in a function declaration.
-struct ParameterNode : DeclarationNode {
-    /// Constructs a Parameter Declaration Node
-    ///
-    /// \param type the type of the parameter
-    /// \param identifier the name of the parameter
-    /// \param loc the location where the parameter is declared
-    ParameterNode(DeclarationType type, std::string identifier, Location loc);
-
-    virtual ~ParameterNode() = default;
-
-    virtual void accept(Visitor& visitor) override;
 };
 
 /***********************************************************************/
@@ -851,6 +713,7 @@ public:
     Kind kind;
 
 public:
+    Declaration(Declaration&& other) = default;
     virtual ~Declaration() = default;
     virtual void accept(Visitor& visitor) override;
 
