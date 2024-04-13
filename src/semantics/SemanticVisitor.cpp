@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <memory>
 #include <sstream>
+#include <variant>
 
 /***********************************************************************/
 
@@ -45,72 +46,68 @@ void SemanticVisitor::visit(ProgramNode& node) {
     }
 }
 
-void SemanticVisitor::visit(FunctionDeclarationNode& node) {
-    assert(
-        node.type.is_function &&
-        "Function declarations should be marked as function");
-    assert(
-        node.type.type.kind != TypeKind::Array &&
-        "Current grammar does not allow for array returning function");
+/***********************************************************************/
 
-    for (auto& param : node.parameters) {
-        param->accept(*this);
-    }
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
 
-    m_currentFunction = &node;
-    node.function_body->accept(*this);
-    m_currentFunction = nullptr;
+void SemanticVisitor::visit(Declaration& node) {
+    std::visit(
+        overloaded {
+            [this, &node](Declaration::Variable& var) {
+                assert(
+                    node.type.kind == TypeKind::Primitive &&
+                    "Variable declarations should have primative type");
+                if (node.type == Types::Void) {
+                    addError(SemanticError::voidVariable(node));
+                }
+            },
+            [this, &node](Declaration::Array& arr) {
+                assert(
+                    node.type.kind == TypeKind::Array &&
+                    "Array declarations should have array type");
+                if (node.type.base == PrimitiveType::Void) {
+                    addError(SemanticError::voidVariable(node));
+                }
 
-    assert(
-        node.function_body->always_returns &&
-        "Return nature of statement should be calculated by visit");
-    // Non-void functions must return
-    if (!*node.function_body->always_returns && node.type.type != Types::Void) {
-        addError(SemanticError::nonReturningFunction(node));
-    }
+                if (arr.size <= 0) {
+                    addError(SemanticError::nonPositiveArraySize(node));
+                }
+            },
+            [this, &node](Declaration::Parameter& param) {
+                // Array vs Primative is irrelevant for void param checking
+                if (node.type.base == PrimitiveType::Void) {
+                    addError(SemanticError::voidParam(node));
+                }
+            },
+            [this, &node](Declaration::Function& func) {
+                // Switch to a SemanticError is grammar changes
+                assert(
+                    node.type.kind != TypeKind::Array &&
+                    "Current grammar does not allow for array returning "
+                    "function");
+
+                for (auto& param : func.parameters) {
+                    param->accept(*this);
+                }
+
+                m_currentFunction = &node;
+                func.body->accept(*this);
+                m_currentFunction = nullptr;
+
+                assert(
+                    func.body->always_returns &&
+                    "Return nature of function should be calculated by visit");
+                if (!*func.body->always_returns && node.type != Types::Void) {
+                    addError(SemanticError::nonReturningFunction(node));
+                }
+            }},
+        node.kind);
 }
 
-void SemanticVisitor::visit(VariableDeclarationNode& node) {
-    assert(
-        !node.type.is_function &&
-        "Variable declarations should not be marked as function");
-    assert(
-        node.type.type.kind == TypeKind::Primitive &&
-        "Primative variable declarations should not have array type");
-
-    if (node.type.type == Types::Void) {
-        addError(SemanticError::voidVariable(node));
-    }
-}
-
-void SemanticVisitor::visit(ArrayDeclarationNode& node) {
-    assert(
-        !node.type.is_function &&
-        "Array declarations should not be marked as function");
-    assert(
-        node.type.type.kind == TypeKind::Array &&
-        "Array declarations should have array type");
-
-    // Asserts force type kind to be array
-    if (node.type.type.base == PrimitiveType::Void) {
-        addError(SemanticError::voidVariable(node));
-    }
-
-    if (node.size <= 0) {
-        addError(SemanticError::nonPositiveArraySize(node));
-    }
-}
-
-void SemanticVisitor::visit(ParameterNode& node) {
-    assert(
-        !node.type.is_function &&
-        "Parameters should not be marked as function");
-
-    // Type kind is irrelevant for bad void checking
-    if (node.type.type.base == PrimitiveType::Void) {
-        addError(SemanticError::voidParam(node));
-    }
-}
+/***********************************************************************/
 
 void SemanticVisitor::visit(CompoundStatementNode& node) {
     for (auto& decl : node.local_decls) {
@@ -180,7 +177,7 @@ void SemanticVisitor::visit(ReturnStatementNode& node) {
         m_currentFunction &&
         "Return statements should only occur within functions");
 
-    Type func_type {m_currentFunction->type.type};
+    Type func_type {m_currentFunction->type};
 
     if (!node.expression) {
         if (func_type != Types::Void) {
@@ -235,11 +232,11 @@ void SemanticVisitor::visit(VariableExpressionNode& node) {
         node.referent &&
         "Variable expression nodes should be linked to their declarations");
 
-    if (node.referent->type.is_function) {
+    if (std::holds_alternative<Declaration::Function>(node.referent->kind)) {
         addError(SemanticError::functionAsVariable(node));
     }
 
-    node.type = node.referent->type.type;
+    node.type = node.referent->type;
 }
 
 void SemanticVisitor::visit(SubscriptExpressionNode& node) {
@@ -247,11 +244,11 @@ void SemanticVisitor::visit(SubscriptExpressionNode& node) {
         node.referent &&
         "Subscript nodes should be linked to their declarations");
 
-    if (node.referent->type.is_function) {
+    if (std::holds_alternative<Declaration::Function>(node.referent->kind)) {
         addError(SemanticError::functionAsVariable(node));
     }
 
-    if (node.referent->type.type.kind != TypeKind::Array) {
+    if (node.referent->type.kind != TypeKind::Array) {
         addError(SemanticError::indexNonArray(node));
     }
 
@@ -262,7 +259,7 @@ void SemanticVisitor::visit(SubscriptExpressionNode& node) {
         addError(SemanticError::badIndex(node));
     }
 
-    node.type = Type {TypeKind::Primitive, node.referent->type.type.base};
+    node.type = Type {TypeKind::Primitive, node.referent->type.base};
 }
 
 void SemanticVisitor::visit(ImplicitCastNode& node) {
@@ -277,24 +274,23 @@ void SemanticVisitor::visit(CallExpressionNode& node) {
         node.referent &&
         "Function call nodes should be linked to their declarations");
 
-    if (!node.referent->type.is_function) {
+    auto func {std::get_if<Declaration::Function>(&node.referent->kind)};
+
+    if (func == nullptr) {
         addError(SemanticError::variableAsFunction(node));
         for (auto& arg : node.arguments) {
             arg->accept(*this);
         }
-        node.type = node.referent->type.type;
+        node.type = node.referent->type;
         return;
     }
 
-    auto function {
-        static_cast<FunctionDeclarationNode const*>(node.referent.get())};
-
-    if (function->parameters.size() != node.arguments.size()) {
-        addError(SemanticError::wrongArgumentCount(node, *function));
+    if (func->parameters.size() != node.arguments.size()) {
+        addError(SemanticError::wrongArgumentCount(node, *node.referent));
         for (auto& arg : node.arguments) {
             arg->accept(*this);
         }
-        node.type = node.referent->type.type;
+        node.type = node.referent->type;
         return;
     }
 
@@ -304,14 +300,14 @@ void SemanticVisitor::visit(CallExpressionNode& node) {
             node.arguments[i]->type &&
             "Expression type should be calculated by visit");
         Type arg_type {*node.arguments[i]->type};
-        Type param_type {function->parameters[i]->type.type};
+        Type param_type {func->parameters[i]->type};
 
         if (arg_type != param_type) {
-            addError(SemanticError::wrongArgumentType(node, *function, i));
+            addError(SemanticError::wrongArgumentType(node, *node.referent, i));
         }
     }
 
-    node.type = node.referent->type.type;
+    node.type = node.referent->type;
 }
 
 void SemanticVisitor::visit(AdditiveExpressionNode& node) {
@@ -435,7 +431,7 @@ Location SemanticError::location() const {
 
 /***********************************************************************/
 
-SemanticError SemanticError::earlyMain(DeclarationNode const& decl) {
+SemanticError SemanticError::earlyMain(Declaration const& decl) {
     std::stringstream message_buffer;
     message_buffer << "Early main declaration at line: " << decl.loc.line_num
                    << ", col: " << decl.loc.col_num << ".\n"
@@ -443,31 +439,33 @@ SemanticError SemanticError::earlyMain(DeclarationNode const& decl) {
     return {message_buffer.str(), decl.loc};
 }
 
-SemanticError SemanticError::voidVariable(
-    VariableDeclarationNode const& varDecl) {
+SemanticError SemanticError::voidVariable(Declaration const& varDecl) {
     std::stringstream message_buffer;
     message_buffer << "Error: variable " << std::quoted(varDecl.identifier)
-                   << " declared with type " << varDecl.type.type << ".\n"
+                   << " declared with type " << varDecl.type << ".\n"
                    << "  line: " << varDecl.loc.line_num
                    << ", col: " << varDecl.loc.col_num << '.';
     return {message_buffer.str(), varDecl.loc};
 }
 
-SemanticError SemanticError::voidParam(ParameterNode const& paramDecl) {
+SemanticError SemanticError::voidParam(Declaration const& paramDecl) {
     std::stringstream message_buffer;
     message_buffer << "Error: parameter " << std::quoted(paramDecl.identifier)
-                   << " declared with type " << paramDecl.type.type << ".\n"
+                   << " declared with type " << paramDecl.type << ".\n"
                    << "  line: " << paramDecl.loc.line_num
                    << ", col: " << paramDecl.loc.col_num << '.';
     return {message_buffer.str(), paramDecl.loc};
 }
 
-SemanticError SemanticError::nonPositiveArraySize(
-    ArrayDeclarationNode const& arrDecl) {
+SemanticError SemanticError::nonPositiveArraySize(Declaration const& arrDecl) {
+    auto arr {std::get_if<Declaration::Array>(&arrDecl.kind)};
+    assert(
+        arr &&
+        "SemanticError::nonPositiveArraySize should only be called with array "
+        "declarations");
     std::stringstream message_buffer;
     message_buffer << "Error: array " << std::quoted(arrDecl.identifier)
-                   << " declared with non-positive size " << arrDecl.size
-                   << '\n'
+                   << " declared with non-positive size " << arr->size << '\n'
                    << "  line: " << arrDecl.loc.line_num
                    << ", col: " << arrDecl.loc.col_num << '.';
     return {message_buffer.str(), arrDecl.loc};
@@ -494,13 +492,17 @@ SemanticError SemanticError::invalidCondition(
 
 SemanticError SemanticError::badReturn(
     ReturnStatementNode const& ret,
-    FunctionDeclarationNode const& func) {
+    Declaration const& funcDecl) {
+    assert(
+        std::holds_alternative<Declaration::Function>(funcDecl.kind) &&
+        "SemanticError::badReturn should be called with a return statement and "
+        "a function declaration node");
     std::stringstream message_buffer;
     message_buffer << "Error: Incorrect return type\n"
-                   << "  In function " << std::quoted(func.identifier)
-                   << " returning " << func.type.type
-                   << " (line: " << func.loc.line_num
-                   << ", col: " << func.loc.col_num << ")\n"
+                   << "  In function " << std::quoted(funcDecl.identifier)
+                   << " returning " << funcDecl.type
+                   << " (line: " << funcDecl.loc.line_num
+                   << ", col: " << funcDecl.loc.col_num << ")\n"
                    << "  Return statement returns ";
 
     if (ret.expression) {
@@ -562,19 +564,25 @@ SemanticError SemanticError::variableAsFunction(
 
 SemanticError SemanticError::wrongArgumentCount(
     CallExpressionNode const& callExpr,
-    FunctionDeclarationNode const& func) {
-    assert(callExpr.arguments.size() != func.parameters.size());
+    Declaration const& funcDecl) {
+    // assert Function
+    auto func {std::get_if<Declaration::Function>(&funcDecl.kind)};
+    assert(
+        func &&
+        "SemanticError::wrongArgumentCount should be called with a call "
+        "expression node and a function declaration");
+    assert(callExpr.arguments.size() != func->parameters.size());
 
     std::stringstream message_buffer;
     message_buffer << "Error: ";
-    if (callExpr.arguments.size() < func.parameters.size()) {
+    if (callExpr.arguments.size() < func->parameters.size()) {
         message_buffer << "Too few arguments for function "
-                       << std::quoted(func.identifier) << "\n  "
-                       << func.parameters.size() << " required. ";
+                       << std::quoted(funcDecl.identifier) << "\n  "
+                       << func->parameters.size() << " required. ";
     } else {
         message_buffer << "Too many arguments for function "
-                       << std::quoted(func.identifier) << "\n  "
-                       << func.parameters.size() << " required. ";
+                       << std::quoted(funcDecl.identifier) << "\n  "
+                       << func->parameters.size() << " required. ";
     }
 
     message_buffer << callExpr.arguments.size() << " provided.\n"
@@ -586,16 +594,26 @@ SemanticError SemanticError::wrongArgumentCount(
 
 SemanticError SemanticError::wrongArgumentType(
     CallExpressionNode const& callExpr,
-    FunctionDeclarationNode const& func,
+    Declaration const& funcDecl,
     unsigned arg_num) {
-    assert(callExpr.arguments.size() == func.parameters.size());
+    // assert Function
+    auto func {std::get_if<Declaration::Function>(&funcDecl.kind)};
+    assert(
+        func &&
+        "SemanticError::wrongArgumentType should be called with a call "
+        "expression node and a function declaration");
+    assert(
+        callExpr.arguments.size() == func->parameters.size() &&
+        "SemanticError::wrongArgumentCount should be used for mismatched "
+        "argument count");
     assert(arg_num < callExpr.arguments.size());
     ExpressionNode const& badArg {*callExpr.arguments[arg_num]};
-    ParameterNode const& badParam {*func.parameters[arg_num]};
+    Declaration const& badParam {*func->parameters[arg_num]};
+    assert(std::holds_alternative<Declaration::Parameter>(badParam.kind));
     std::stringstream messgae_buffer;
     messgae_buffer << "Error: Incorrect argument type for function "
-                   << std::quoted(func.identifier) << "\n  Argument "
-                   << badParam.identifier << " expected " << badParam.type.type
+                   << std::quoted(funcDecl.identifier) << "\n  Argument "
+                   << badParam.identifier << " expected " << badParam.type
                    << ". Received " << *badArg.type
                    << ".\n  (line:" << badArg.loc.line_num
                    << ", col: " << badArg.loc.col_num << ")";
@@ -660,8 +678,11 @@ SemanticError SemanticError::badIndex(SubscriptExpressionNode const& subExpr) {
     return {message_buffer.str(), subExpr.index->loc};
 }
 
-SemanticError SemanticError::nonReturningFunction(
-    FunctionDeclarationNode const& func) {
+SemanticError SemanticError::nonReturningFunction(Declaration const& func) {
+    assert(
+        std::holds_alternative<Declaration::Function>(func.kind) &&
+        "SemanticError::nonReturningFunction should be called with a function "
+        "declaration");
     std::stringstream message_buffer;
     message_buffer << "Error: Non-void function "
                    << std::quoted(func.identifier)
