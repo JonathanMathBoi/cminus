@@ -2,6 +2,7 @@
 
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
@@ -12,11 +13,15 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Verifier.h>
 
+#include <cassert>
 #include <memory>
 #include <optional>
+#include <ranges>
+#include <variant>
 #include <vector>
 
 using llvm::BasicBlock;
+using llvm::Constant;
 using llvm::Function;
 using llvm::FunctionType;
 using llvm::GlobalVariable;
@@ -72,103 +77,123 @@ void CodegenVisitor::visit(ProgramNode& node) {
     }
 }
 
-void CodegenVisitor::visit(FunctionDeclarationNode& node) {
-    std::vector<llvm::Type*> param_types;
-    for (auto& param : node.parameters) {
-        param_types.push_back(useType(param->type.type));
-    }
+/***********************************************************************/
 
-    FunctionType* func_type {FunctionType::get(
-        useType(node.type.type), param_types, /*isVarArg=*/false)};
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
 
-    Function* func {Function::Create(
-        func_type, Function::ExternalLinkage, node.identifier, *m_module)};
-
-    for (auto [param, arg] : llvm::zip(node.parameters, func->args())) {
-        arg.setName(param->identifier);
-    }
-
-    BasicBlock* preamble {BasicBlock::Create(*m_context, "preamble", func)};
-    m_irBuilder->SetInsertPoint(preamble);
-
-    for (auto [param, arg] : llvm::zip(node.parameters, func->args())) {
-        // %param.local = alloca <type>
-        param->ir_value = m_irBuilder->CreateAlloca(
-            useType(param->type.type), /*ArraySize=*/nullptr,
-            param->identifier + ".local");
-        // store <type> %param, ptr %param.local
-        m_irBuilder->CreateStore(&arg, param->ir_value);
-    }
-
-    BasicBlock* body {BasicBlock::Create(*m_context, "body", func)};
-    m_irBuilder->CreateBr(body);
-    m_irBuilder->SetInsertPoint(body);
-
-    node.function_body->accept(*this);
-
-    // If the function is void and never returns, add return at end of function
-    if (!*node.function_body->always_returns) {
+void CodegenVisitor::visit(Declaration& node) {
+    auto var_handler = [this, &node](Declaration::Variable& var) {
         assert(
-            node.type.type == Types::Void &&
-            "Only void functions should return implicitly");
-        m_irBuilder->CreateRetVoid();
-    }
+            node.type.kind != TypeKind::Array &&
+            "Variable declarations should have primative type");
+        if (node.nest_level == 0) {
+            Constant* init_value;
+            switch (node.type.base) {
+            case PrimitiveType::Void:
+                assert(
+                    node.type.base != PrimitiveType::Void &&
+                    "Variable declarations can not have void type");
+                return;
+            case PrimitiveType::Int:
+                init_value = llvm::ConstantInt::get(
+                    useType(Types::Int), 0, /*IsSigned=*/false);
+                break;
+            case PrimitiveType::Bool:
+                init_value = llvm::ConstantInt::getFalse(*m_context);
+                break;
+            case PrimitiveType::Float:
+                init_value = llvm::ConstantFP::getZero(useType(Types::Float));
+                break;
+            }
+            GlobalVariable* global = new GlobalVariable {
+                declType(node.type), /*isConstant=*/false,
+                GlobalVariable::ExternalLinkage,
+                /*Initializer=*/init_value, node.identifier};
+            node.ir_value = global;
+            m_module->insertGlobalVariable(global);
+            return;
+        }
 
-    llvm::verifyFunction(*func);
+        node.ir_value = m_irBuilder->CreateAlloca(declType(node.type));
+    };
 
-    node.ir_value = func;
+    auto arr_handler = [this, &node](Declaration::Array& arr) {
+        assert(
+            node.type.kind == TypeKind::Array &&
+            "Array declarations should have array type");
+        if (node.nest_level == 0) {
+            GlobalVariable* global = new GlobalVariable {
+                declType(node.type, arr.size), /*isConstant=*/false,
+                GlobalVariable::ExternalLinkage,
+                /*Initializer=*/
+                llvm::ConstantAggregateZero::get(declType(node.type, arr.size)),
+                node.identifier};
+            node.ir_value = global;
+            m_module->insertGlobalVariable(global);
+            return;
+        }
+
+        node.ir_value =
+            m_irBuilder->CreateAlloca(declType(node.type, arr.size));
+    };
+
+    auto param_handler = [](Declaration::Parameter& param) {
+        // Do nothing
+        // Handled by parent function
+    };
+
+    auto func_handler = [this, &node](Declaration::Function& func) {
+        std::vector<llvm::Type*> param_types;
+        for (auto& param : func.parameters) {
+            param_types.push_back(useType(param->type));
+        }
+
+        FunctionType* func_type {FunctionType::get(
+            useType(node.type), param_types, /*isVarArg=*/false)};
+        Function* ir_func {Function::Create(
+            func_type, Function::ExternalLinkage, node.identifier, *m_module)};
+
+        node.ir_value = ir_func;
+
+        BasicBlock* preamble {
+            BasicBlock::Create(*m_context, "preamble", ir_func)};
+        m_irBuilder->SetInsertPoint(preamble);
+
+        for (auto [param, arg] : llvm::zip(func.parameters, ir_func->args())) {
+            arg.setName(param->identifier);
+            // %param.local = alloca <type>
+            param->ir_value = m_irBuilder->CreateAlloca(
+                useType(param->type), /*ArraySize=*/nullptr,
+                /*Name=*/param->identifier + ".local");
+            // store <type> %param, ptr %param.local
+            m_irBuilder->CreateStore(&arg, param->ir_value);
+        }
+
+        BasicBlock* body {BasicBlock::Create(*m_context, "body", ir_func)};
+        m_irBuilder->CreateBr(body);
+        m_irBuilder->SetInsertPoint(body);
+        func.body->accept(*this);
+
+        // If the function implicitly returns, make sure to return
+        if (!*func.body->always_returns) {
+            assert(
+                node.type == Types::Void &&
+                "Only void functions should implicitly return");
+            m_irBuilder->CreateRetVoid();
+        }
+
+        llvm::verifyFunction(*ir_func);
+    };
+
+    std::visit(
+        overloaded {var_handler, arr_handler, param_handler, func_handler},
+        node.kind);
 }
 
-void CodegenVisitor::visit(ParameterNode& node) {
-    // Do nothing
-    // Handled by function codegen
-}
-
-void CodegenVisitor::visit(VariableDeclarationNode& node) {
-    assert(
-        node.type.type.kind != TypeKind::Array &&
-        "Variable declaration nodes should have primative type");
-
-    if (node.nest_level == 0) {
-        GlobalVariable* global = new GlobalVariable(
-            declType(node.type.type), /*isConstant=*/false,
-            GlobalVariable::ExternalLinkage, /*Initializer=*/nullptr,
-            node.identifier);
-        node.ir_value = global;
-        // give ownership to module
-        m_module->insertGlobalVariable(global);
-        return;
-    }
-
-    node.ir_value = m_irBuilder->CreateAlloca(declType(node.type.type));
-}
-
-void CodegenVisitor::visit(ArrayDeclarationNode& node) {
-    assert(
-        node.type.type.kind == TypeKind::Array &&
-        "Array declaration nodes should have an array type");
-
-    if (node.nest_level == 0) {
-        GlobalVariable* data = new GlobalVariable(
-            declType(node.type.type, node.size),
-            /*isConstant=*/false, GlobalVariable::ExternalLinkage,
-            /*Initializer=*/nullptr, node.identifier + ".data");
-        // move into and give ownership to module
-        m_module->insertGlobalVariable(data);
-        GlobalVariable* arr_ptr = new GlobalVariable(
-            m_irBuilder->getPtrTy(), /*isConstant=*/false,
-            GlobalVariable::ExternalLinkage, /*Initializer=*/data,
-            node.identifier + ".global");
-        m_module->insertGlobalVariable(arr_ptr);
-        node.ir_value = arr_ptr;
-        return;
-    }
-
-    auto data {m_irBuilder->CreateAlloca(declType(node.type.type, node.size))};
-
-    node.ir_value = m_irBuilder->CreateAlloca(m_irBuilder->getPtrTy());
-    m_irBuilder->CreateStore(data, node.ir_value);
-}
+/***********************************************************************/
 
 void CodegenVisitor::visit(CompoundStatementNode& node) {
     for (auto& decl : node.local_decls) {
@@ -284,7 +309,15 @@ void CodegenVisitor::visit(AssignmentExpressionNode& node) {
 }
 
 void CodegenVisitor::visit(VariableExpressionNode& node) {
-    // lvalues have the same value as their declaration
+    // Inderection must be removed for array parameters
+    if (node.type->kind == TypeKind::Array &&
+        std::holds_alternative<Declaration::Parameter>(node.referent->kind)) {
+        node.ir_value = m_irBuilder->CreateLoad(
+            m_irBuilder->getPtrTy(), node.referent->ir_value);
+        return;
+    }
+
+    // lvalues have the same value as their declaration for locals and globals
     // (the pointer to the var in memory)
     node.ir_value = node.referent->ir_value;
 }
@@ -294,11 +327,16 @@ void CodegenVisitor::visit(SubscriptExpressionNode& node) {
     assert(
         node.index->ir_value && "Expression should have a value after visit");
 
-    // lvalue of given element of array
-    auto array {m_irBuilder->CreateLoad(
-        m_irBuilder->getPtrTy(), node.referent->ir_value)};
+    Value* data_ptr;
+    if (std::holds_alternative<Declaration::Parameter>(node.referent->kind)) {
+        data_ptr = m_irBuilder->CreateLoad(
+            m_irBuilder->getPtrTy(), node.referent->ir_value);
+    } else {
+        data_ptr = node.referent->ir_value;
+    }
+
     node.ir_value = m_irBuilder->CreateGEP(
-        useType(*node.type), array, node.index->ir_value);
+        useType(*node.type), data_ptr, node.index->ir_value);
 }
 
 void CodegenVisitor::visit(ImplicitCastNode& node) {

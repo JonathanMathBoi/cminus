@@ -28,10 +28,7 @@ public:
 public:
     virtual void visit(ProgramNode& node) override;
 
-    virtual void visit(FunctionDeclarationNode& node) override;
-    virtual void visit(VariableDeclarationNode& node) override;
-    virtual void visit(ArrayDeclarationNode& node) override;
-    virtual void visit(ParameterNode& node) override;
+    virtual void visit(Declaration& node) override;
 
     virtual void visit(CompoundStatementNode& node) override;
     virtual void visit(IfStatementNode& node) override;
