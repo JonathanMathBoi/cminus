@@ -17,12 +17,18 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/MC/TargetRegistry.h>
+#include <llvm/Passes/OptimizationLevel.h>
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/TargetParser/Host.h>
+
+#include <llvm/Analysis/CGSCCPassManager.h>
+#include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/Passes/PassBuilder.h>
 
 #include <cstdlib>
 #include <filesystem>
@@ -34,6 +40,14 @@
 #include <string_view>
 
 namespace po = boost::program_options;
+
+using llvm::CGSCCAnalysisManager;
+using llvm::FunctionAnalysisManager;
+using llvm::LoopAnalysisManager;
+using llvm::ModuleAnalysisManager;
+using llvm::ModulePassManager;
+using llvm::OptimizationLevel;
+using llvm::PassBuilder;
 
 /***********************************************************************/
 
@@ -47,6 +61,7 @@ void codegen(
     Node& ast,
     std::shared_ptr<llvm::LLVMContext> context,
     std::shared_ptr<llvm::Module> module);
+void optimize(std::shared_ptr<llvm::Module> module, unsigned opt_level);
 
 /***********************************************************************/
 
@@ -70,10 +85,13 @@ int main(int argc, char* argv[]) {
 
     codegen(*ast, context, module);
 
+    optimize(module, vm["optimize"].as<unsigned>());
+
     if (vm.count("emit-llvm")) {
         std::error_code ec;
         llvm::raw_fd_ostream output {outfile.string(), ec};
         module->print(output, /*AAW=*/nullptr);
+        return 0;
     }
 }
 
@@ -83,7 +101,7 @@ po::variables_map getCmdArgs(int argc, char* argv[]) {
     // Define command line options
     po::options_description desc("Options");
     desc.add_options()("help,h", "Produce help message")(
-        "optimize,O", po::value<int>()->default_value(0),
+        "optimize,O", po::value<unsigned>()->default_value(0),
         "Optimization level (0, 1, 2, or 3)")(
         "input-file", po::value<std::string>(), "Input file")(
         "output-file,o", po::value<std::string>(), "Output file")(
@@ -173,6 +191,10 @@ std::filesystem::path getOutputFile(po::variables_map& options) {
     std::filesystem::path old_path {options["input-file"].as<std::string>()};
     std::filesystem::path new_path {old_path.parent_path() / old_path.stem()};
 
+    if (options["input-file"].as<std::string>() == "-") {
+        new_path = std::filesystem::current_path() / "a.out";
+    }
+
     if (options.count("emit-ast")) {
         new_path += ".ast";
     } else if (options.count("emit-llvm")) {
@@ -222,6 +244,43 @@ void codegen(
 
     CodegenVisitor codegen {context, module};
     ast.accept(codegen);
+}
+
+/***********************************************************************/
+
+void optimize(std::shared_ptr<llvm::Module> module, unsigned opt_level) {
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+
+    PassBuilder PB;
+
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+    OptimizationLevel level;
+    switch (opt_level) {
+    case 0:
+        level = OptimizationLevel::O0;
+        break;
+    case 1:
+        level = OptimizationLevel::O1;
+        break;
+    case 2:
+        level = OptimizationLevel::O2;
+        break;
+    default:
+        level = OptimizationLevel::O3;
+        break;
+    }
+
+    ModulePassManager MPM {PB.buildPerModuleDefaultPipeline(level)};
+
+    MPM.run(*module, MAM);
 }
 
 /***********************************************************************/
