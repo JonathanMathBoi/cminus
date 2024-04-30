@@ -111,13 +111,15 @@ void CodegenVisitor::visit(Declaration& node) {
             GlobalVariable* global = new GlobalVariable {
                 declType(node.type), /*isConstant=*/false,
                 GlobalVariable::ExternalLinkage,
-                /*Initializer=*/init_value, node.identifier};
+                /*Initializer=*/init_value, node.identifier + ".global"};
             node.ir_value = global;
             m_module->insertGlobalVariable(global);
             return;
         }
 
-        node.ir_value = m_irBuilder->CreateAlloca(declType(node.type));
+        node.ir_value = m_irBuilder->CreateAlloca(
+            declType(node.type), /*ArraySize=*/nullptr,
+            node.identifier + ".local");
     };
 
     auto arr_handler = [this, &node](Declaration::Array& arr) {
@@ -130,14 +132,15 @@ void CodegenVisitor::visit(Declaration& node) {
                 GlobalVariable::ExternalLinkage,
                 /*Initializer=*/
                 llvm::ConstantAggregateZero::get(declType(node.type, arr.size)),
-                node.identifier};
+                node.identifier + ".global"};
             node.ir_value = global;
             m_module->insertGlobalVariable(global);
             return;
         }
 
-        node.ir_value =
-            m_irBuilder->CreateAlloca(declType(node.type, arr.size));
+        node.ir_value = m_irBuilder->CreateAlloca(
+            declType(node.type, arr.size), /*ArraySize=*/nullptr,
+            node.identifier + ".local");
     };
 
     auto param_handler = [](Declaration::Parameter& param) {
@@ -167,7 +170,7 @@ void CodegenVisitor::visit(Declaration& node) {
             // %param.local = alloca <type>
             param->ir_value = m_irBuilder->CreateAlloca(
                 useType(param->type), /*ArraySize=*/nullptr,
-                /*Name=*/param->identifier + ".local");
+                /*Name=*/param->identifier + ".param");
             // store <type> %param, ptr %param.local
             m_irBuilder->CreateStore(&arg, param->ir_value);
         }
@@ -213,11 +216,11 @@ void CodegenVisitor::visit(IfStatementNode& node) {
 
     Function* func {m_irBuilder->GetInsertBlock()->getParent()};
 
-    BasicBlock* then_block {BasicBlock::Create(*m_context, "", func)};
-    BasicBlock* merge_block {BasicBlock::Create(*m_context)};
+    BasicBlock* then_block {BasicBlock::Create(*m_context, "then", func)};
+    BasicBlock* merge_block {BasicBlock::Create(*m_context, "post")};
     BasicBlock* else_block;
     if (node.else_stmt) {
-        else_block = BasicBlock::Create(*m_context);
+        else_block = BasicBlock::Create(*m_context, "else");
     } else {
         else_block = merge_block;
     }
@@ -246,9 +249,9 @@ void CodegenVisitor::visit(IfStatementNode& node) {
 void CodegenVisitor::visit(WhileStatementNode& node) {
     Function* func {m_irBuilder->GetInsertBlock()->getParent()};
 
-    BasicBlock* check {BasicBlock::Create(*m_context, "", func)};
-    BasicBlock* loop {BasicBlock::Create(*m_context)};
-    BasicBlock* post {BasicBlock::Create(*m_context)};
+    BasicBlock* check {BasicBlock::Create(*m_context, "check", func)};
+    BasicBlock* loop {BasicBlock::Create(*m_context, "loop")};
+    BasicBlock* post {BasicBlock::Create(*m_context, "post")};
 
     // br label <check>
     m_irBuilder->CreateBr(check);
