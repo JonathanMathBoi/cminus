@@ -467,7 +467,12 @@ void CodegenVisitor::visit(RelationalExpressionNode& node) {
     assert(
         node.right->ir_value && "Expression should have a value after visit");
 
-    if (*node.type == Types::Int || *node.type == Types::Bool) {
+    assert(
+        *node.left->type == *node.right->type &&
+        "Relational expression must compare args of the same type");
+    auto type {*node.left->type};
+
+    if (type == Types::Int || type == Types::Bool) {
         switch (node.operation) {
         case RelationalOp::EQ:
             node.ir_value = m_irBuilder->CreateICmp(
@@ -503,7 +508,7 @@ void CodegenVisitor::visit(RelationalExpressionNode& node) {
         return;
     }
 
-    if (*node.type == Types::Float) {
+    if (type == Types::Float) {
         switch (node.operation) {
         case RelationalOp::EQ:
             node.ir_value = m_irBuilder->CreateFCmp(
