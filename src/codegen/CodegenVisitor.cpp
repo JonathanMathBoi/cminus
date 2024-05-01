@@ -205,6 +205,10 @@ void CodegenVisitor::visit(CompoundStatementNode& node) {
 
     for (auto& stmt : node.statements) {
         stmt->accept(*this);
+        // stop genning code when the block definitly returns
+        if (*stmt->always_returns) {
+            break;
+        }
     }
 }
 
