@@ -291,8 +291,11 @@ void CodegenVisitor::visit(WhileStatementNode& node) {
     func->insert(func->end(), loop);
     m_irBuilder->SetInsertPoint(loop);
     node.body->accept(*this);
-    // br label <check> ; returns to check to continue loop
-    m_irBuilder->CreateBr(check);
+    // if the loop body always returns, don't add branch to check
+    if (!*node.body->always_returns) {
+        // br label <check> ; returns to check to continue loop
+        m_irBuilder->CreateBr(check);
+    }
 
     // Write the post block
     func->insert(func->end(), post);
