@@ -117,6 +117,8 @@ Token Lexer::getToken() {
         return nextOrElse('-', '-', DECREMENT, MINUS);
     case '*':
         return makeToken(TIMES, "*");
+    case '%':
+        return makeToken(MOD, "%");
 
     /* Divison and Comments */
     case '/':

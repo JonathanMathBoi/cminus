@@ -441,6 +441,10 @@ void CodegenVisitor::visit(MultiplicativeExpressionNode& node) {
             node.ir_value = m_irBuilder->CreateSDiv(
                 node.left->ir_value, node.right->ir_value);
             break;
+        case MultiplicativeOp::MOD:
+            node.ir_value = m_irBuilder->CreateSRem(
+                node.left->ir_value, node.right->ir_value);
+            break;
         }
         return;
     }
@@ -453,6 +457,10 @@ void CodegenVisitor::visit(MultiplicativeExpressionNode& node) {
             break;
         case MultiplicativeOp::DIVIDE:
             node.ir_value = m_irBuilder->CreateFDiv(
+                node.left->ir_value, node.right->ir_value);
+            break;
+        case MultiplicativeOp::MOD:
+            node.ir_value = m_irBuilder->CreateFRem(
                 node.left->ir_value, node.right->ir_value);
             break;
         }

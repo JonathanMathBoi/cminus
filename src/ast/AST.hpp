@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream& os, Type const& type);
 enum class AdditiveOp { PLUS, MINUS };
 std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op);
 
-enum class MultiplicativeOp { TIMES, DIVIDE };
+enum class MultiplicativeOp { TIMES, DIVIDE, MOD };
 std::ostream& operator<<(std::ostream& os, MultiplicativeOp const& mul_op);
 
 enum class RelationalOp { LT, LTE, GT, GTE, EQ, NEQ };

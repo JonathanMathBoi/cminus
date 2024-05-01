@@ -507,7 +507,8 @@ AdditiveOp Parser::additiveOperation() {
 
 const std::map<TokenType, MultiplicativeOp> mul_ops {
     {TIMES, MultiplicativeOp::TIMES},
-    {DIVIDE, MultiplicativeOp::DIVIDE}};
+    {DIVIDE, MultiplicativeOp::DIVIDE},
+    {MOD, MultiplicativeOp::MOD}};
 
 /**
  * Parses term -> term mulop factor | factor
@@ -518,7 +519,7 @@ unique_ptr<ExpressionNode> Parser::term() {
     auto root {factor()};
     Location loc {root->loc};
 
-    while (m_currentToken.type() == TIMES || m_currentToken.type() == DIVIDE) {
+    while (mul_ops.contains(m_currentToken.type())) {
         auto operation {multiplicativeOperation()};
         auto rhs {factor()};
         root = make_unique<MultiplicativeExpressionNode>(
