@@ -562,22 +562,58 @@ void CodegenVisitor::visit(BoolLiteralExpressionNode& node) {
 /***********************************************************************/
 
 void CodegenVisitor::codegenBuiltins() {
+    // Global format string for printf and scanf
+    auto format_str {m_irBuilder->CreateGlobalString(
+        "%d\n", "format_str", /*AddressSpace=*/0, m_module.get())};
+
+    // Declare printf and scanf
+    auto printf_type {FunctionType::get(
+        m_irBuilder->getInt32Ty(), m_irBuilder->getPtrTy(),
+        /*isVarArg=*/true)};
+    auto printf {Function::Create(
+        printf_type, Function::ExternalLinkage, "printf", *m_module)};
+
+    auto scanf_type {FunctionType::get(
+        m_irBuilder->getInt32Ty(), m_irBuilder->getPtrTy(), /*isVarArg=*/true)};
+    auto scanf {Function::Create(
+        scanf_type, Function::ExternalLinkage, "scanf", *m_module)};
+
     // Gen input()
-    auto input_type {
-        FunctionType::get(m_irBuilder->getInt32Ty(), /*isVarArg=*/false)};
-    auto input {Function::Create(
-        input_type, Function::ExternalLinkage, "input", *m_module)};
-    g_builtins[0]->ir_value = input;
-    // Needs to be linked to a definition later
+    {
+        auto func_type {
+            FunctionType::get(m_irBuilder->getInt32Ty(), /*isVarArg=*/false)};
+        auto input {Function::Create(
+            func_type, Function::ExternalLinkage, "input", *m_module)};
+        g_builtins[0]->ir_value = input;
+
+        BasicBlock* body {BasicBlock::Create(*m_context, "body", input)};
+        m_irBuilder->SetInsertPoint(body);
+        // memory location to read int to
+        auto buffer {m_irBuilder->CreateAlloca(
+            m_irBuilder->getInt32Ty(), /*ArraySize=*/nullptr, "buffer")};
+        m_irBuilder->CreateCall(scanf_type, scanf, {format_str, buffer});
+        auto ret_val {
+            m_irBuilder->CreateLoad(m_irBuilder->getInt32Ty(), buffer)};
+        m_irBuilder->CreateRet(ret_val);
+    }
 
     // Gen output(int)
-    std::vector<llvm::Type*> output_params {m_irBuilder->getInt32Ty()};
-    auto output_type {FunctionType::get(
-        m_irBuilder->getVoidTy(), output_params, /*isVarArg=*/false)};
-    auto output {Function::Create(
-        output_type, Function::ExternalLinkage, "output", *m_module)};
-    g_builtins[1]->ir_value = output;
-    // Need to be linked to a definition later
+    {
+        std::vector<llvm::Type*> params {m_irBuilder->getInt32Ty()};
+        auto output_type {FunctionType::get(
+            m_irBuilder->getVoidTy(), params, /*isVarArg=*/false)};
+        auto output {Function::Create(
+            output_type, Function::ExternalLinkage, "output", *m_module)};
+        g_builtins[1]->ir_value = output;
+
+        output->getArg(0)->setName("value");
+
+        BasicBlock* body {BasicBlock::Create(*m_context, "body", output)};
+        m_irBuilder->SetInsertPoint(body);
+        m_irBuilder->CreateCall(
+            printf_type, printf, {format_str, output->getArg(0)});
+        m_irBuilder->CreateRetVoid();
+    }
 }
 
 /***********************************************************************/
