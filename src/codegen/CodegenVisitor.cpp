@@ -217,7 +217,17 @@ void CodegenVisitor::visit(IfStatementNode& node) {
     Function* func {m_irBuilder->GetInsertBlock()->getParent()};
 
     BasicBlock* then_block {BasicBlock::Create(*m_context, "then", func)};
-    BasicBlock* merge_block {BasicBlock::Create(*m_context, "post")};
+
+    // if the if always returns, there is no need to merge
+    BasicBlock* merge_block;
+    if (*node.always_returns) {
+        merge_block = nullptr;
+    } else {
+        merge_block = BasicBlock::Create(*m_context, "post");
+    }
+
+    // if the function always returns, it will have an else, so the control flow
+    // will never be incomplete
     BasicBlock* else_block;
     if (node.else_stmt) {
         else_block = BasicBlock::Create(*m_context, "else");
@@ -231,19 +241,27 @@ void CodegenVisitor::visit(IfStatementNode& node) {
     // Write then block
     m_irBuilder->SetInsertPoint(then_block);
     node.then_stmt->accept(*this);
-    m_irBuilder->CreateBr(merge_block);
+    // if the then statement doesn't return, add the branch to post
+    if (!*node.then_stmt->always_returns) {
+        m_irBuilder->CreateBr(merge_block);
+    }
 
     // Write else block
     if (node.else_stmt) {
         func->insert(func->end(), else_block);
         m_irBuilder->SetInsertPoint(else_block);
         node.else_stmt->accept(*this);
-        m_irBuilder->CreateBr(merge_block);
+        // if the else statement doesn't return, add the branch to post
+        if (!*node.else_stmt->always_returns) {
+            m_irBuilder->CreateBr(merge_block);
+        }
     }
 
-    // Write merge block
-    func->insert(func->end(), merge_block);
-    m_irBuilder->SetInsertPoint(merge_block);
+    // if the if doesn't always return, add merge block
+    if (!*node.always_returns) {
+        func->insert(func->end(), merge_block);
+        m_irBuilder->SetInsertPoint(merge_block);
+    }
 }
 
 void CodegenVisitor::visit(WhileStatementNode& node) {
