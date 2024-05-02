@@ -571,8 +571,10 @@ void CodegenVisitor::visit(BoolLiteralExpressionNode& node) {
 
 void CodegenVisitor::codegenBuiltins() {
     // Global format string for printf and scanf
-    auto format_str {m_irBuilder->CreateGlobalString(
-        "%d\n", "format_str", /*AddressSpace=*/0, m_module.get())};
+    auto print_format_str {m_irBuilder->CreateGlobalString(
+        "%d\n", "output_format", /*AddressSpace=*/0, m_module.get())};
+    auto scan_format_str {m_irBuilder->CreateGlobalString(
+        "%d", "input_format", /*AddressSpace=*/0, m_module.get())};
 
     // Declare printf and scanf
     auto printf_type {FunctionType::get(
@@ -599,7 +601,7 @@ void CodegenVisitor::codegenBuiltins() {
         // memory location to read int to
         auto buffer {m_irBuilder->CreateAlloca(
             m_irBuilder->getInt32Ty(), /*ArraySize=*/nullptr, "buffer")};
-        m_irBuilder->CreateCall(scanf_type, scanf, {format_str, buffer});
+        m_irBuilder->CreateCall(scanf_type, scanf, {scan_format_str, buffer});
         auto ret_val {
             m_irBuilder->CreateLoad(m_irBuilder->getInt32Ty(), buffer)};
         m_irBuilder->CreateRet(ret_val);
@@ -619,7 +621,7 @@ void CodegenVisitor::codegenBuiltins() {
         BasicBlock* body {BasicBlock::Create(*m_context, "body", output)};
         m_irBuilder->SetInsertPoint(body);
         m_irBuilder->CreateCall(
-            printf_type, printf, {format_str, output->getArg(0)});
+            printf_type, printf, {print_format_str, output->getArg(0)});
         m_irBuilder->CreateRetVoid();
     }
 }
