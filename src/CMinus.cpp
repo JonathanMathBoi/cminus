@@ -38,6 +38,7 @@
 #include <memory>
 #include <ostream>
 #include <string_view>
+#include <system_error>
 
 namespace po = boost::program_options;
 
@@ -62,6 +63,9 @@ void codegen(
     std::shared_ptr<llvm::LLVMContext> context,
     std::shared_ptr<llvm::Module> module);
 void optimize(std::shared_ptr<llvm::Module> module, unsigned opt_level);
+int assembleLink(
+    std::shared_ptr<llvm::Module> module,
+    std::filesystem::path outfile);
 
 /***********************************************************************/
 
@@ -93,6 +97,8 @@ int main(int argc, char* argv[]) {
         module->print(output, /*AAW=*/nullptr);
         return 0;
     }
+
+    return assembleLink(module, outfile);
 }
 
 /***********************************************************************/
@@ -281,6 +287,27 @@ void optimize(std::shared_ptr<llvm::Module> module, unsigned opt_level) {
     ModulePassManager MPM {PB.buildPerModuleDefaultPipeline(level)};
 
     MPM.run(*module, MAM);
+}
+
+/***********************************************************************/
+
+int assembleLink(
+    std::shared_ptr<llvm::Module> module,
+    std::filesystem::path outfile) {
+    std::string temp_file {std::tmpnam(nullptr)};
+    temp_file += ".ll";
+
+    {
+        std::error_code ec;
+        llvm::raw_fd_ostream llvm_ir {temp_file, ec};
+        module->print(llvm_ir, /*AAW=*/nullptr);
+    }
+
+    std::string command {"clang -o "};
+    command += outfile.string();
+    command += " ";
+    command += temp_file;
+    return std::system(command.c_str());
 }
 
 /***********************************************************************/
