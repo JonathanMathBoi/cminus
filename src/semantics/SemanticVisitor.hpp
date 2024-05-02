@@ -72,6 +72,7 @@ public:
 
 public:
     static SemanticError earlyMain(Declaration const& decl);
+    static SemanticError missingMain();
     static SemanticError voidVariable(Declaration const& varDecl);
     static SemanticError voidParam(Declaration const& paramDecl);
     static SemanticError nonPositiveArraySize(Declaration const& arrDecl);

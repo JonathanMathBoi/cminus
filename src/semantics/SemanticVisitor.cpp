@@ -44,6 +44,10 @@ void SemanticVisitor::visit(ProgramNode& node) {
 
         decl->accept(*this);
     }
+
+    if (node.declarations.back()->identifier != "main") {
+        addError(SemanticError::missingMain());
+    }
 }
 
 /***********************************************************************/
@@ -689,6 +693,13 @@ SemanticError SemanticError::nonReturningFunction(Declaration const& func) {
                    << " doesn't return in all control paths.\n  loc:"
                    << func.loc.line_num << ", col: " << func.loc.col_num;
     return {message_buffer.str(), func.loc};
+}
+
+SemanticError SemanticError::missingMain() {
+    return {
+        "No main function found. C- does not support linking and library "
+        "files.",
+        Location {-1, -1}};
 }
 
 /***********************************************************************/
