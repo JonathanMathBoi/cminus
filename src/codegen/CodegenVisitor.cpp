@@ -371,8 +371,12 @@ void CodegenVisitor::visit(ImplicitCastNode& node) {
     node.lvalue->accept(*this);
     assert(
         node.lvalue->ir_value && "Expression should have a value after visit");
-    node.ir_value =
-        m_irBuilder->CreateLoad(useType(*node.type), node.lvalue->ir_value);
+    if (node.lvalue->type->kind != TypeKind::Array) {
+        node.ir_value =
+            m_irBuilder->CreateLoad(useType(*node.type), node.lvalue->ir_value);
+    } else {
+        node.ir_value = node.lvalue->ir_value;
+    }
 }
 
 void CodegenVisitor::visit(CallExpressionNode& node) {
