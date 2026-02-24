@@ -19,3 +19,10 @@ cmake_install.cmake
 
 # Ignore Generated Makefile
 Makefile
+
+# Ignore direnv
+.direnv/
+.envrc
+
+# Ignore Nix Build output
+result
