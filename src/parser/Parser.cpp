@@ -31,8 +31,8 @@ unique_ptr<ProgramNode> Parser::program() {
  *
  * Implemented as declaration-list -> declaration { declaration }
  */
-vector<shared_ptr<DeclarationNode>> Parser::declarationList() {
-    vector<shared_ptr<DeclarationNode>> decls;
+vector<shared_ptr<Declaration>> Parser::declarationList() {
+    vector<shared_ptr<Declaration>> decls;
 
     do {
         decls.emplace_back(declaration());
@@ -44,7 +44,7 @@ vector<shared_ptr<DeclarationNode>> Parser::declarationList() {
 /**
  * Parses declaration -> var-declaration | fun-declaration
  */
-unique_ptr<DeclarationNode> Parser::declaration() {
+unique_ptr<Declaration> Parser::declaration() {
     switch (peekToken(2).type()) {
     case SEMI:
     case LBRACK:
@@ -65,12 +65,12 @@ unique_ptr<DeclarationNode> Parser::declaration() {
  * Implemented as var-declaration
  *                  -> type-specifier ID [ LBRACK NUM RBRACK ] SEMI
  */
-unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
+unique_ptr<Declaration> Parser::variableDeclaration() {
     auto [type, loc] {typeSpec()};
 
     std::string id {match("variable declaration", ID).lexeme()};
 
-    unique_ptr<VariableDeclarationNode> new_node;
+    unique_ptr<Declaration> new_node;
 
     if (m_currentToken.type() == LBRACK) {
         type.kind = TypeKind::Array;
@@ -79,11 +79,11 @@ unique_ptr<VariableDeclarationNode> Parser::variableDeclaration() {
         int size {match("variable declaration", INT_LITERAL).intValue()};
         match("variable declaration", RBRACK);
 
-        new_node = make_unique<ArrayDeclarationNode>(
-            DeclarationType {type, /*is_function=*/false}, id, size, loc);
+        new_node = make_unique<Declaration>(
+            Declaration::arrayDecl(id, type, size, loc));
     } else {
-        new_node = make_unique<VariableDeclarationNode>(
-            DeclarationType {type, /*is_function=*/false}, id, loc);
+        new_node =
+            make_unique<Declaration>(Declaration::variableDecl(id, type, loc));
     }
 
     match("variable declaration", SEMI);
@@ -119,7 +119,7 @@ std::pair<Type, Location> Parser::typeSpec() {
  * Parses fun-declaration
  *          -> type-specifier ID LPAREN params RPAREN compound-stmt
  */
-unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
+unique_ptr<Declaration> Parser::functionDeclaration() {
     auto [type, loc] {typeSpec()};
 
     std::string id {match("function declaration", ID).lexeme()};
@@ -133,15 +133,14 @@ unique_ptr<FunctionDeclarationNode> Parser::functionDeclaration() {
     auto body {compoundStatement()};
     body->is_function_body = true;
 
-    return make_unique<FunctionDeclarationNode>(
-        DeclarationType {type, /*is_function=*/true}, id, parameters,
-        std::move(body), loc);
+    return make_unique<Declaration>(
+        Declaration::functionDecl(id, type, parameters, std::move(body), loc));
 }
 
 /**
  * Parses params -> param-list | VOID
  */
-vector<shared_ptr<ParameterNode>> Parser::functionParameters() {
+vector<shared_ptr<Declaration>> Parser::functionParameters() {
     if (m_currentToken.type() == VOID && peekToken(1).type() == RPAREN) {
         match("parameters", VOID);
         // returns an empty vector
@@ -156,8 +155,8 @@ vector<shared_ptr<ParameterNode>> Parser::functionParameters() {
  *
  * Implemented as param-list -> param { COMMA param }
  */
-vector<shared_ptr<ParameterNode>> Parser::parameterList() {
-    vector<shared_ptr<ParameterNode>> params;
+vector<shared_ptr<Declaration>> Parser::parameterList() {
+    vector<shared_ptr<Declaration>> params;
 
     params.emplace_back(parameter());
 
@@ -174,7 +173,7 @@ vector<shared_ptr<ParameterNode>> Parser::parameterList() {
  *
  * Implemented as param -> type-specifier ID [ LBRACK RBRACK ]
  */
-unique_ptr<ParameterNode> Parser::parameter() {
+unique_ptr<Declaration> Parser::parameter() {
     auto [type, loc] {typeSpec()};
 
     std::string id {match("parameter", ID).lexeme()};
@@ -185,8 +184,7 @@ unique_ptr<ParameterNode> Parser::parameter() {
         type.kind = TypeKind::Array;
     }
 
-    return make_unique<ParameterNode>(
-        DeclarationType {type, /*is_function=*/false}, id, loc);
+    return make_unique<Declaration>(Declaration::paramDecl(id, type, loc));
 }
 
 /**
@@ -207,8 +205,8 @@ unique_ptr<CompoundStatementNode> Parser::compoundStatement() {
  *
  * Implemented as local-declarations -> { var-declaration }
  */
-vector<shared_ptr<VariableDeclarationNode>> Parser::localDeclarations() {
-    vector<shared_ptr<VariableDeclarationNode>> decls;
+vector<shared_ptr<Declaration>> Parser::localDeclarations() {
+    vector<shared_ptr<Declaration>> decls;
 
     auto is_type = [](TokenType type) {
         switch (type) {
@@ -509,7 +507,8 @@ AdditiveOp Parser::additiveOperation() {
 
 const std::map<TokenType, MultiplicativeOp> mul_ops {
     {TIMES, MultiplicativeOp::TIMES},
-    {DIVIDE, MultiplicativeOp::DIVIDE}};
+    {DIVIDE, MultiplicativeOp::DIVIDE},
+    {MOD, MultiplicativeOp::MOD}};
 
 /**
  * Parses term -> term mulop factor | factor
@@ -520,7 +519,7 @@ unique_ptr<ExpressionNode> Parser::term() {
     auto root {factor()};
     Location loc {root->loc};
 
-    while (m_currentToken.type() == TIMES || m_currentToken.type() == DIVIDE) {
+    while (mul_ops.contains(m_currentToken.type())) {
         auto operation {multiplicativeOperation()};
         auto rhs {factor()};
         root = make_unique<MultiplicativeExpressionNode>(
@@ -597,7 +596,7 @@ unique_ptr<ExpressionNode> Parser::factor() {
             return functionCall();
         }
 
-        return variableExpression();
+        return make_unique<ImplicitCastNode>(variableExpression());
     default:
         throw error(
             "factor", "( expression ), variable, function call, or literal");

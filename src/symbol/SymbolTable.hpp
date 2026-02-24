@@ -15,7 +15,7 @@
 /***********************************************************************/
 
 using ScopeTable =
-    std::unordered_map<std::string, std::shared_ptr<DeclarationNode>>;
+    std::unordered_map<std::string, std::shared_ptr<Declaration>>;
 
 /***********************************************************************/
 
@@ -55,12 +55,12 @@ public:
     /// \throws MutipleDeclaredSymbolException if another node with the same
     ///                                        symbol has already been inserted
     ///                                        into the current scope
-    void insert(std::shared_ptr<DeclarationNode> node);
+    void insert(std::shared_ptr<Declaration> node);
     /// Looks up a name in the table
     ///
     /// \param name the symbol name to lookup
     /// \ret the symbol declaration if declared, nullptr otherwise
-    std::shared_ptr<DeclarationNode> lookup(const std::string_view name) const;
+    std::shared_ptr<Declaration> lookup(const std::string_view name) const;
     /// Gets the current nest level
     ///
     /// \ret the current nest level of the symbol table
@@ -76,15 +76,15 @@ private:
 class MultipleDeclaredSymbolException : public SymbolException {
 public:
     MultipleDeclaredSymbolException(
-        std::shared_ptr<DeclarationNode> firstDeclaration,
-        std::shared_ptr<DeclarationNode> badDeclaration);
+        std::shared_ptr<Declaration> firstDeclaration,
+        std::shared_ptr<Declaration> badDeclaration);
 
     virtual char const* what() const noexcept;
 
 private:
     std::string m_errorMessage;
-    std::shared_ptr<DeclarationNode> m_firstDecl;
-    std::shared_ptr<DeclarationNode> m_badDecl;
+    std::shared_ptr<Declaration> m_firstDecl;
+    std::shared_ptr<Declaration> m_badDecl;
 };
 
 /***********************************************************************/

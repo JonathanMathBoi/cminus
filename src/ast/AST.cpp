@@ -1,10 +1,15 @@
 #include "AST.hpp"
 #include "../MiscUtils.hpp"
 
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+
 #include <cassert>
 #include <memory>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 using std::make_shared;
@@ -14,23 +19,20 @@ using std::vector;
 
 /***********************************************************************/
 
-vector<shared_ptr<FunctionDeclarationNode>> g_builtins {
-    make_shared<FunctionDeclarationNode>(
-        DeclarationType {Types::Int, /*is_function=*/true},
+vector<shared_ptr<Declaration>> g_builtins {
+    make_shared<Declaration>(Declaration::functionDecl(
         "input",
-        vector<shared_ptr<ParameterNode>> {},
+        Types::Int,
+        {},
         nullptr,
-        Location {-1, -1}),  // input()
-    make_shared<FunctionDeclarationNode>(
-        DeclarationType {Types::Void, /*is_function=*/true},
+        Location {-1, -1})),
+    make_shared<Declaration>(Declaration::functionDecl(
         "output",
-        vector<shared_ptr<ParameterNode>> {make_shared<ParameterNode>(
-            DeclarationType {Types::Int, /*is_function=*/false},
-            "value",
-            Location {-1, -1})},
+        Types::Void,
+        {make_shared<Declaration>(
+            Declaration::paramDecl("value", Types::Int, Location {-1, -1}))},
         nullptr,
-        Location {-1, -1})  // output(int)
-};
+        Location {-1, -1}))};
 
 /***********************************************************************/
 
@@ -63,6 +65,8 @@ std::ostream& operator<<(std::ostream& os, Type const& type) {
     }
     return os;
 }
+
+/***********************************************************************/
 
 std::ostream& operator<<(std::ostream& os, AdditiveOp const& add_op) {
     switch (add_op) {
@@ -129,7 +133,7 @@ std::ostream& operator<<(std::ostream& os, UnaryOp const& unary_op) {
 
 // Uses fixed args for node constructor as the program node is always the entire
 // source file
-ProgramNode::ProgramNode(vector<shared_ptr<DeclarationNode>> declarations)
+ProgramNode::ProgramNode(vector<shared_ptr<Declaration>> declarations)
     : Node {Location {1, 1}}, declarations {declarations} {}
 
 void ProgramNode::accept(Visitor& visitor) {
@@ -137,72 +141,46 @@ void ProgramNode::accept(Visitor& visitor) {
 }
 
 /***********************************************************************/
-// Declaration Nodes
 
-FunctionDeclarationNode::FunctionDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    vector<shared_ptr<ParameterNode>> params,
-    unique_ptr<CompoundStatementNode> body,
-    Location loc)
-    : Node {loc}
-    , DeclarationNode {type, identifier}
-    , parameters {params}
-    , function_body {std::move(body)} {
-    assert(
-        type.is_function &&
-        "Function declarations should be marked as function");
-}
-
-void FunctionDeclarationNode::accept(Visitor& visitor) {
+void Declaration::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
-VariableDeclarationNode::VariableDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {
+Declaration Declaration::variableDecl(std::string id, Type ty, Location loc) {
     assert(
-        !type.is_function &&
-        "Variable declarations should not be marked as function");
+        ty.kind != TypeKind::Array &&
+        "Variable declarations must have non-array type");
+    return {id, ty, Variable {}, loc};
 }
 
-void VariableDeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
-
-ArrayDeclarationNode::ArrayDeclarationNode(
-    DeclarationType type,
-    std::string identifier,
-    int size,
-    Location loc)
-    : Node {loc}, VariableDeclarationNode {type, identifier, loc}, size {size} {
+Declaration
+Declaration::arrayDecl(std::string id, Type ty, int size, Location loc) {
     assert(
-        !type.is_function &&
-        "Array declarations should not be marked as function");
-    assert(
-        type.type.kind == TypeKind::Array &&
-        "Array declarations should have an array type");
+        ty.kind == TypeKind::Array &&
+        "Array declarations must have array type");
+    return {id, ty, Array {size}, loc};
 }
 
-void ArrayDeclarationNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
+Declaration Declaration::paramDecl(std::string id, Type ty, Location loc) {
+    return {id, ty, Parameter {}, loc};
 }
 
-ParameterNode::ParameterNode(
-    DeclarationType type,
-    std::string identifier,
-    Location loc)
-    : Node {loc}, DeclarationNode {type, identifier} {
-    assert(
-        !type.is_function &&
-        "Parameter declarations should not be marked as function");
+Declaration Declaration::functionDecl(
+    std::string id,
+    Type ty,
+    std::vector<std::shared_ptr<Declaration>> params,
+    std::unique_ptr<CompoundStatementNode> body,
+    Location loc) {
+    for (auto& param : params) {
+        assert(
+            std::holds_alternative<Parameter>(param->kind) &&
+            "All function parameters must be parameter declarations");
+    }
+    return {id, ty, Function {params, std::move(body)}, loc};
 }
 
-void ParameterNode::accept(Visitor& visitor) {
-    visitor.visit(*this);
-}
+Declaration::Declaration(std::string id, Type ty, Kind kind, Location loc)
+    : Node {loc}, identifier {id}, type {ty}, kind {std::move(kind)} {}
 
 /***********************************************************************/
 // Expression Nodes
@@ -235,6 +213,13 @@ SubscriptExpressionNode::SubscriptExpressionNode(
     , index {std::move(index)} {}
 
 void SubscriptExpressionNode::accept(Visitor& visitor) {
+    visitor.visit(*this);
+}
+
+ImplicitCastNode::ImplicitCastNode(unique_ptr<VariableExpressionNode> lvalue)
+    : Node {lvalue->loc}, lvalue {std::move(lvalue)} {}
+
+void ImplicitCastNode::accept(Visitor& visitor) {
     visitor.visit(*this);
 }
 
@@ -319,7 +304,7 @@ void BoolLiteralExpressionNode::accept(Visitor& visitor) {
 // Statement Nodes
 
 CompoundStatementNode::CompoundStatementNode(
-    vector<shared_ptr<VariableDeclarationNode>> decls,
+    vector<shared_ptr<Declaration>> decls,
     vector<unique_ptr<StatementNode>> stmts,
     Location loc)
     : Node {loc}, local_decls {decls}, statements {std::move(stmts)} {}

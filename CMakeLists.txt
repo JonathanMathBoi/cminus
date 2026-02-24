@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.28)
 project(CMinus)
 
+find_package(LLVM REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
@@ -23,8 +32,14 @@ add_executable(CMinus
     src/symbol/SymbolVisitor.hpp
     src/semantics/SemanticVisitor.hpp
     src/semantics/SemanticVisitor.cpp
+    src/codegen/CodegenVisitor.hpp
+    src/codegen/CodegenVisitor.cpp
 )
 
-target_link_libraries(CMinus PRIVATE Boost::program_options)
+target_compile_options(CMinus PRIVATE -O0 -g)
 
-target_compile_options(CMinus PRIVATE -O1 -g)
+llvm_config(CMinus USE_SHARED support core irreader)
+
+target_link_libraries(CMinus ${llvm_libs})
+
+target_link_libraries(CMinus PRIVATE Boost::program_options)

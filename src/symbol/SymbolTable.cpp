@@ -17,7 +17,7 @@ SymbolTable::SymbolTable() : m_nestLevel {0}, m_table {} {
 
     // Insert all builtins to global scope
     for (auto& builtin : g_builtins) {
-        m_table[m_nestLevel].emplace(builtin->identifier, builtin);
+        insert(builtin);
     }
 }
 
@@ -35,7 +35,7 @@ unsigned SymbolTable::getNestLevel() const {
     return m_nestLevel;
 }
 
-void SymbolTable::insert(shared_ptr<DeclarationNode> node) {
+void SymbolTable::insert(shared_ptr<Declaration> node) {
     if (m_table[m_nestLevel].contains(node->identifier)) {
         throw MultipleDeclaredSymbolException {
             m_table[m_nestLevel].at(node->identifier), node};
@@ -44,8 +44,7 @@ void SymbolTable::insert(shared_ptr<DeclarationNode> node) {
     m_table[m_nestLevel].emplace(node->identifier, node);
 }
 
-shared_ptr<DeclarationNode> SymbolTable::lookup(
-    const std::string_view name) const {
+shared_ptr<Declaration> SymbolTable::lookup(const std::string_view name) const {
     // Needed so it can be used to index ScopeTable
     std::string name_cp {name};
     for (ScopeTable const& scope : m_table | std::views::reverse) {
@@ -60,8 +59,8 @@ shared_ptr<DeclarationNode> SymbolTable::lookup(
 /***********************************************************************/
 
 MultipleDeclaredSymbolException::MultipleDeclaredSymbolException(
-    shared_ptr<DeclarationNode> firstDecl,
-    shared_ptr<DeclarationNode> badDecl)
+    shared_ptr<Declaration> firstDecl,
+    shared_ptr<Declaration> badDecl)
     : SymbolException {badDecl->loc}
     , m_firstDecl {firstDecl}
     , m_badDecl {badDecl} {

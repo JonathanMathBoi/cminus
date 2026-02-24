@@ -1,22 +1,31 @@
-#ifndef PRINT_VISITOR_HPP
-#define PRINT_VISITOR_HPP
+#ifndef CODEGENVISITOR_HPP
+#define CODEGENVISITOR_HPP
 
 /***********************************************************************/
 
-#include "AST.hpp"
+#include "../ast/AST.hpp"
 
-#include <ostream>
+#include <memory>
+#include <optional>
+
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 
 /***********************************************************************/
 
-/// AST Visitor for printing AST
-class PrintVisitor : public Visitor {
+class CodegenVisitor : public Visitor {
 public:
-    /// Constructs a print visitor
+    /// \brief Constructs a CodegenVisitor with the given LLVM context and
+    /// module
     ///
-    /// \param out_stream the ostream to print the tree to
-    PrintVisitor(std::ostream& out_stream);
+    /// \param context the LLVM context
+    /// \param module the module to generate code in
+    CodegenVisitor(
+        std::shared_ptr<llvm::LLVMContext> context,
+        std::shared_ptr<llvm::Module> module);
 
+public:
     virtual void visit(ProgramNode& node) override;
 
     virtual void visit(Declaration& node) override;
@@ -24,8 +33,6 @@ public:
     virtual void visit(CompoundStatementNode& node) override;
     virtual void visit(IfStatementNode& node) override;
     virtual void visit(WhileStatementNode& node) override;
-    // Not parsing for statement yet
-    // virtual void visit(for_statement_node& node) override;
     virtual void visit(ReturnStatementNode& node) override;
     virtual void visit(ExpressionStatementNode& node) override;
 
@@ -37,22 +44,27 @@ public:
     virtual void visit(AdditiveExpressionNode& node) override;
     virtual void visit(MultiplicativeExpressionNode& node) override;
     virtual void visit(RelationalExpressionNode& node) override;
-    // Not parsing increment and decrement yet
-    // virtual void visit(unary_expression_node& node) override;
     virtual void visit(IntegerLiteralExpressionNode& node) override;
     virtual void visit(FloatLiteralExpressionNode& node) override;
     virtual void visit(BoolLiteralExpressionNode& node) override;
 
 private:
-    /// Prints the indent in front of the next to be printed element
-    std::string getIndent() const;
-    friend struct NestGuard;
+    /// Generates the code for the compiler builtin functions
+    void codegenBuiltins();
+
+    /// Gets the LLVM type of the use of a variable
+    llvm::Type* useType(Type const& type) const;
+    /// Gets the LLVM type of the declaration of a variable
+    llvm::Type* declType(
+        Type const& type,
+        std::optional<int> size = std::nullopt) const;
+    /// Gets the LLVM type for the base type of a type
+    llvm::Type* baseType(Type const& type) const;
 
 private:
-    /// The output stream to be printed to
-    std::ostream& m_output;
-    /// The current nest depth of the tree
-    unsigned m_currentDepth;
+    std::shared_ptr<llvm::LLVMContext> m_context;
+    std::shared_ptr<llvm::Module> m_module;
+    std::unique_ptr<llvm::IRBuilder<>> m_irBuilder;
 };
 
 /***********************************************************************/

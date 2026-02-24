@@ -2,6 +2,7 @@
 #include "AST.hpp"
 
 #include <ostream>
+#include <variant>
 
 /***********************************************************************/
 
@@ -37,33 +38,44 @@ void PrintVisitor::visit(ProgramNode& node) {
     m_output.flush();
 }
 
-void PrintVisitor::visit(FunctionDeclarationNode& node) {
-    m_output << getIndent() << "Function: " << node.identifier << ": "
-             << node.type.type << '\n';
+/***********************************************************************/
+// Declaration Visit
 
-    NestGuard guard {*this};
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
 
-    for (auto& param : node.parameters) {
-        param->accept(*this);
-    }
-
-    node.function_body->accept(*this);
+void PrintVisitor::visit(Declaration& node) {
+    std::visit(
+        overloaded {
+            [this, &node](Declaration::Variable& var) {
+                m_output << getIndent()
+                         << "Variable Declaration: " << node.identifier << ": "
+                         << node.type << '\n';
+            },
+            [this, &node](Declaration::Array& arr) {
+                m_output << getIndent()
+                         << "Array Declaration: " << node.identifier << '['
+                         << arr.size << "]: " << node.type << '\n';
+            },
+            [this, &node](Declaration::Parameter& param) {
+                m_output << getIndent() << "Parameter: " << node.identifier
+                         << ": " << node.type << '\n';
+            },
+            [this, &node](Declaration::Function& func) {
+                m_output << getIndent() << "Function: " << node.identifier
+                         << ": " << node.type << '\n';
+                NestGuard {*this};
+                for (auto& param : func.parameters) {
+                    param->accept(*this);
+                }
+                func.body->accept(*this);
+            }},
+        node.kind);
 }
 
-void PrintVisitor::visit(VariableDeclarationNode& node) {
-    m_output << getIndent() << "VariableDeclaration: " << node.identifier
-             << ": " << node.type.type << '\n';
-}
-
-void PrintVisitor::visit(ArrayDeclarationNode& node) {
-    m_output << getIndent() << "VariableDeclaration: " << node.identifier << "["
-             << node.size << "]: " << node.type.type << '\n';
-}
-
-void PrintVisitor::visit(ParameterNode& node) {
-    m_output << getIndent() << "Parameter: " << node.identifier << ": "
-             << node.type.type << '\n';
-}
+/***********************************************************************/
 
 void PrintVisitor::visit(CompoundStatementNode& node) {
     m_output << getIndent() << "CompoundStatement:\n";
@@ -146,7 +158,7 @@ void PrintVisitor::visit(VariableExpressionNode& node) {
     if (node.type) {
         m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent->type.type;
+        m_output << ": " << node.referent->type;
     }
 
     m_output << '\n';
@@ -158,7 +170,7 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
     if (node.type) {
         m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent->type.type;
+        m_output << ": " << node.referent->type;
     }
 
     m_output << '\n';
@@ -174,13 +186,26 @@ void PrintVisitor::visit(SubscriptExpressionNode& node) {
     }
 }
 
+void PrintVisitor::visit(ImplicitCastNode& node) {
+    m_output << getIndent() << "ImplicitCast: lvalue to rvalue";
+    if (node.type) {
+        m_output << ": " << *node.type << '\n';
+    } else {
+        m_output << '\n';
+    }
+
+    NestGuard guard {*this};
+
+    node.lvalue->accept(*this);
+}
+
 void PrintVisitor::visit(CallExpressionNode& node) {
     m_output << getIndent() << "FunctionCall: " << node.identifier;
 
     if (node.type) {
         m_output << ": " << *node.type;
     } else if (node.referent) {
-        m_output << ": " << node.referent->type.type;
+        m_output << ": " << node.referent->type;
     }
 
     m_output << '\n';

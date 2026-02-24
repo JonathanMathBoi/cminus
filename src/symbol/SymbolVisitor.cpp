@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string_view>
+#include <variant>
 
 /***********************************************************************/
 
@@ -19,34 +20,33 @@ void SymbolVisitor::visit(ProgramNode& node) {
     }
 }
 
-void SymbolVisitor::visit(FunctionDeclarationNode& node) {
-    m_table.enterScope();
+/***********************************************************************/
 
-    for (auto& param : node.parameters) {
-        m_table.insert(param);
-        param->nest_level = m_table.getNestLevel();
-        param->accept(*this);
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
+void SymbolVisitor::visit(Declaration& node) {
+    auto func {std::get_if<Declaration::Function>(&node.kind)};
+    if (func == nullptr) {
+        // Don't do anything
+        // Decls should be added be enclosing scope
+        return;
     }
 
-    node.function_body->accept(*this);
-
+    m_table.enterScope();
+    for (auto& param : func->parameters) {
+        m_table.insert(param);
+        param->nest_level = m_table.getNestLevel();
+        // probably unnececary
+        param->accept(*this);
+    }
+    func->body->accept(*this);
     m_table.exitScope();
 }
 
-void SymbolVisitor::visit(VariableDeclarationNode& node) {
-    // Don't do anything
-    // Should be handled and added by it's enclosing scope
-}
-
-void SymbolVisitor::visit(ArrayDeclarationNode& node) {
-    // Don't do anything
-    // Should be handled and added by it's enclosing scope
-}
-
-void SymbolVisitor::visit(ParameterNode& node) {
-    // Don't do anything
-    // Should be handled and added by it's enclosing scope
-}
+/***********************************************************************/
 
 void SymbolVisitor::visit(CompoundStatementNode& node) {
     if (!node.is_function_body) {
@@ -114,6 +114,10 @@ void SymbolVisitor::visit(VariableExpressionNode& node) {
 void SymbolVisitor::visit(SubscriptExpressionNode& node) {
     visit(static_cast<VariableExpressionNode&>(node));
     node.index->accept(*this);
+}
+
+void SymbolVisitor::visit(ImplicitCastNode& node) {
+    node.lvalue->accept(*this);
 }
 
 void SymbolVisitor::visit(CallExpressionNode& node) {
